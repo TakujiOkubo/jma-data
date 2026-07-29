@@ -503,6 +503,14 @@ def build(slug: str) -> Path:
                 if spec.get("note") else "")
         label = spec.get("label") or f"Chart {n}"
 
+        # An optional heading before this card, for a page that runs in parts —
+        # e.g. the article's own charts, then the model work behind them.
+        if spec.get("section"):
+            note = (f'<p class="secnote">{html.escape(spec["section_note"])}</p>'
+                    if spec.get("section_note") else "")
+            cards.append(f'<div class="section"><h2>{html.escape(spec["section"])}'
+                         f'</h2>{note}</div>')
+
         cards.append(f"""<section class="card" id="c{n}">
   <div class="chead">
     <span class="cnum">{html.escape(label)}</span>
@@ -568,6 +576,10 @@ PAGE = """<!DOCTYPE html>
        font-size:14px;font-weight:600;text-decoration:none;padding:9px 16px;
        border-radius:4px}}
   .btn:hover{{filter:brightness(1.07)}}
+  .section{{margin:38px 0 18px;border-top:2px solid {ink};padding-top:14px}}
+  .section h2{{font-size:15px;font-weight:700;letter-spacing:.04em;
+              text-transform:uppercase}}
+  .secnote{{font-size:14px;color:{grey};margin-top:6px;max-width:66ch}}
   .card{{background:#fff;border-radius:6px;padding:18px 20px 14px;margin-bottom:22px;
         box-shadow:0 1px 4px rgba(0,0,0,.07)}}
   .chead{{display:flex;justify-content:space-between;align-items:baseline;gap:12px}}
