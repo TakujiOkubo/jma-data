@@ -16,11 +16,16 @@ investment advice.
 
 ## Layout
 
+Two kinds of page live here: **article panels**, one per published piece, and
+**standing datasets** such as the yield-curve model output, which are refreshed
+per model vintage rather than per article.
+
 ```
-2026-07-20-long-climb/
+2026-07-20-long-climb/          an article panel
   index.html       the interactive panel  (generated — do not hand-edit)
   panel.json       the manifest: what each exhibit is and how it is drawn
   data/*.csv       one tidy file per exhibit, as the chart script emitted it
+jgb-yield-curve-model/          a standing dataset (refreshed per model vintage)
 builder/
   build_panel.py   panel.json + data/*.csv  ->  index.html
   build_index.py   every panel.json         ->  the landing page
@@ -59,8 +64,24 @@ to a vendored copy of the same values and says so.
 | kind | for | key fields |
 |------|-----|-----------|
 | `line` | time series | `x`, `start`/`end`, `series[]`, `hlines[]`, `yrange`, `decimals` |
+| `decomp` | components stacked to a total | `components[]`, `total`, `split_col` |
+| `curve` | a cross-section: maturity on the x-axis | `tenors[]`, `value_prefix`, `lines[]`, `xscale` |
 | `bar_line` | grouped bars with an overlay line | `resample`, `bars[]`, `line`, `flag_col` |
 | `table` | a table, not a series | `columns[]`, `rule_after_col`/`rule_after_value` |
+
+Any time-series kind accepts `split_col` / `solid_value`: set them and every
+series is drawn twice — solid over the rows matching `solid_value`, dotted over
+the rest, with a marked boundary — so a projection can never be mistaken for an
+observation.
+
+`decomp` stacks with `barmode: "relative"` rather than filling an area, because
+a component can be negative (the 10Y term premium is, in 92 months of the
+sample) and a negative component has to hang below the zero line while the
+positive one still rises from it.
+
+`curve` spaces maturities evenly by default. On a true linear axis 2Y and 5Y sit
+inside the leftmost 7% of a 40-year span, which crushes the part of the curve the
+policy rate actually moves. Pass `"xscale": "linear"` for year spacing.
 
 ## Why a manifest
 

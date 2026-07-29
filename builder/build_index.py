@@ -25,14 +25,18 @@ def main() -> Path:
         m = json.loads(mf.read_text(encoding="utf-8"))
         n_charts = len(m["charts"])
         packs.append((mf.parent.name, m, n_charts))
-    packs.sort(key=lambda p: p[0], reverse=True)   # slug starts with the date
+    # Article slugs start with their date; a standing dataset does not, so it
+    # carries an explicit "sort" key instead.
+    packs.sort(key=lambda p: p[1].get("sort") or p[0], reverse=True)
 
     rows = []
     for slug, m, n in packs:
+        meta = f'{html.escape(m["date"])} · {n} exhibits'
+        if m.get("post_url"):
+            meta += f' · <a href="{html.escape(m["post_url"])}">read the article</a>'
         rows.append(f"""<li class="pack">
   <a class="ptitle" href="{html.escape(slug)}/">{html.escape(m["title"])}</a>
-  <div class="pmeta">{html.escape(m["date"])} · {n} exhibits ·
-    <a href="{html.escape(m.get("post_url",""))}">read the article</a></div>
+  <div class="pmeta">{meta}</div>
   <p class="pdesc">{html.escape(m.get("standfirst",""))}</p>
 </li>""")
 
@@ -77,9 +81,10 @@ PAGE = """<!DOCTYPE html>
 <h1>Chart data</h1>
 <p class="intro">
   The data behind the charts in
-  <a href="https://takujiokubo.substack.com">my Substack articles</a>. Every chart
-  is the one published in the piece, redrawn so you can hover to read values, zoom
-  into a period, and download the underlying series as CSV. {n} article{plural} so far.
+  <a href="https://takujiokubo.substack.com">my Substack articles</a>, plus the
+  output of the JMA JGB yield-curve model. Every chart is redrawn so you can hover
+  to read values, zoom into a period, and download the underlying series as CSV.
+  {n} page{plural} so far.
 </p>
 <ul>
 {rows}

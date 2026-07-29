@@ -145,21 +145,61 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
     kept = [r for r in rows if in_window(r[xcol], start, end)]
     xs = [x_iso(r[xcol]) for r in kept]
 
+    # Optional history/projection split. When set, each series is drawn twice —
+    # solid over the rows whose split_col equals solid_value, dashed over the
+    # rest — so a reader can never mistake a projection for an observation.
+    split_col = spec.get("split_col")
+    solid_val = spec.get("solid_value", "actual")
+    if split_col:
+        is_solid = [str(r.get(split_col, "")).strip() == solid_val for r in kept]
+        boundary = max((i for i, s in enumerate(is_solid) if s), default=None)
+    else:
+        is_solid, boundary = None, None
+
     traces = []
     for s in spec["series"]:
         ys = [to_float(r.get(s["col"])) for r in kept]
         ys = [None if y is None else round(y, dec) for y in ys]
-        line = dict(color=s.get("color", T["BLUE"]), width=s.get("width", 2))
+        colour = s.get("color", T["BLUE"])
+        line = dict(color=colour, width=s.get("width", 2))
         if s.get("dash"):
             line["dash"] = s["dash"]
+
+        if not split_col:
+            traces.append(dict(
+                type="scatter", mode="lines", name=s["label"],
+                x=xs, y=ys, line=line, connectgaps=False,
+                hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
+            ))
+            continue
+
+        hist = [y if is_solid[i] else None for i, y in enumerate(ys)]
+        # the projection leg keeps the last observed point so the two legs join
+        proj = [y if (not is_solid[i] or i == boundary) else None
+                for i, y in enumerate(ys)]
         traces.append(dict(
-            type="scatter", mode="lines", name=s["label"],
-            x=xs, y=ys, line=line,
-            connectgaps=False,
+            type="scatter", mode="lines", name=s["label"], x=xs, y=hist,
+            line=line, connectgaps=False,
             hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
+        ))
+        traces.append(dict(
+            type="scatter", mode="lines", name=s["label"], x=xs, y=proj,
+            line=dict(color=colour, width=s.get("width", 2), dash="dot"),
+            connectgaps=False, showlegend=False,
+            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']} (forecast)</extra>",
         ))
 
     layout = base_layout(spec, T, legend=len(spec["series"]) > 1)
+
+    if boundary is not None and boundary + 1 < len(xs):
+        layout.setdefault("shapes", []).append(dict(
+            type="line", xref="x", x0=xs[boundary], x1=xs[boundary],
+            yref="paper", y0=0, y1=1,
+            line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
+        layout.setdefault("annotations", []).append(dict(
+            xref="x", x=xs[boundary], yref="paper", y=1.0, yanchor="bottom",
+            text="forecast →", showarrow=False, xanchor="left", xshift=4,
+            font=dict(size=11, color=T["GREY"])))
 
     # Reference lines (chart 1's 4% mark is the chart's whole argument, not decor)
     shapes, annos = [], []
@@ -248,6 +288,141 @@ def fig_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
     return dict(data=traces, layout=layout)
 
 
+def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
+    """Stacked decomposition: the components filled from the zero line, the
+    total drawn over them as a line.
+
+    Bars in ``relative`` mode, not a filled area stack. The term premium goes
+    negative — 2Y is below zero through much of the 2000s — and a negative
+    component has to hang below the axis while the positive one still rises
+    from it. An area stack cannot do that; ``barmode="relative"`` is exactly
+    this behaviour, and at monthly frequency the bars read as a filled block,
+    which is the intended look.
+    """
+    xcol = spec.get("x", "YM")
+    dec = spec.get("decimals", 3)
+    kept = [r for r in rows if in_window(r[xcol], spec.get("start"), spec.get("end"))]
+    xs = [x_iso(r[xcol]) for r in kept]
+
+    split_col = spec.get("split_col")
+    solid_val = spec.get("solid_value", "actual")
+    if split_col:
+        is_solid = [str(r.get(split_col, "")).strip() == solid_val for r in kept]
+        boundary = max((i for i, s in enumerate(is_solid) if s), default=None)
+    else:
+        is_solid, boundary = None, None
+
+    traces = []
+    for c in spec["components"]:
+        ys = [to_float(r.get(c["col"])) for r in kept]
+        ys = [None if v is None else round(v, dec) for v in ys]
+        marker = dict(color=c["color"], line=dict(width=0))
+        if is_solid:
+            # Projection bars are lightened. The dotted line above says the same
+            # thing for the total; the bars need their own signal or the fill
+            # reads as observed all the way to 2029.
+            marker["opacity"] = [1.0 if s else 0.45 for s in is_solid]
+        traces.append(dict(
+            type="bar", name=c["label"], x=xs, y=ys, marker=marker,
+            hovertemplate=f"%{{y:.{dec}f}}<extra>{c['label']}</extra>",
+        ))
+
+    tot = spec["total"]
+    tys = [to_float(r.get(tot["col"])) for r in kept]
+    tys = [None if v is None else round(v, dec) for v in tys]
+    colour = tot.get("color", T["INK"])
+    if is_solid:
+        hist = [v if is_solid[i] else None for i, v in enumerate(tys)]
+        proj = [v if (not is_solid[i] or i == boundary) else None
+                for i, v in enumerate(tys)]
+        traces.append(dict(type="scatter", mode="lines", name=tot["label"], x=xs,
+                           y=hist, line=dict(color=colour, width=2.2),
+                           connectgaps=False,
+                           hovertemplate=f"%{{y:.{dec}f}}<extra>{tot['label']}</extra>"))
+        traces.append(dict(type="scatter", mode="lines", name=tot["label"], x=xs,
+                           y=proj, showlegend=False,
+                           line=dict(color=colour, width=2.2, dash="dot"),
+                           connectgaps=False,
+                           hovertemplate=f"%{{y:.{dec}f}}"
+                                         f"<extra>{tot['label']} (forecast)</extra>"))
+    else:
+        traces.append(dict(type="scatter", mode="lines", name=tot["label"], x=xs,
+                           y=tys, line=dict(color=colour, width=2.2),
+                           connectgaps=False,
+                           hovertemplate=f"%{{y:.{dec}f}}<extra>{tot['label']}</extra>"))
+
+    layout = base_layout(spec, T, legend=True)
+    layout["barmode"] = "relative"
+    layout["bargap"] = 0
+    layout["shapes"] = [dict(type="line", xref="paper", x0=0, x1=1, yref="y",
+                             y0=0, y1=0, line=dict(color=T["INK"], width=1.1))]
+    if boundary is not None and boundary + 1 < len(xs):
+        layout["shapes"].append(dict(
+            type="line", xref="x", x0=xs[boundary], x1=xs[boundary],
+            yref="paper", y0=0, y1=1,
+            line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
+        layout["annotations"] = [dict(
+            xref="x", x=xs[boundary], yref="paper", y=1.0, yanchor="bottom",
+            text="forecast →", showarrow=False, xanchor="left", xshift=4,
+            font=dict(size=11, color=T["GREY"]))]
+    if spec.get("yrange"):
+        layout["yaxis"]["range"] = spec["yrange"]
+    return dict(data=traces, layout=layout)
+
+
+def fig_curve(spec: dict, rows: list[dict], T: dict) -> dict:
+    """A cross-section: maturity on the x-axis, one line per date.
+
+    The other kinds read down a column through time; this one reads across a
+    row. It is how a yield curve is actually looked at, and it is the only view
+    in which the shape of the forecast — steepening, flattening, inversion — is
+    the thing you see rather than something you infer from six separate panels.
+    """
+    xcol = spec.get("x", "YM")
+    dec = spec.get("decimals", 2)
+    tenors = spec["tenors"]
+    prefix = spec.get("value_prefix", "Yield_")
+    by_x = {r[xcol].strip(): r for r in rows}
+
+    # Maturities are spaced evenly by default rather than by their number of
+    # years. On a linear axis 2Y and 5Y sit inside the leftmost 7% of a 40-year
+    # span — crushed on a desktop and label-colliding on a phone — which hides
+    # exactly the part of the curve the policy rate moves. Set "xscale":
+    # "linear" to get true year spacing instead.
+    scale = spec.get("xscale", "category")
+    xvals = [f"{t}Y" for t in tenors] if scale == "category" else tenors
+
+    traces = []
+    for line in spec["lines"]:
+        r = by_x.get(line["ym"])
+        if r is None:
+            raise KeyError(f"{line['ym']} not in {spec['csv']}")
+        ys = [to_float(r.get(f"{prefix}{t}Y")) for t in tenors]
+        ys = [None if y is None else round(y, dec) for y in ys]
+        traces.append(dict(
+            type="scatter", mode="lines+markers", name=line["label"],
+            x=xvals, y=ys,
+            line=dict(color=line.get("color", T["BLUE"]),
+                      width=line.get("width", 2),
+                      **({"dash": line["dash"]} if line.get("dash") else {})),
+            marker=dict(size=6, color=line.get("color", T["BLUE"])),
+            hovertemplate=f"%{{y:.{dec}f}}<extra>{line['label']}</extra>",
+        ))
+
+    layout = base_layout(spec, T, legend=True)
+    layout["xaxis"].update(
+        title=dict(text=spec.get("xlabel", "Maturity"),
+                   font=dict(size=12, color=T["GREY"])),
+        **(dict(type="category")
+           if scale == "category"
+           else dict(type="linear", tickmode="array", tickvals=tenors,
+                     ticktext=[f"{t}Y" for t in tenors])),
+    )
+    layout["hovermode"] = "x unified"
+    layout["margin"]["b"] = layout["margin"]["b"] + 14   # room for the x title
+    return dict(data=traces, layout=layout)
+
+
 def base_layout(spec: dict, T: dict, legend: bool) -> dict:
     """The house frame: warm-gray canvas, white horizontal gridlines only, no
     spines, no tick marks, unified hover. Mirrors house_layout() in the chart
@@ -314,7 +489,9 @@ def build(slug: str) -> Path:
             inner = render_table(spec, rows)
         else:
             div_id = f"chart_{n}"
-            fig = (fig_bar_line if spec["kind"] == "bar_line" else fig_line)(spec, rows, T)
+            kinds = {"line": fig_line, "bar_line": fig_bar_line,
+                     "curve": fig_curve, "decomp": fig_decomp}
+            fig = kinds[spec["kind"]](spec, rows, T)
             figs.append((div_id, fig))
             h = spec.get("height", 470)
             inner = (f'<div class="plot" id="{div_id}" '
@@ -347,11 +524,19 @@ def build(slug: str) -> Path:
         workbook = (f'<a class="btn" href="{html.escape(m["workbook"])}" download>'
                     f'Download the full workbook (Excel)</a>')
 
+    # A standing dataset has no article to link back to; an article panel does.
+    meta = html.escape(m["date"])
+    if m.get("post_url"):
+        meta += f' · <a href="{html.escape(m["post_url"])}">read the article</a>'
+
     page = PAGE.format(
         title=html.escape(m["title"]),
-        date=html.escape(m["date"]),
+        meta=meta,
         standfirst=html.escape(m.get("standfirst", "")),
-        post_url=html.escape(m.get("post_url", "")),
+        footer_note=html.escape(m.get(
+            "footer_note",
+            "Every chart above is the one published in the article, "
+            "drawn from the same data.")),
         cards="\n".join(cards),
         figs_json=figs_json,
         plotly=PLOTLY_CDN,
@@ -417,7 +602,7 @@ PAGE = """<!DOCTYPE html>
 <header>
   <div class="kicker">Japan Macro Advisors — chart data</div>
   <h1>{title}</h1>
-  <div class="meta">Published {date} · <a href="{post_url}">read the article</a></div>
+  <div class="meta">{meta}</div>
   <p class="standfirst">{standfirst}</p>
   {workbook}
 </header>
@@ -425,7 +610,7 @@ PAGE = """<!DOCTYPE html>
 {cards}
 
 <footer>
-  Every chart above is the one published in the article, drawn from the same data.
+  {footer_note}
   Hover to read values, drag to zoom, double-click to reset. Each card links its
   own CSV.<br>
   Japan Macro Advisors is independent research. Nothing here constitutes
