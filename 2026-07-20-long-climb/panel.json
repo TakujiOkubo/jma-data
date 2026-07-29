@@ -1,0 +1,131 @@
+{
+  "slug": "2026-07-20-long-climb",
+  "title": "The Long Climb in JGB Yields Is Nearly Over",
+  "date": "20 July 2026",
+  "post_url": "https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly",
+  "standfirst": "JGB yields saw a historic rise between 2022 and 2026. Most of the rise came from higher inflation expectations and a normalization of term premia. Our analysis shows the Long Climb is likely nearly over.",
+
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. Windows, chart form and series labels are read off the same scripts' plotting code — the data CSV cannot carry them.",
+
+  "charts": [
+    {
+      "n": 1,
+      "kind": "line",
+      "title": "A 4% yield is a first for many in Japan",
+      "ylabel": "JGB par yield, %",
+      "source": "Source: MOF daily par-yield curve, JMA",
+      "csv": "data/chart-1-jgb-20y-40y-par-yields.csv",
+      "x": "date",
+      "decimals": 3,
+      "yrange": [0, 7.2],
+      "series": [
+        {"col": "jgb_20y_d", "label": "20Y", "color": "#378ADD", "width": 1.7},
+        {"col": "jgb_40y_d", "label": "40Y", "color": "#D85A30", "width": 1.9}
+      ],
+      "hlines": [{"y": 4.0, "label": "4%"}],
+      "note": "The 20Y, then the longest JGB, last closed above 4% in May 1995. The 40Y, now the longest, regained 4% on 18 May 2026 — a 31-year absence, closed and then given up again."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "Japan took its time returning to 'normal' yield",
+      "subtitle": "30-year yield: Gilts vs. JGBs vs. Bunds",
+      "ylabel": "Spot yield, %",
+      "source": "Source: BoE (GLC Nominal), Bundesbank (BBSIS ZST, via DBnomics), JMA JGB yield-curve model (RBF). Zero-coupon, month-end.",
+      "csv": "data/chart-2-30y-spot-jgb-gilt-bund.csv",
+      "x": "date",
+      "start": "2017-12-31",
+      "decimals": 3,
+      "series": [
+        {"col": "jgb_spot_30y_m", "label": "JGBs", "color": "#D85A30"},
+        {"col": "gilt_spot_30y_m", "label": "Gilts", "color": "#378ADD"},
+        {"col": "bund_spot_30y_m", "label": "Bunds", "color": "#EF9F27"}
+      ],
+      "note": "The CSV runs back to 2000; the published chart windows from end-2017 to show the pre-Covid base the gilt and bund climbed from. Zoom out to see the full file."
+    },
+    {
+      "n": 3,
+      "kind": "line",
+      "title": "The 40-year par yield is levelling off",
+      "ylabel": "40Y JGB par yield, %",
+      "source": "Source: MOF daily par-yield curve, JMA",
+      "csv": "data/chart-3-jgb-40y-par-yield.csv",
+      "x": "date",
+      "decimals": 3,
+      "yrange": [1.5, 4.4],
+      "series": [
+        {"col": "value", "label": "40Y JGB par yield", "color": "#D85A30"}
+      ],
+      "note": "Peak 4.043% on 19 May 2026; 3.801% on 16 July 2026."
+    },
+    {
+      "n": 4,
+      "kind": "bar_line",
+      "title": "Long-run rate i* rose by 100bp since 2021",
+      "ylabel": "Natural nominal rate, % (year-end)",
+      "source": "Source: BoJ Review 2026-J-5 six-model r* ensemble (JMA weighting), BoJ-CIE extended, JMA JGB yield-curve model. Year-end; 2026 as of July.",
+      "csv": "data/chart-4-natural-rate-anchor.csv",
+      "x": "ym",
+      "resample": "year_end",
+      "decimals": 2,
+      "yrange": [-0.52, 2.3],
+      "bars": [
+        {"col": "pi_star_10y", "label": "π* (10Y inflation expectations)", "color": "#378ADD"},
+        {"col": "r_star", "label": "r* (equilibrium real rate)", "color": "#D85A30"}
+      ],
+      "line": {"col": "i_star", "label": "i* = r* + π*", "color": "#2C2C2A"},
+      "flag_col": "provisional",
+      "note": "Both components are baselined at zero rather than stacked, so a negative r* points down — the bar tops do not sum to i*, which is why the line carries the sum explicitly. Faded bars are provisional: r* is measured only through December 2024. The underlying data is monthly; the chart samples year-end, which is what the article's figures quote."
+    },
+    {
+      "n": 5,
+      "kind": "line",
+      "title": "10Y TP: ACM overestimates the rise in 2022-26",
+      "ylabel": "10Y term premium, bp",
+      "source": "Source: JMA",
+      "csv": "data/chart-5-tp-10y-jma-vs-acm.csv",
+      "x": "ym",
+      "decimals": 2,
+      "series": [
+        {"col": "tp_10y_bp", "label": "JMA model", "color": "#378ADD"},
+        {"col": "tp_acm_10y_bp", "label": "Standard ACM", "color": "#D85A30"}
+      ],
+      "note": "Basis points, not percent. Over 2022-2026 the standard model puts the rise at +157bp against our +70bp."
+    },
+    {
+      "n": 6,
+      "kind": "line",
+      "title": "40Y TP starting to level off",
+      "ylabel": "Term premium, %",
+      "source": "Source: JMA",
+      "csv": "data/chart-6-tp-30y-40y.csv",
+      "x": "ym",
+      "start": "2010-01",
+      "decimals": 3,
+      "series": [
+        {"col": "tp_30y", "label": "30Y", "color": "#378ADD"},
+        {"col": "tp_40y", "label": "40Y", "color": "#D85A30"}
+      ],
+      "note": "The 40Y series begins in November 2007, when the 40Y JGB was first issued; the published window starts in 2010 so both lines are present throughout."
+    },
+    {
+      "n": 7,
+      "kind": "table",
+      "label": "Chart 7",
+      "title": "JGB spot yield forecast, %",
+      "source": "Source: JMA",
+      "csv": "data/chart-7-spot-yield-forecast.csv",
+      "columns": [
+        {"col": "label", "label": ""},
+        {"col": "5Y", "label": "5Y"},
+        {"col": "10Y", "label": "10Y"},
+        {"col": "20Y", "label": "20Y"},
+        {"col": "30Y", "label": "30Y"},
+        {"col": "40Y", "label": "40Y"}
+      ],
+      "rule_after_col": "kind",
+      "rule_after_value": "actual",
+      "note": "Spot (zero-coupon) yields. The article quotes MoF par yields elsewhere — for the 40Y that is 3.80% par against 4.09% spot for the same bond. The first row is the actual origin, the three below it are forecasts."
+    }
+  ]
+}
