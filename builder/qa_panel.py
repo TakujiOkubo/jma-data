@@ -352,6 +352,9 @@ def qa_yield_curve(root, manifest, page, figs) -> None:
     gate('href="https://takujiokubo.substack.com/p/'
          'the-long-climb-in-jgb-yields-is-nearly"' in page,
          "intro links the report")
+    gate('href="https://takujiokubo.substack.com/p/'
+         'japans-fiscal-vigilantes-are-mis"' in page,
+         "What-goes-in links the curve-shape report")
     for head in ["What the model is.", "Why we do not use a standard model.",
                  "What goes in.", "What we publish, and what we do not."]:
         gate(f"<strong>{head}</strong>" in page, f"About block: {head}")
