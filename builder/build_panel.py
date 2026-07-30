@@ -74,10 +74,12 @@ TOP_BANNER = ("The charts and data on this page are free to use and reproduce "
               "with attribution to Japan Macro Advisors.")
 BOTTOM_BANNER = ("The charts and data on this page are free to use and "
                  "reproduce with attribution to Japan Macro Advisors. Paid "
-                 "subscribers receive the Excel workbooks behind each report, "
-                 "regular outputs from this yield curve model, updated "
-                 "estimates on request, and priority replies in English or "
-                 "Japanese.")
+                 "subscribers have access to our Yield Curve Model estimate "
+                 "output, including historical term premia decomposition "
+                 "estimates as well as our forecasts that are periodically "
+                 "updated. Paid subscribers are encouraged to send questions "
+                 "on my research and receive priority in my replies in "
+                 "either English or Japanese.")
 SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
                    "does not constitute investment advice or an offer or "
