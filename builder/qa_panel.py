@@ -71,10 +71,12 @@ TOP_BANNER = ("The charts and data on this page are free to use and reproduce "
               "with attribution to Japan Macro Advisors.")
 BOTTOM_BANNER = ("The charts and data on this page are free to use and "
                  "reproduce with attribution to Japan Macro Advisors. Paid "
-                 "subscribers receive the Excel workbooks behind each report, "
-                 "regular outputs from this yield curve model, updated "
-                 "estimates on request, and priority replies in English or "
-                 "Japanese.")
+                 "subscribers have access to our Yield Curve Model estimate "
+                 "output, including historical term premia decomposition "
+                 "estimates as well as our forecasts that are periodically "
+                 "updated. Paid subscribers are encouraged to send questions "
+                 "on my research and receive priority in my replies in "
+                 "either English or Japanese.")
 DISCLAIMER = ("This report is provided for information purposes only. It "
               "does not constitute investment advice or an offer or "
               "solicitation to buy or sell any security. While the "
@@ -207,45 +209,12 @@ def qa_long_climb(root, manifest, page, figs) -> None:
         gate(row_ok, f"row '{r['label']}' values present verbatim")
     gate('class="rule"' in page, "actual/forecast rule drawn")
 
-    # ---- charts 8-11: the decomposition follow-ups -------------------------
-    # These carry claims in their captions ("of the 2.55pp rise ... 1.89pp is
-    # expectations"). A caption is a number like any other and gets a gate:
-    # recomputed here from what the page actually plots.
-    print("\nCharts 8-11 — decomposition at each maturity")
-    claimed = {                     # tenor: (rise, from expectations, from TP)
-        "10Y": (2.55, 1.89, 0.66),
-        "20Y": (3.15, 1.83, 1.31),
-        "30Y": (3.47, 1.71, 1.76),
-        "40Y": (3.26, 1.65, 1.61),
-    }
-    for n, tenor in zip(range(8, 12), ["10Y", "20Y", "30Y", "40Y"]):
-        f = figs[f"chart_{n}"]
-        bars = [t for t in f["data"] if t["type"] == "bar"]
-        lines = [t for t in f["data"] if t["type"] == "scatter"]
-        total = [a if a is not None else b for a, b in zip(lines[0]["y"], lines[1]["y"])]
-        rn, tp = bars[0]["y"], bars[1]["y"]
-
-        breaks = sum(1 for i in range(len(total))
-                     if None not in (total[i], rn[i], tp[i])
-                     and abs(total[i] - (rn[i] + tp[i])) > 2e-3)
-        gate(not breaks, f"{tenor}: yield = expectations + term premium throughout")
-
-        xs = [x[:7] for x in lines[0]["x"]]
-        i0, i1 = xs.index("2022-01"), xs.index("2026-07")
-        got = (total[i1] - total[i0], rn[i1] - rn[i0], tp[i1] - tp[i0])
-        want = claimed[tenor]
-        off = max(abs(g - w) for g, w in zip(got, want))
-        gate(off <= 0.006,
-             f"{tenor}: the caption's 2022-26 split matches the plotted data",
-             f"rise {got[0]:.2f} / exp {got[1]:.2f} / TP {got[2]:.2f}pp")
-        gate(f["layout"]["barmode"] == "relative", f"{tenor}: relative stacking")
-
-    f40 = figs["chart_11"]
-    t40 = [t for t in f40["data"] if t["type"] == "bar"][1]
-    first = next(i for i, v in enumerate(t40["y"]) if v is not None)
-    gate(t40["x"][first][:7] == "2007-11",
-         "40Y decomposition starts at first issuance, Nov 2007", t40["x"][first][:7])
-    gate("Behind the article" in page, "section divider rendered before chart 8")
+    # The decomposition follow-ups (former charts 8-11) were removed
+    # 2026-07-30: the page is the free public teaser, and the decomposition
+    # is now the paid model page's content.
+    gate("Behind the article" not in page,
+         "the model-output section is gone (teaser page carries the "
+         "published exhibits only)")
 
 
 TP_COLORS = {"5Y": "#A8CEEE", "10Y": "#378ADD", "20Y": "#888780",
