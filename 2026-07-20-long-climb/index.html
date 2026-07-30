@@ -4,194 +4,248 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Long Climb in JGB Yields Is Nearly Over — data | Japan Macro Advisors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
+  /* Web Report page identity — WEB_REPORT_GUIDE.md §Page style tokens.
+     The charts inside the frames keep the Plotly house theme untouched. */
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:DejaVu Sans, Segoe UI, system-ui, sans-serif;background:#E9E7E0;color:#2C2C2A;
-       line-height:1.55;padding:28px 20px 56px;max-width:1080px;margin:0 auto}
-  header{margin-bottom:26px}
-  .kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#888780}
-  header h1{font-size:27px;line-height:1.25;margin:8px 0 6px;font-weight:700}
-  header .meta{font-size:13px;color:#888780}
-  header .standfirst{font-size:15px;color:#2C2C2A;margin-top:12px;max-width:62ch}
-  .btn{display:inline-block;margin-top:16px;background:#378ADD;color:#fff;
-       font-size:14px;font-weight:600;text-decoration:none;padding:9px 16px;
-       border-radius:4px}
-  .btn:hover{filter:brightness(1.07)}
-  .section{margin:38px 0 18px;border-top:2px solid #2C2C2A;padding-top:14px}
-  .section h2{font-size:15px;font-weight:700;letter-spacing:.04em;
-              text-transform:uppercase}
-  .secnote{font-size:14px;color:#888780;margin-top:6px;max-width:66ch}
-  .card{background:#fff;border-radius:6px;padding:18px 20px 14px;margin-bottom:22px;
-        box-shadow:0 1px 4px rgba(0,0,0,.07)}
-  .chead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-  .cnum{font-size:12px;font-weight:700;letter-spacing:.06em;color:#888780;
-        text-transform:uppercase}
-  .dl{font-size:12px;color:#378ADD;text-decoration:none;white-space:nowrap}
-  .dl:hover{text-decoration:underline}
-  .card h2{font-size:19px;line-height:1.3;margin:6px 0 2px;font-weight:700}
-  .sub{font-size:13px;color:#888780;margin-bottom:8px}
-  .plot{margin-top:8px}
-  .src{font-size:11px;color:#888780;margin-top:10px;line-height:1.5}
-  .note{font-size:11px;color:#888780;margin-top:6px;font-style:italic}
-  .tablewrap{overflow-x:auto;margin-top:10px}
-  table.fc{border-collapse:collapse;font-size:14px;min-width:460px;width:100%}
-  table.fc th{text-align:right;font-weight:600;color:#888780;font-size:12px;
+  body{font-family:'PT Serif',Georgia,serif;background:#FCFBF8;color:#2a2a28;
+       line-height:1.7;padding:40px 20px 80px;max-width:880px;margin:0 auto}
+  a{color:#3b65a2;text-decoration:none}
+  a:hover{color:#2c4d7e;text-decoration:underline}
+  .text{max-width:680px;margin-left:auto;margin-right:auto}
+  .mrow{display:flex;justify-content:space-between;align-items:flex-end;
+        padding-bottom:12px;border-bottom:2px solid #1c1c1c}
+  .mrow img{height:24px;width:auto;display:block}
+  .mdate{font:400 12px 'Public Sans',sans-serif;color:#737373}
+  .mrow2{display:flex;justify-content:space-between;align-items:baseline;
+         padding-top:6px}
+  .tagline{font:italic 400 12px 'PT Serif',serif;color:#8a8a82}
+  .slabel{font:600 10.5px 'Public Sans',sans-serif;letter-spacing:1.6px;
+          color:#a08a5f;text-transform:uppercase}
+  .banner{background:#f2f1ec;border:1px solid #e2e0d8;padding:11px 18px;
+          margin:22px auto 0;max-width:680px;
+          font:400 13px/1.55 'Public Sans',sans-serif;color:#54544e}
+  .banner.bottom{margin-top:48px;padding:18px 20px;font-size:13.5px}
+  .btn{display:inline-block;margin-top:12px;background:#3b65a2;color:#fff;
+       font:600 14px 'Public Sans',sans-serif;text-decoration:none;
+       padding:9px 16px;border-radius:4px}
+  .btn:hover{background:#2c4d7e;color:#fff;text-decoration:none}
+  header{margin-top:36px}
+  header h1{font:700 36px/1.2 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px;
+            text-wrap:balance}
+  header .meta{font:400 13px 'Public Sans',sans-serif;color:#737373;
+               margin-bottom:14px}
+  .stamp{background:#f2f1ec;border:1px solid #e2e0d8;padding:14px 18px;
+         margin:0 0 18px;font:400 15.5px/1.55 'PT Serif',serif;color:#2c2c2a}
+  .intro,.standfirst{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+                     margin:0 0 6px;text-wrap:pretty}
+  .card{margin-top:46px}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;
+         gap:12px}
+  .cnum{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
+        color:#737373;text-transform:uppercase}
+  .dl{font:400 12px 'Public Sans',sans-serif;white-space:nowrap}
+  .card h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:6px 0 4px}
+  .sub{font:400 13px 'Public Sans',sans-serif;color:#737373;margin-bottom:2px}
+  .fig{margin:14px 0 0}
+  .frame{border:1px solid #e4e2da;background:#E9E7E0}
+  figcaption,.figcap{max-width:680px;margin:8px auto 0;
+    font:400 12.5px/1.5 'Public Sans',sans-serif;color:#8a8a82}
+  .capnote{font-style:italic}
+  .section{margin:56px 0 0;border-top:2px solid #1c1c1c;padding-top:16px}
+  .section h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c}
+  .secnote{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373;
+           margin-top:8px}
+  .tablewrap{overflow-x:auto;margin-top:14px}
+  table.fc{border-collapse:collapse;min-width:460px;width:100%;
+           font:400 14px 'Public Sans',sans-serif}
+  table.fc th{text-align:right;font-weight:600;color:#737373;font-size:12px;
               padding:7px 12px;border-bottom:1.5px solid #888780}
   table.fc th:first-child{text-align:left}
   table.fc td{text-align:right;padding:8px 12px;border-bottom:1px solid #EDEBE4}
   table.fc td:first-child{text-align:left;font-weight:600}
-  table.fc tr.rule td{border-bottom:2px solid #2C2C2A}
-  footer{font-size:12px;color:#888780;margin-top:30px;line-height:1.7}
-  footer a{color:#378ADD}
+  table.fc tr.rule td{border-bottom:2px solid #1c1c1c}
+  .about{margin-top:60px}
+  .about h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px}
+  .about p{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;margin:0 0 18px;
+           text-wrap:pretty}
+  .refs{border-top:1px solid #d8d6ce;padding-top:16px;margin-top:26px}
+  .refslabel{font:700 12px 'Public Sans',sans-serif;letter-spacing:1.4px;
+             color:#737373;text-transform:uppercase;margin-bottom:10px}
+  .refs p{font:400 13.5px/1.6 'PT Serif',serif;color:#54544e;margin:0 0 10px}
+  .endnote{font:400 13px/1.7 'Public Sans',sans-serif;color:#737373;
+           margin-top:44px}
+  .disclaimer{font:400 10.5px/1.55 'Public Sans',sans-serif;color:#9a9a92;
+              margin:14px auto 0;max-width:680px;text-wrap:pretty}
+  .nav{font:400 12px 'Public Sans',sans-serif;color:#9a9a92;margin:10px auto 0;
+       max-width:680px}
   @media(max-width:640px){
-    body{padding:18px 12px 40px}
-    header h1{font-size:22px}
-    .card{padding:14px 12px 10px}
-    .card h2{font-size:17px}
+    body{padding:24px 12px 48px}
+    header h1{font-size:26px}
+    .card h2{font-size:19px}
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="kicker">Japan Macro Advisors — chart data</div>
+<div class="text">
+  <div class="mrow">
+    <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
+    <span class="mdate">20 July 2026</span>
+  </div>
+  <div class="mrow2">
+    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="slabel">Chart data</span>
+  </div>
+</div>
+
+<div class="banner top">The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors.</div>
+
+<header class="text">
   <h1>The Long Climb in JGB Yields Is Nearly Over</h1>
   <div class="meta">20 July 2026 · <a href="https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly">read the article</a></div>
+  
   <p class="standfirst">JGB yields saw a historic rise between 2022 and 2026. Most of the rise came from higher inflation expectations and a normalization of term premia. Our analysis shows the Long Climb is likely nearly over.</p>
   
 </header>
 
 <section class="card" id="c1">
-  <div class="chead">
-    <span class="cnum">Chart 1</span>
-    <a class="dl" href="data/chart-1-jgb-20y-40y-par-yields.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 1</span>
+      <a class="dl" href="data/chart-1-jgb-20y-40y-par-yields.csv" download>Download CSV</a>
+    </div>
+    <h2>A 4% yield is a first for many in Japan</h2>
+    
   </div>
-  <h2>A 4% yield is a first for many in Japan</h2>
-  
-  <div class="plot" id="chart_1" style="height:470px;width:100%"></div>
-  <p class="src">Source: MOF daily par-yield curve, JMA</p>
-  <p class="note">The 20Y, then the longest JGB, last closed above 4% in May 1995. The 40Y, now the longest, regained 4% on 18 May 2026 — a 31-year absence, closed and then given up again.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_1" style="height:470px;width:100%"></div></div><figcaption>Source: MOF daily par-yield curve, JMA<br><span class="capnote">The 20Y, then the longest JGB, last closed above 4% in May 1995. The 40Y, now the longest, regained 4% on 18 May 2026 — a 31-year absence, closed and then given up again.</span></figcaption></figure>
 </section>
 <section class="card" id="c2">
-  <div class="chead">
-    <span class="cnum">Chart 2</span>
-    <a class="dl" href="data/chart-2-30y-spot-jgb-gilt-bund.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 2</span>
+      <a class="dl" href="data/chart-2-30y-spot-jgb-gilt-bund.csv" download>Download CSV</a>
+    </div>
+    <h2>Japan took its time returning to &#x27;normal&#x27; yield</h2>
+    <p class="sub">30-year yield: Gilts vs. JGBs vs. Bunds</p>
   </div>
-  <h2>Japan took its time returning to &#x27;normal&#x27; yield</h2>
-  <p class="sub">30-year yield: Gilts vs. JGBs vs. Bunds</p>
-  <div class="plot" id="chart_2" style="height:470px;width:100%"></div>
-  <p class="src">Source: BoE (GLC Nominal), Bundesbank (BBSIS ZST, via DBnomics), JMA JGB yield-curve model (RBF). Zero-coupon, month-end.</p>
-  <p class="note">The CSV runs back to 2000; the published chart windows from end-2017 to show the pre-Covid base the gilt and bund climbed from. Zoom out to see the full file.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_2" style="height:470px;width:100%"></div></div><figcaption>Source: BoE (GLC Nominal), Bundesbank (BBSIS ZST, via DBnomics), JMA JGB yield-curve model (RBF). Zero-coupon, month-end.<br><span class="capnote">The CSV runs back to 2000; the published chart windows from end-2017 to show the pre-Covid base the gilt and bund climbed from. Zoom out to see the full file.</span></figcaption></figure>
 </section>
 <section class="card" id="c3">
-  <div class="chead">
-    <span class="cnum">Chart 3</span>
-    <a class="dl" href="data/chart-3-jgb-40y-par-yield.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 3</span>
+      <a class="dl" href="data/chart-3-jgb-40y-par-yield.csv" download>Download CSV</a>
+    </div>
+    <h2>The 40-year par yield is levelling off</h2>
+    
   </div>
-  <h2>The 40-year par yield is levelling off</h2>
-  
-  <div class="plot" id="chart_3" style="height:470px;width:100%"></div>
-  <p class="src">Source: MOF daily par-yield curve, JMA</p>
-  <p class="note">Peak 4.043% on 19 May 2026; 3.801% on 16 July 2026.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_3" style="height:470px;width:100%"></div></div><figcaption>Source: MOF daily par-yield curve, JMA<br><span class="capnote">Peak 4.043% on 19 May 2026; 3.801% on 16 July 2026.</span></figcaption></figure>
 </section>
 <section class="card" id="c4">
-  <div class="chead">
-    <span class="cnum">Chart 4</span>
-    <a class="dl" href="data/chart-4-natural-rate-anchor.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 4</span>
+      <a class="dl" href="data/chart-4-natural-rate-anchor.csv" download>Download CSV</a>
+    </div>
+    <h2>Long-run rate i* rose by 100bp since 2021</h2>
+    
   </div>
-  <h2>Long-run rate i* rose by 100bp since 2021</h2>
-  
-  <div class="plot" id="chart_4" style="height:470px;width:100%"></div>
-  <p class="src">Source: BoJ Review 2026-J-5 six-model r* ensemble (JMA weighting), BoJ-CIE extended, JMA JGB yield-curve model. Year-end; 2026 as of July.</p>
-  <p class="note">Both components are baselined at zero rather than stacked, so a negative r* points down — the bar tops do not sum to i*, which is why the line carries the sum explicitly. Faded bars are provisional: r* is measured only through December 2024. The underlying data is monthly; the chart samples year-end, which is what the article&#x27;s figures quote.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_4" style="height:470px;width:100%"></div></div><figcaption>Source: BoJ Review 2026-J-5 six-model r* ensemble (JMA weighting), BoJ-CIE extended, JMA JGB yield-curve model. Year-end; 2026 as of July.<br><span class="capnote">Both components are baselined at zero rather than stacked, so a negative r* points down — the bar tops do not sum to i*, which is why the line carries the sum explicitly. Faded bars are provisional: r* is measured only through December 2024. The underlying data is monthly; the chart samples year-end, which is what the article&#x27;s figures quote.</span></figcaption></figure>
 </section>
 <section class="card" id="c5">
-  <div class="chead">
-    <span class="cnum">Chart 5</span>
-    <a class="dl" href="data/chart-5-tp-10y-jma-vs-acm.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 5</span>
+      <a class="dl" href="data/chart-5-tp-10y-jma-vs-acm.csv" download>Download CSV</a>
+    </div>
+    <h2>10Y TP: ACM overestimates the rise in 2022-26</h2>
+    
   </div>
-  <h2>10Y TP: ACM overestimates the rise in 2022-26</h2>
-  
-  <div class="plot" id="chart_5" style="height:470px;width:100%"></div>
-  <p class="src">Source: JMA</p>
-  <p class="note">Basis points, not percent. Over 2022-2026 the standard model puts the rise at +157bp against our +70bp.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_5" style="height:470px;width:100%"></div></div><figcaption>Source: JMA<br><span class="capnote">Basis points, not percent. Over 2022-2026 the standard model puts the rise at +157bp against our +70bp.</span></figcaption></figure>
 </section>
 <section class="card" id="c6">
-  <div class="chead">
-    <span class="cnum">Chart 6</span>
-    <a class="dl" href="data/chart-6-tp-30y-40y.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 6</span>
+      <a class="dl" href="data/chart-6-tp-30y-40y.csv" download>Download CSV</a>
+    </div>
+    <h2>40Y TP starting to level off</h2>
+    
   </div>
-  <h2>40Y TP starting to level off</h2>
-  
-  <div class="plot" id="chart_6" style="height:470px;width:100%"></div>
-  <p class="src">Source: JMA</p>
-  <p class="note">The 40Y series begins in November 2007, when the 40Y JGB was first issued; the published window starts in 2010 so both lines are present throughout.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_6" style="height:470px;width:100%"></div></div><figcaption>Source: JMA<br><span class="capnote">The 40Y series begins in November 2007, when the 40Y JGB was first issued; the published window starts in 2010 so both lines are present throughout.</span></figcaption></figure>
 </section>
 <section class="card" id="c7">
-  <div class="chead">
-    <span class="cnum">Chart 7</span>
-    <a class="dl" href="data/chart-7-spot-yield-forecast.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 7</span>
+      <a class="dl" href="data/chart-7-spot-yield-forecast.csv" download>Download CSV</a>
+    </div>
+    <h2>JGB spot yield forecast, %</h2>
+    
   </div>
-  <h2>JGB spot yield forecast, %</h2>
-  
-  <div class="tablewrap"><table class="fc"><thead><tr><th></th><th>5Y</th><th>10Y</th><th>20Y</th><th>30Y</th><th>40Y</th></tr></thead><tbody><tr class="rule"><td>Current (17 Jul 2026)</td><td>1.94</td><td>2.74</td><td>3.75</td><td>4.26</td><td>4.09</td></tr><tr><td>Dec 2026</td><td>2.24</td><td>3.01</td><td>3.82</td><td>4.22</td><td>4.12</td></tr><tr><td>Dec 2027</td><td>2.56</td><td>3.28</td><td>3.75</td><td>3.92</td><td>4.04</td></tr><tr><td>Dec 2028</td><td>2.49</td><td>3.16</td><td>3.72</td><td>3.86</td><td>4.03</td></tr></tbody></table></div>
-  <p class="src">Source: JMA</p>
-  <p class="note">Spot (zero-coupon) yields. The article quotes MoF par yields elsewhere — for the 40Y that is 3.80% par against 4.09% spot for the same bond. The first row is the actual origin, the three below it are forecasts.</p>
+  <div class="text"><div class="tablewrap"><table class="fc"><thead><tr><th></th><th>5Y</th><th>10Y</th><th>20Y</th><th>30Y</th><th>40Y</th></tr></thead><tbody><tr class="rule"><td>Current (17 Jul 2026)</td><td>1.94</td><td>2.74</td><td>3.75</td><td>4.26</td><td>4.09</td></tr><tr><td>Dec 2026</td><td>2.24</td><td>3.01</td><td>3.82</td><td>4.22</td><td>4.12</td></tr><tr><td>Dec 2027</td><td>2.56</td><td>3.28</td><td>3.75</td><td>3.92</td><td>4.04</td></tr><tr><td>Dec 2028</td><td>2.49</td><td>3.16</td><td>3.72</td><td>3.86</td><td>4.03</td></tr></tbody></table></div><p class="figcap">Source: JMA<br><span class="capnote">Spot (zero-coupon) yields. The article quotes MoF par yields elsewhere — for the 40Y that is 3.80% par against 4.09% spot for the same bond. The first row is the actual origin, the three below it are forecasts.</span></p></div>
 </section>
-<div class="section"><h2>Behind the article: the decomposition at each maturity</h2><p class="secnote">The article argues the Long Climb was driven by two forces — the end of deflation lifting expected policy rates, and term premia normalising as the BoJ withdrew. These four charts show that split directly, at each long maturity. Reading down them, the balance shifts: at 10 years roughly three-quarters of the rise since January 2022 is expectations, while at 30 and 40 years the term premium accounts for about half. Same model, same vintage, as the yield-curve model page.</p></div>
+<div class="text"><div class="section"><h2>Behind the article: the decomposition at each maturity</h2><p class="secnote">The article argues the Long Climb was driven by two forces — the end of deflation lifting expected policy rates, and term premia normalising as the BoJ withdrew. These four charts show that split directly, at each long maturity. Reading down them, the balance shifts: at 10 years roughly three-quarters of the rise since January 2022 is expectations, while at 30 and 40 years the term premium accounts for about half. Same model, same vintage, as the yield-curve model page.</p></div></div>
 <section class="card" id="c8">
-  <div class="chead">
-    <span class="cnum">Chart 8</span>
-    <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 8</span>
+      <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+    </div>
+    <h2>At 10 years, the rise is mostly about expected policy rates</h2>
+    <p class="sub">10Y spot yield decomposed into expected policy rates and the term premium</p>
   </div>
-  <h2>At 10 years, the rise is mostly about expected policy rates</h2>
-  <p class="sub">10Y spot yield decomposed into expected policy rates and the term premium</p>
-  <div class="plot" id="chart_8" style="height:470px;width:100%"></div>
-  <p class="src">Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.</p>
-  <p class="secnote">The article argues the Long Climb was driven by two forces — the end of deflation lifting expected policy rates, and term premia normalising as the BoJ withdrew. These four charts show that split directly, at each long maturity. Reading down them, the balance shifts: at 10 years roughly three-quarters of the rise since January 2022 is expectations, while at 30 and 40 years the term premium accounts for about half. Same model, same vintage, as the yield-curve model page.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_8" style="height:470px;width:100%"></div></div><figcaption>Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.<br><span class="capnote">Of the 2.55pp rise between January 2022 and July 2026, 1.89pp is higher expected policy rates and 0.66pp is a wider term premium. The term premium was slightly negative in January 2022 and is 0.64% now — still below its 1.34% high of July 2004.</span></figcaption></figure>
 </section>
 <section class="card" id="c9">
-  <div class="chead">
-    <span class="cnum">Chart 9</span>
-    <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 9</span>
+      <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+    </div>
+    <h2>At 20 years, the term premium takes a larger share</h2>
+    <p class="sub">20Y spot yield decomposed into expected policy rates and the term premium</p>
   </div>
-  <h2>At 20 years, the term premium takes a larger share</h2>
-  <p class="sub">20Y spot yield decomposed into expected policy rates and the term premium</p>
-  <div class="plot" id="chart_9" style="height:470px;width:100%"></div>
-  <p class="src">Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.</p>
-  <p class="note">Of the 3.15pp rise since January 2022, 1.83pp is expectations and 1.31pp the term premium — 42% against 26% at the 10-year point.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_9" style="height:470px;width:100%"></div></div><figcaption>Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.<br><span class="capnote">Of the 3.15pp rise since January 2022, 1.83pp is expectations and 1.31pp the term premium — 42% against 26% at the 10-year point.</span></figcaption></figure>
 </section>
 <section class="card" id="c10">
-  <div class="chead">
-    <span class="cnum">Chart 10</span>
-    <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 10</span>
+      <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+    </div>
+    <h2>At 30 years, the term premium did just over half the work</h2>
+    <p class="sub">30Y spot yield decomposed into expected policy rates and the term premium</p>
   </div>
-  <h2>At 30 years, the term premium did just over half the work</h2>
-  <p class="sub">30Y spot yield decomposed into expected policy rates and the term premium</p>
-  <div class="plot" id="chart_10" style="height:470px;width:100%"></div>
-  <p class="src">Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.</p>
-  <p class="note">Of the 3.47pp rise since January 2022, 1.76pp is the term premium against 1.71pp from expectations. This is the tenor the article flags as still moderately elevated: the 30Y term premium is 2.07%, essentially at its 2.08% high of June 2026, and has not yet turned down the way the 40Y has.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_10" style="height:470px;width:100%"></div></div><figcaption>Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.<br><span class="capnote">Of the 3.47pp rise since January 2022, 1.76pp is the term premium against 1.71pp from expectations. This is the tenor the article flags as still moderately elevated: the 30Y term premium is 2.07%, essentially at its 2.08% high of June 2026, and has not yet turned down the way the 40Y has.</span></figcaption></figure>
 </section>
 <section class="card" id="c11">
-  <div class="chead">
-    <span class="cnum">Chart 11</span>
-    <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 11</span>
+      <a class="dl" href="../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv" download>Download CSV</a>
+    </div>
+    <h2>At 40 years, the two forces split the rise almost evenly</h2>
+    <p class="sub">40Y spot yield decomposed into expected policy rates and the term premium</p>
   </div>
-  <h2>At 40 years, the two forces split the rise almost evenly</h2>
-  <p class="sub">40Y spot yield decomposed into expected policy rates and the term premium</p>
-  <div class="plot" id="chart_11" style="height:470px;width:100%"></div>
-  <p class="src">Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.</p>
-  <p class="note">Of the 3.26pp rise since January 2022, 1.65pp is expectations and 1.61pp the term premium. The series begins in November 2007, when the 40-year JGB was first issued. The 40Y term premium peaked at 2.24% in November 2025 and has eased to 1.88% — the turn the article points to as an early sign the long end has stopped rising.</p>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_11" style="height:470px;width:100%"></div></div><figcaption>Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.<br><span class="capnote">Of the 3.26pp rise since January 2022, 1.65pp is expectations and 1.61pp the term premium. The series begins in November 2007, when the 40-year JGB was first issued. The 40Y term premium peaked at 2.24% in November 2025 and has eased to 1.88% — the turn the article points to as an early sign the long end has stopped rising.</span></figcaption></figure>
 </section>
 
-<footer>
-  Every chart above is the one published in the article, drawn from the same data.
-  Hover to read values, drag to zoom, double-click to reset. Each card links its
-  own CSV.<br>
-  Japan Macro Advisors is independent research. Nothing here constitutes
-  investment advice.<br>
-  <a href="../">All data packs</a> ·
-  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a>
-</footer>
+
+
+<p class="endnote text">Every chart above is the one published in the article, drawn from the same data. Hover to read values, drag to zoom, double-click to reset. Each card links its own CSV.</p>
+
+<div class="banner bottom">
+  <p>The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Paid subscribers receive the Excel workbooks behind each report, regular outputs from this yield curve model, updated estimates on request, and priority replies in English or Japanese.</p>
+  <a class="btn" href="https://takujiokubo.substack.com/subscribe">Subscribe</a>
+</div>
+
+<p class="disclaimer">This report is provided for information purposes only. It does not constitute investment advice or an offer or solicitation to buy or sell any security. While the information herein is believed to be reliable, Japan Macro Advisors makes no representation as to its accuracy or completeness. &copy; 2026 Japan Macro Advisors. All rights reserved.</p>
+<p class="nav"><a href="../">All data packs</a> ·
+  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>
 
 <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
 <script>

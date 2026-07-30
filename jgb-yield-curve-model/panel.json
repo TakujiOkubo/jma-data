@@ -2,17 +2,48 @@
   "slug": "jgb-yield-curve-model",
   "title": "JGB yield curve model — spot yields, risk-neutral rates and term premia",
   "date": "Model vintage 19 July 2026 · monthly, July 2002 – July 2029",
+  "masthead_date": "19 July 2026",
   "sort": "2026-07-19",
   "standfirst": "The JMA yield-curve model's own output: fitted zero-coupon JGB yields split into the part explained by expected future policy rates and the part that is compensation for holding duration. Six maturities, monthly from 2002, with the JMA baseline projection to 2029.",
-  "footer_note": "Every series here is JMA model output, not market data. Yield = risk-neutral + term premium holds exactly at every point.",
+  "stamp": "Model vintage: 19 July 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
+  "intro_html": "The JMA yield curve model splits each JGB yield into interest-rate expectations and a term premium, letting Japan’s long-run interest rate move with its fundamentals. If you are new to this page, a fuller explanation of the model sits at the bottom, and the full argument is in our report, <em><a href=\"https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly\">The Long Climb in JGB Yields Is Nearly Over</a></em>. The charts below are interactive. Hover for exact values, zoom, and download the data behind each chart.",
 
-  "_note": "Extracted from the subscriber pack 'JMA JGB Yield Curve - Spot Yields and Term Premia - 2026-07.xlsx' (vintage v30_3-jul-hlfix-main-acm, built by make_subscriber_pack.py). Wording of the definitions below is the pack README's, condensed. Exhibits 1-3 read down the panel through time; exhibit 4 reads across a row.",
+  "_note": "Extracted from the subscriber pack 'JMA JGB Yield Curve - Spot Yields and Term Premia - 2026-07.xlsx' (vintage v30_3-jul-hlfix-main-acm, built by make_subscriber_pack.py). Freeze rule (work order model-page-v2): every data change on this page comes from that same 19 July 2026 vintage; never refresh to a newer one without a new decision. Exhibit 5 reads the Long Climb panel's CSV by relative path — one copy of the file, per the S04 single-copy pattern. The About texts below are final wording, approved 2026-07-30; the reference entries are copied verbatim from the published report's appendix.",
+
+  "about": {
+    "heading": "About the model",
+    "lead": "In our reading, most of the historic rise in JGB yields between 2022 and 2026 came from a higher expected path of policy rates and a normalization of term premia as the BoJ withdrew its unconventional easing. Term premia at the longer end have largely finished normalizing, and our forecast sees the Long Climb in JGB yields nearly over. The blocks below explain the model behind that reading.",
+    "blocks": [
+      {
+        "head": "What the model is.",
+        "text": "Our model is a variant of Adrian, Crump and Moench (2013), the standard framework for splitting a bond yield into a risk-neutral component and a term premium. We make one Japan-specific modification. A standard model assumes the economy’s long-run interest rate is stable. Following Bauer and Rudebusch (2020), we let the underlying stars move over time, anchoring the long-run rate to the equilibrium real rate plus trend inflation expectations, each measured for Japan from published sources. Term premia are benchmarked against their 2004 to 2012 averages, the last era of free JGB pricing."
+      },
+      {
+        "head": "Why we do not use a standard model.",
+        "text": "A model with a fixed long-run rate has no place to record Japan’s post-2022 rise in inflation expectations except in the term premium. It therefore reads a genuine repricing of expected rates as a surge in risk compensation. We have seen estimates of a surging JGB term premium circulating in the market. In our judgement they mostly come from standard models and significantly overestimate the premium. As of mid-July 2026, a standard model puts the 10-year term premium around 1.2%. Our estimate reads 0.6% to 0.7%. The chart above shows the difference."
+      },
+      {
+        "head": "What goes in.",
+        "text": "Every input is public. The yield curve data come from the Ministry of Finance and the JSDA. Our equilibrium real rate is a weighted average of the natural-rate estimates compiled by the Bank of Japan. Our trend inflation expectations extend the BoJ’s Composite Index of Inflation Expectations. The value is not in the ingredients. It is in the combination, the estimation choices behind it, and the maintenance of a current, consistent series."
+      },
+      {
+        "head": "What we publish, and what we do not.",
+        "text": "This page carries monthly estimates of spot yields, risk-neutral rates and term premia at 2, 5, 10, 20, 30 and 40 years, from 2002, together with a three-year forecast of the spot curve. The estimation architecture, the parameter choices, and the adjustments that make the model behave are proprietary. We describe what the model does and why. We do not publish how. Readers who want to test our estimates against their own models are welcome to download the data on this page."
+      }
+    ],
+    "references_html": [
+      "Adrian, Crump &amp; Moench (2013), “Pricing the Term Structure with Linear Regressions,” <em>Journal of Financial Economics</em>, 2013, vol. 110, issue 1, 110-138. This is the base model. The New York Fed publishes daily ACM term-premium estimates for US Treasuries at its “Treasury Term Premia” data <a href=\"https://www.newyorkfed.org/research/data_indicators/term-premia-tabs#/overview\">page</a>.",
+      "Bauer &amp; Rudebusch (2020), “Interest Rates Under Falling Stars,” <em>American Economic Review</em> vol. 110, issue 5, 1316-54. It is seminal paper demostrating the legitimacy of time-varying r* and π* as determinants of the yield curve.",
+      "Bank of Japan Monetary Affairs Department, “Developments in the Natural Rate of Interest and the Assessment of the Degree of Monetary Accommodation”. <a href=\"https://www.boj.or.jp/en/research/wps_rev/rev_2026/rev26e04.htm\">BoJ Review 2026-E-4</a> — the six natural-rate estimates our r* draws on.",
+      "Osada &amp; Nakazawa (BoJ, 2024), “Assessing Measures of Inflation Expectations: A Term Structure and Forecasting Power Perspective”, <a href=\"https://www.boj.or.jp/en/research/wps_rev/rev_2024/rev24e04.htm\">BoJ Review 2024-E-4</a>. The Composite Index of Inflation Expectations (BoJ-CIE), the basis of our π*, was published in 2024. It has not been officially updated, although we have seen BoJ officials use an updated image chart."
+    ]
+  },
 
   "charts": [
     {
       "n": 1,
       "kind": "decomp",
-      "title": "What is actually in a 10-year JGB yield",
+      "title": "10-year JGB yield: risk-neutral component and term premium",
       "subtitle": "10Y spot yield decomposed into expected policy rates and the term premium",
       "ylabel": "Per cent per annum",
       "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.",
@@ -31,7 +62,7 @@
     {
       "n": 2,
       "kind": "line",
-      "title": "Term premia at the long end",
+      "title": "Term premia by maturity: 5 to 40 years",
       "subtitle": "Compensation for duration, by maturity",
       "ylabel": "Term premium, % per annum",
       "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Dotted from August 2026 = JMA baseline projection.",
@@ -41,17 +72,18 @@
       "split_col": "Type",
       "solid_value": "actual",
       "series": [
+        {"col": "TP_5Y", "label": "5Y", "color": "#A8CEEE"},
         {"col": "TP_10Y", "label": "10Y", "color": "#378ADD"},
-        {"col": "TP_20Y", "label": "20Y", "color": "#A8CEEE"},
-        {"col": "TP_30Y", "label": "30Y", "color": "#EF9F27"},
-        {"col": "TP_40Y", "label": "40Y", "color": "#D85A30"}
+        {"col": "TP_20Y", "label": "20Y", "color": "#888780"},
+        {"col": "TP_30Y", "label": "30Y", "color": "#D85A30"},
+        {"col": "TP_40Y", "label": "40Y", "color": "#EF9F27"}
       ],
       "note": "The 40Y series begins in November 2007, when the 40-year JGB was first issued. Term premia are benchmarked against their 2004–2012 averages, the last era of free JGB pricing."
     },
     {
       "n": 3,
       "kind": "line",
-      "title": "The policy rate and what the market expects of it",
+      "title": "Policy rate and risk-neutral rates: 2-year and 10-year",
       "subtitle": "BoJ policy rate against the risk-neutral component at 2Y and 10Y",
       "ylabel": "% per annum",
       "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Policy rate is actual in history and an assumed path in the projection.",
@@ -70,7 +102,7 @@
     {
       "n": 4,
       "kind": "curve",
-      "title": "The curve today, and where the model puts it",
+      "title": "Spot yield curve: current estimate and forecast year-ends",
       "subtitle": "Fitted spot yield by maturity",
       "ylabel": "Spot yield, % per annum",
       "xlabel": "Maturity",
@@ -90,9 +122,24 @@
     },
     {
       "n": 5,
+      "kind": "line",
+      "title": "10-year term premium: standard ACM versus JMA model",
+      "ylabel": "10Y term premium, bp",
+      "source": "Source: JMA. As of 19 July 2026.",
+      "csv": "../2026-07-20-long-climb/data/chart-5-tp-10y-jma-vs-acm.csv",
+      "x": "ym",
+      "decimals": 2,
+      "series": [
+        {"col": "tp_10y_bp", "label": "JMA model", "color": "#378ADD"},
+        {"col": "tp_acm_10y_bp", "label": "Standard ACM", "color": "#D85A30"}
+      ],
+      "note": "Basis points, not percent. Over 2022-2026 the standard model puts the rise at +157bp against our +70bp."
+    },
+    {
+      "n": 6,
       "kind": "table",
       "label": "Table",
-      "title": "JGB spot yield forecast, %",
+      "title": "Forecast table: spot yields to 2029",
       "source": "Source: JMA. As published in JMA reports.",
       "csv": "data/jgb-spot-yield-forecast.csv",
       "columns": [
