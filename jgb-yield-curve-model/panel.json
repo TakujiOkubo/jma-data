@@ -155,7 +155,7 @@
       "note": "The same numbers as the decomposition charts above, read across a row instead of down a column. This is the view in which the shape of the forecast is the thing you see."
     },
     {
-      "n": 10,
+      "n": 12,
       "kind": "table",
       "label": "Table",
       "title": "Forecast table: spot yields to 2029",
@@ -215,6 +215,27 @@
     },
     {
       "n": 9,
+      "kind": "bar_line",
+      "about_after_block": 1,
+      "title": "The long-run rate anchor: equilibrium real rate plus trend inflation expectations",
+      "subtitle": "Trend inflation expectations (BoJ-CIE, extended) plus a weighted average of published natural-rate estimates",
+      "ylabel": "Natural nominal rate, % (year-end)",
+      "source": "Source: BoJ Review 2026-J-5 six-model r* ensemble (JMA weighting), BoJ-CIE extended, JMA JGB yield-curve model. Year-end; 2026 as of July.",
+      "csv": "../2026-07-20-long-climb/data/chart-4-natural-rate-anchor.csv",
+      "x": "ym",
+      "resample": "year_end",
+      "decimals": 2,
+      "yrange": [-0.52, 2.3],
+      "bars": [
+        {"col": "pi_star_10y", "label": "π* (10Y inflation expectations)", "color": "#378ADD"},
+        {"col": "r_star", "label": "r* (equilibrium real rate)", "color": "#D85A30"}
+      ],
+      "line": {"col": "i_star", "label": "i* = r* + π*", "color": "#2C2C2A"},
+      "flag_col": "provisional",
+      "note": "Both components are baselined at zero rather than stacked, so a negative r* points down — the bar tops do not sum to i*, which is why the line carries the sum explicitly. Faded bars are provisional: r* is measured only through December 2024. The underlying data is monthly; the chart samples year-end."
+    },
+    {
+      "n": 10,
       "kind": "line",
       "about_after_block": 2,
       "title": "10-year term premium: standard ACM versus JMA model",

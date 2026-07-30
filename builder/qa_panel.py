@@ -234,6 +234,8 @@ MODEL_TITLES = [
     "Policy rate and risk-neutral rates: 2-year and 10-year",
 ]
 ACM_TITLE = "10-year term premium: standard ACM versus JMA model"
+ANCHOR_TITLE = ("The long-run rate anchor: equilibrium real rate plus trend "
+                "inflation expectations")
 
 
 def qa_yield_curve(root, manifest, page, figs) -> None:
@@ -249,8 +251,8 @@ def qa_yield_curve(root, manifest, page, figs) -> None:
     gate(h2s[:9] == MODEL_TITLES,
          "the nine main exhibits run in the agreed order",
          str([t[:22] for t in h2s[:9]]))
-    gate(h2s[9:11] == ["About the model", ACM_TITLE],
-         "ACM chart is embedded inside the About section")
+    gate(h2s[9:12] == ["About the model", ANCHOR_TITLE, ACM_TITLE],
+         "anchor and ACM charts are embedded inside the About section")
     gate('href="jgb-yield-curve-model/"' in
          (REPO / "index.html").read_text(encoding="utf-8"),
          "model page listed on the landing page")
@@ -305,16 +307,32 @@ def qa_yield_curve(root, manifest, page, figs) -> None:
     gate(len({t["name"] for t in figs["chart_8"]["data"]}) == 3,
          "policy chart carries its three series")
 
-    print("\nACM in the About section")
+    print("\nAnchor chart in the About section")
+    _, lc_figs = load_delivered(REPO / "2026-07-20-long-climb")
     gate(manifest["charts"][9]["csv"]
+         == "../2026-07-20-long-climb/data/chart-4-natural-rate-anchor.csv",
+         "single-copy pattern: reads the Long Climb CSV by relative path")
+    for name in ("π* (10Y inflation expectations)", "r* (equilibrium real rate)",
+                 "i* = r* + π*"):
+        tm, tl = trace(figs["chart_9"], name), trace(lc_figs["chart_4"], name)
+        gate(list(tm["x"]) == list(tl["x"]) and list(tm["y"]) == list(tl["y"]),
+             f"{name}: numerically identical to the Long Climb copy")
+    gate(page.index("last era of free JGB pricing")
+         < page.index(ANCHOR_TITLE)
+         < page.index("<strong>Why we do not use a standard model.</strong>"),
+         "anchor card sits between About blocks 1 and 2")
+    gate("100bp" not in page and "rose by" not in page,
+         "no pace claim in the softened anchor title")
+
+    print("\nACM in the About section")
+    gate(manifest["charts"][10]["csv"]
          == "../2026-07-20-long-climb/data/chart-5-tp-10y-jma-vs-acm.csv",
          "single-copy pattern: reads the Long Climb CSV by relative path")
-    _, lc_figs = load_delivered(REPO / "2026-07-20-long-climb")
     for name in ("JMA model", "Standard ACM"):
-        tm, tl = trace(figs["chart_9"], name), trace(lc_figs["chart_5"], name)
+        tm, tl = trace(figs["chart_10"], name), trace(lc_figs["chart_5"], name)
         gate(tm["x"] == tl["x"] and tm["y"] == tl["y"],
              f"{name}: numerically identical to the Long Climb copy")
-    jma = trace(figs["chart_9"], "JMA model")
+    jma = trace(figs["chart_10"], "JMA model")
     v = jma["y"][jma["x"].index("2026-07-01")] / 100
     gate(0.6 <= v <= 0.7,
          "About's 0.6%-0.7% claim brackets the delivered mid-July 10Y TP",
