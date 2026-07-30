@@ -650,7 +650,10 @@ def build(slug: str) -> Path:
         mast_date=html.escape(m.get("masthead_date") or m["date"]),
         series_label=html.escape(m.get("series_label", "Chart data")),
         top_banner=html.escape(TOP_BANNER),
-        bottom_banner=html.escape(BOTTOM_BANNER),
+        # A page may carry its own approved bottom-banner wording (the model
+        # page's paid-access text, Takuji 2026-07-30); the constant is the
+        # default for article panels.
+        bottom_banner=html.escape(m.get("bottom_banner", BOTTOM_BANNER)),
         subscribe_url=SUBSCRIBE_URL,
         disclaimer=DISCLAIMER_HTML,
         meta=meta,

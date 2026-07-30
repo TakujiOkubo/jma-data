@@ -83,9 +83,23 @@ DISCLAIMER = ("This report is provided for information purposes only. It "
               "completeness. &copy; 2026 Japan Macro Advisors. "
               "All rights reserved.")
 
+# The model page carries its own approved bottom-banner wording (Takuji,
+# 2026-07-30 — paid-access + update-on-request terms); article panels keep
+# the generic subscriber line above.
+MODEL_BOTTOM_BANNER = (
+    "The charts and data on this page are free to use and reproduce with "
+    "attribution to Japan Macro Advisors. Only paid subscribers have access "
+    "to this page. We will update our yield curve model estimates "
+    "periodically, but in case the published estimate is more than 2 weeks "
+    "old, paid subscribers can request an updated estimate and we should be "
+    "able to reply within 2 business days.")
 
-def qa_skin(page) -> None:
-    """The Web Report page identity — same fixed blocks on every panel page."""
+BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER}
+
+
+def qa_skin(page, bottom_banner) -> None:
+    """The Web Report page identity — same fixed blocks on every panel page,
+    with the bottom-banner wording checked against this page's approved text."""
     print("\nPage skin (fixed blocks)")
     gate("../assets/jma-logo.png" in page
          and "Unbiased Opinion on Japan&rsquo;s Economy" in page,
@@ -95,8 +109,9 @@ def qa_skin(page) -> None:
     gate("background:#FCFBF8" in page, "warm-white page background token")
     gate("border:1px solid #e4e2da" in page, "figure frame token present")
     gate(page.count(TOP_BANNER) == 2,
-         "banner wording present top and bottom, identical on this page")
-    gate(BOTTOM_BANNER in page, "bottom banner carries the subscriber line")
+         "free-to-use line present top and bottom")
+    gate(bottom_banner in page,
+         "bottom banner carries this page's approved wording")
     gate('href="https://takujiokubo.substack.com/subscribe"' in page,
          "subscribe link present")
     gate(DISCLAIMER in page, "disclaimer wording verbatim from the template")
@@ -373,7 +388,7 @@ def main(slug: str) -> int:
     page, figs = load_delivered(root)
     print(f"QA {slug} — {len(manifest['charts'])} exhibits\n")
     qa_structure(manifest, page, figs)
-    qa_skin(page)
+    qa_skin(page, BOTTOM_BANNERS.get(slug, BOTTOM_BANNER))
     if slug not in QA:
         print(f"\n  ! no article-specific gates for {slug} — structure only.")
         print("    Add them: the gates that matter check the drawn values "
