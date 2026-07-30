@@ -443,14 +443,14 @@ def fig_curve(spec: dict, rows: list[dict], T: dict) -> dict:
     layout = base_layout(spec, T, legend=True)
     layout["xaxis"].update(
         title=dict(text=spec.get("xlabel", "Maturity"),
-                   font=dict(size=12, color=T["GREY"])),
+                   font=dict(size=18, color=T["GREY"])),
         **(dict(type="category")
            if scale == "category"
            else dict(type="linear", tickmode="array", tickvals=tenors,
                      ticktext=[f"{t}Y" for t in tenors])),
     )
     layout["hovermode"] = "x unified"
-    layout["margin"]["b"] = layout["margin"]["b"] + 14   # room for the x title
+    layout["margin"]["b"] = layout["margin"]["b"] + 22   # room for the x title
     return dict(data=traces, layout=layout)
 
 
@@ -459,17 +459,20 @@ def base_layout(spec: dict, T: dict, legend: bool) -> dict:
     spines, no tick marks, unified hover. Mirrors house_layout() in the chart
     library. The title is NOT set here — it is HTML above the plot, matching the
     house PNG's bold left headline and staying legible on a phone."""
+    # Axis text at 18px — tick labels and axis titles were 12px and unreadable
+    # at the 840px figure width; enlarged 50% on Takuji's instruction
+    # (2026-07-30). Margins hold the bigger labels.
     return dict(
         paper_bgcolor=T["PAPER"], plot_bgcolor=T["PAPER"],
         colorway=[T["BLUE"], T["CORAL"], T["AMBER"], T["GREY"]],
         font=dict(family=T["FONT_FAMILY"], color=T["INK"], size=13),
         xaxis=dict(showgrid=False, zeroline=False, showline=False, ticks="",
-                   tickfont=dict(size=12, color=T["GREY"])),
+                   tickfont=dict(size=18, color=T["GREY"])),
         yaxis=dict(showgrid=True, gridcolor=T["GRID"], gridwidth=1.4,
                    zeroline=False, showline=False, ticks="",
-                   tickfont=dict(size=12, color=T["GREY"]),
+                   tickfont=dict(size=18, color=T["GREY"]),
                    title=dict(text=spec.get("ylabel") or "",
-                              font=dict(size=12, color=T["GREY"]))),
+                              font=dict(size=18, color=T["GREY"]))),
         hovermode="x unified",
         hoverlabel=dict(bgcolor="#FFFFFF", font_size=12, font_color=T["INK"],
                         font_family=T["FONT_FAMILY"]),
@@ -477,7 +480,7 @@ def base_layout(spec: dict, T: dict, legend: bool) -> dict:
         # overlapped the data in five of the six Long Climb charts — chart 4
         # worst, where three long labels covered the recent bars. Below, it
         # cannot collide whatever the label length or the viewport width.
-        margin=dict(l=58, r=54, t=16, b=74 if legend else 40),
+        margin=dict(l=84, r=60, t=16, b=92 if legend else 52),
         showlegend=legend,
         legend=dict(orientation="h", yanchor="top", y=-0.14, xanchor="center", x=0.5,
                     font=dict(size=12, color=T["GREY"]),
@@ -511,6 +514,7 @@ def build(slug: str) -> Path:
     T = load_house_tokens()
 
     cards, figs = [], []
+    about_cards: dict[int, str] = {}   # exhibits embedded in the About section
     for spec in manifest["charts"]:
         n = spec["n"]
         rows = read_csv(root / spec["csv"])
@@ -555,7 +559,7 @@ def build(slug: str) -> Path:
                if spec.get("subtitle") else "")
         label = spec.get("label") or f"Chart {n}"
 
-        cards.append(f"""<section class="card" id="c{n}">
+        card = f"""<section class="card" id="c{n}">
   <div class="text">
     <div class="chead">
       <span class="cnum">{html.escape(label)}</span>
@@ -565,7 +569,15 @@ def build(slug: str) -> Path:
     {sub}
   </div>
   {body}
-</section>""")
+</section>"""
+
+        # "about_after_block": N lifts this exhibit out of the main run and
+        # embeds it in the About section, directly after its Nth titled block
+        # (the model-comparison chart sits beside the paragraph that argues it).
+        if spec.get("about_after_block"):
+            about_cards[spec["about_after_block"]] = card
+        else:
+            cards.append(card)
 
     figs_json = json.dumps(
         [{"id": i, "fig": f} for i, f in figs], separators=(",", ":"))
@@ -603,10 +615,16 @@ def build(slug: str) -> Path:
     about = ""
     if m.get("about"):
         a = m["about"]
-        blocks = "".join(
-            f'<p><strong>{html.escape(b["head"])}</strong> '
-            f'{html.escape(b["text"])}</p>'
-            for b in a.get("blocks", []))
+        parts = []
+        for i, b in enumerate(a.get("blocks", []), start=1):
+            parts.append(f'<p><strong>{html.escape(b["head"])}</strong> '
+                         f'{html.escape(b["text"])}</p>')
+            if i in about_cards:
+                # The embedded card breaks out to figure width, so the text
+                # column is closed around it and reopened after.
+                parts.append(f'</div>{about_cards[i]}'
+                             f'<div class="text about-cont">')
+        blocks = "".join(parts)
         refs = "".join(f"<p>{r}</p>" for r in a.get("references_html", []))
         if refs:
             refs = (f'<div class="refs"><div class="refslabel">References</div>'
@@ -671,7 +689,7 @@ PAGE = """<!DOCTYPE html>
   .text{{max-width:680px;margin-left:auto;margin-right:auto}}
   .mrow{{display:flex;justify-content:space-between;align-items:flex-end;
         padding-bottom:12px;border-bottom:2px solid #1c1c1c}}
-  .mrow img{{height:24px;width:auto;display:block}}
+  .mrow img{{height:24px;width:auto;display:block;flex:none}}
   .mdate{{font:400 12px 'Public Sans',sans-serif;color:#737373}}
   .mrow2{{display:flex;justify-content:space-between;align-items:baseline;
          padding-top:6px}}
@@ -700,7 +718,10 @@ PAGE = """<!DOCTYPE html>
          gap:12px}}
   .cnum{{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
         color:#737373;text-transform:uppercase}}
-  .dl{{font:400 12px 'Public Sans',sans-serif;white-space:nowrap}}
+  .dl{{font:600 13px 'Public Sans',sans-serif;white-space:nowrap;
+      border:1px solid #3b65a2;border-radius:3px;padding:4px 11px;
+      color:#3b65a2}}
+  .dl:hover{{background:#3b65a2;color:#fff;text-decoration:none}}
   .card h2{{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:6px 0 4px}}
   .sub{{font:400 13px 'Public Sans',sans-serif;color:#737373;margin-bottom:2px}}
   .fig{{margin:14px 0 0}}
@@ -723,8 +744,9 @@ PAGE = """<!DOCTYPE html>
   table.fc tr.rule td{{border-bottom:2px solid #1c1c1c}}
   .about{{margin-top:60px}}
   .about h2{{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px}}
-  .about p{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;margin:0 0 18px;
-           text-wrap:pretty}}
+  .about p,.about-cont p{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+           margin:0 0 18px;text-wrap:pretty}}
+  .about-cont{{margin-top:34px}}
   .refs{{border-top:1px solid #d8d6ce;padding-top:16px;margin-top:26px}}
   .refslabel{{font:700 12px 'Public Sans',sans-serif;letter-spacing:1.4px;
              color:#737373;text-transform:uppercase;margin-bottom:10px}}
