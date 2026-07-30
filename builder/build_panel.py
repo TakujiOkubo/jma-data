@@ -63,6 +63,30 @@ CHARTS_ROOT = Path(r"G:\My Drive\charts")
 
 PLOTLY_CDN = "https://cdn.plot.ly/plotly-3.0.1.min.js"
 
+# ------------------------------------------------------------ fixed page blocks
+# The page identity comes from WEB_REPORT_GUIDE.md §Page style tokens and the
+# live template `JMA Web Report Template.dc.html` — warm-white page, 680px text
+# column, 880px figure breakouts, PT Serif / Public Sans, masthead with the ink
+# rule and tagline, and the template's disclaimer wording verbatim. The banner
+# texts are fixed by decision (work order model-page-v2, 2026-07-30) and are
+# IDENTICAL on every panel page. Edit these only by decision, never per page.
+TOP_BANNER = ("The charts and data on this page are free to use and reproduce "
+              "with attribution to Japan Macro Advisors.")
+BOTTOM_BANNER = ("The charts and data on this page are free to use and "
+                 "reproduce with attribution to Japan Macro Advisors. Paid "
+                 "subscribers receive the Excel workbooks behind each report, "
+                 "regular outputs from this yield curve model, updated "
+                 "estimates on request, and priority replies in English or "
+                 "Japanese.")
+SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
+DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
+                   "does not constitute investment advice or an offer or "
+                   "solicitation to buy or sell any security. While the "
+                   "information herein is believed to be reliable, Japan Macro "
+                   "Advisors makes no representation as to its accuracy or "
+                   "completeness. &copy; 2026 Japan Macro Advisors. "
+                   "All rights reserved.")
+
 
 # ---------------------------------------------------------------- house tokens
 def load_house_tokens() -> dict:
@@ -490,10 +514,30 @@ def build(slug: str) -> Path:
     for spec in manifest["charts"]:
         n = spec["n"]
         rows = read_csv(root / spec["csv"])
-        csv_name = Path(spec["csv"]).name
+
+        # An optional heading before this card, for a page that runs in parts —
+        # e.g. the article's own charts, then the model work behind them.
+        if spec.get("section"):
+            secnote = (f'<p class="secnote">{html.escape(spec["section_note"])}</p>'
+                       if spec.get("section_note") else "")
+            cards.append(f'<div class="text"><div class="section">'
+                         f'<h2>{html.escape(spec["section"])}</h2>{secnote}'
+                         f'</div></div>')
+
+        # Source + note render as one caption line under the figure, per the
+        # template's figcaption (the guide's "caption line under each figure").
+        caption_bits = []
+        if spec.get("source"):
+            caption_bits.append(html.escape(spec["source"]))
+        if spec.get("note"):
+            caption_bits.append(
+                f'<span class="capnote">{html.escape(spec["note"])}</span>')
+        caption = "<br>".join(caption_bits)
 
         if spec["kind"] == "table":
-            inner = render_table(spec, rows)
+            body = (f'<div class="text">{render_table(spec, rows)}'
+                    + (f'<p class="figcap">{caption}</p>' if caption else "")
+                    + "</div>")
         else:
             div_id = f"chart_{n}"
             kinds = {"line": fig_line, "bar_line": fig_bar_line,
@@ -501,33 +545,26 @@ def build(slug: str) -> Path:
             fig = kinds[spec["kind"]](spec, rows, T)
             figs.append((div_id, fig))
             h = spec.get("height", 470)
-            inner = (f'<div class="plot" id="{div_id}" '
-                     f'style="height:{h}px;width:100%"></div>')
+            body = (f'<figure class="fig"><div class="frame">'
+                    f'<div class="plot" id="{div_id}" '
+                    f'style="height:{h}px;width:100%"></div></div>'
+                    + (f"<figcaption>{caption}</figcaption>" if caption else "")
+                    + "</figure>")
 
         sub = (f'<p class="sub">{html.escape(spec["subtitle"])}</p>'
                if spec.get("subtitle") else "")
-        note = (f'<p class="note">{html.escape(spec["note"])}</p>'
-                if spec.get("note") else "")
         label = spec.get("label") or f"Chart {n}"
 
-        # An optional heading before this card, for a page that runs in parts —
-        # e.g. the article's own charts, then the model work behind them.
-        if spec.get("section"):
-            note = (f'<p class="secnote">{html.escape(spec["section_note"])}</p>'
-                    if spec.get("section_note") else "")
-            cards.append(f'<div class="section"><h2>{html.escape(spec["section"])}'
-                         f'</h2>{note}</div>')
-
         cards.append(f"""<section class="card" id="c{n}">
-  <div class="chead">
-    <span class="cnum">{html.escape(label)}</span>
-    <a class="dl" href="{html.escape(spec['csv'])}" download>Download CSV</a>
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">{html.escape(label)}</span>
+      <a class="dl" href="{html.escape(spec['csv'])}" download>Download CSV</a>
+    </div>
+    <h2>{html.escape(spec["title"])}</h2>
+    {sub}
   </div>
-  <h2>{html.escape(spec["title"])}</h2>
-  {sub}
-  {inner}
-  <p class="src">{html.escape(spec.get("source", ""))}</p>
-  {note}
+  {body}
 </section>""")
 
     figs_json = json.dumps(
@@ -539,25 +576,75 @@ def build(slug: str) -> Path:
         workbook = (f'<a class="btn" href="{html.escape(m["workbook"])}" download>'
                     f'Download the full workbook (Excel)</a>')
 
-    # A standing dataset has no article to link back to; an article panel does.
-    meta = html.escape(m["date"])
+    # An article panel links its date back to the post; a standing dataset
+    # carries a vintage stamp instead, so it takes no separate meta line.
+    meta = ""
     if m.get("post_url"):
-        meta += f' · <a href="{html.escape(m["post_url"])}">read the article</a>'
+        meta = (f'<div class="meta">{html.escape(m["date"])} · '
+                f'<a href="{html.escape(m["post_url"])}">read the article</a></div>')
+    elif not m.get("stamp"):
+        meta = f'<div class="meta">{html.escape(m["date"])}</div>'
+
+    stamp = (f'<div class="stamp">{html.escape(m["stamp"])}</div>'
+             if m.get("stamp") else "")
+
+    # Lead text: "intro_html" carries pre-approved HTML (links, italics) and is
+    # inserted verbatim; otherwise the plain standfirst is escaped as before.
+    if m.get("intro_html"):
+        lead = f'<p class="intro">{m["intro_html"]}</p>'
+    elif m.get("standfirst"):
+        lead = f'<p class="standfirst">{html.escape(m["standfirst"])}</p>'
+    else:
+        lead = ""
+
+    # The About section (model page): lead-in, titled blocks, references.
+    # references_html entries are pre-approved HTML copied verbatim from the
+    # published report's appendix — inserted unescaped.
+    about = ""
+    if m.get("about"):
+        a = m["about"]
+        blocks = "".join(
+            f'<p><strong>{html.escape(b["head"])}</strong> '
+            f'{html.escape(b["text"])}</p>'
+            for b in a.get("blocks", []))
+        refs = "".join(f"<p>{r}</p>" for r in a.get("references_html", []))
+        if refs:
+            refs = (f'<div class="refs"><div class="refslabel">References</div>'
+                    f"{refs}</div>")
+        about = (f'<div class="text about" id="about">'
+                 f'<h2>{html.escape(a.get("heading", "About the model"))}</h2>'
+                 f'<p>{html.escape(a["lead"])}</p>{blocks}{refs}</div>')
+
+    # Article panels keep their closing line; a standing dataset's ending is
+    # its About section, so the default applies only where a post exists.
+    footer_note = m.get("footer_note",
+                        "Every chart above is the one published in the "
+                        "article, drawn from the same data."
+                        if m.get("post_url") else "")
+    endnote = ""
+    if footer_note:
+        endnote = (f'<p class="endnote text">{html.escape(footer_note)} '
+                   "Hover to read values, drag to zoom, double-click to "
+                   "reset. Each card links its own CSV.</p>")
 
     page = PAGE.format(
         title=html.escape(m["title"]),
+        mast_date=html.escape(m.get("masthead_date") or m["date"]),
+        series_label=html.escape(m.get("series_label", "Chart data")),
+        top_banner=html.escape(TOP_BANNER),
+        bottom_banner=html.escape(BOTTOM_BANNER),
+        subscribe_url=SUBSCRIBE_URL,
+        disclaimer=DISCLAIMER_HTML,
         meta=meta,
-        standfirst=html.escape(m.get("standfirst", "")),
-        footer_note=html.escape(m.get(
-            "footer_note",
-            "Every chart above is the one published in the article, "
-            "drawn from the same data.")),
+        stamp=stamp,
+        lead=lead,
+        about=about,
+        endnote=endnote,
         cards="\n".join(cards),
         figs_json=figs_json,
         plotly=PLOTLY_CDN,
         workbook=workbook,
-        paper=T["PAPER"], ink=T["INK"], grey=T["GREY"],
-        blue=T["BLUE"], font=T["FONT_FAMILY"],
+        paper=T["PAPER"],
     )
     out = root / "index.html"
     out.write_text(page, encoding="utf-8")
@@ -570,73 +657,127 @@ PAGE = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} — data | Japan Macro Advisors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
+  /* Web Report page identity — WEB_REPORT_GUIDE.md §Page style tokens.
+     The charts inside the frames keep the Plotly house theme untouched. */
   *{{margin:0;padding:0;box-sizing:border-box}}
-  body{{font-family:{font};background:{paper};color:{ink};
-       line-height:1.55;padding:28px 20px 56px;max-width:1080px;margin:0 auto}}
-  header{{margin-bottom:26px}}
-  .kicker{{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:{grey}}}
-  header h1{{font-size:27px;line-height:1.25;margin:8px 0 6px;font-weight:700}}
-  header .meta{{font-size:13px;color:{grey}}}
-  header .standfirst{{font-size:15px;color:{ink};margin-top:12px;max-width:62ch}}
-  .btn{{display:inline-block;margin-top:16px;background:{blue};color:#fff;
-       font-size:14px;font-weight:600;text-decoration:none;padding:9px 16px;
-       border-radius:4px}}
-  .btn:hover{{filter:brightness(1.07)}}
-  .section{{margin:38px 0 18px;border-top:2px solid {ink};padding-top:14px}}
-  .section h2{{font-size:15px;font-weight:700;letter-spacing:.04em;
-              text-transform:uppercase}}
-  .secnote{{font-size:14px;color:{grey};margin-top:6px;max-width:66ch}}
-  .card{{background:#fff;border-radius:6px;padding:18px 20px 14px;margin-bottom:22px;
-        box-shadow:0 1px 4px rgba(0,0,0,.07)}}
-  .chead{{display:flex;justify-content:space-between;align-items:baseline;gap:12px}}
-  .cnum{{font-size:12px;font-weight:700;letter-spacing:.06em;color:{grey};
-        text-transform:uppercase}}
-  .dl{{font-size:12px;color:{blue};text-decoration:none;white-space:nowrap}}
-  .dl:hover{{text-decoration:underline}}
-  .card h2{{font-size:19px;line-height:1.3;margin:6px 0 2px;font-weight:700}}
-  .sub{{font-size:13px;color:{grey};margin-bottom:8px}}
-  .plot{{margin-top:8px}}
-  .src{{font-size:11px;color:{grey};margin-top:10px;line-height:1.5}}
-  .note{{font-size:11px;color:{grey};margin-top:6px;font-style:italic}}
-  .tablewrap{{overflow-x:auto;margin-top:10px}}
-  table.fc{{border-collapse:collapse;font-size:14px;min-width:460px;width:100%}}
-  table.fc th{{text-align:right;font-weight:600;color:{grey};font-size:12px;
-              padding:7px 12px;border-bottom:1.5px solid {grey}}}
+  body{{font-family:'PT Serif',Georgia,serif;background:#FCFBF8;color:#2a2a28;
+       line-height:1.7;padding:40px 20px 80px;max-width:880px;margin:0 auto}}
+  a{{color:#3b65a2;text-decoration:none}}
+  a:hover{{color:#2c4d7e;text-decoration:underline}}
+  .text{{max-width:680px;margin-left:auto;margin-right:auto}}
+  .mrow{{display:flex;justify-content:space-between;align-items:flex-end;
+        padding-bottom:12px;border-bottom:2px solid #1c1c1c}}
+  .mrow img{{height:24px;width:auto;display:block}}
+  .mdate{{font:400 12px 'Public Sans',sans-serif;color:#737373}}
+  .mrow2{{display:flex;justify-content:space-between;align-items:baseline;
+         padding-top:6px}}
+  .tagline{{font:italic 400 12px 'PT Serif',serif;color:#8a8a82}}
+  .slabel{{font:600 10.5px 'Public Sans',sans-serif;letter-spacing:1.6px;
+          color:#a08a5f;text-transform:uppercase}}
+  .banner{{background:#f2f1ec;border:1px solid #e2e0d8;padding:11px 18px;
+          margin:22px auto 0;max-width:680px;
+          font:400 13px/1.55 'Public Sans',sans-serif;color:#54544e}}
+  .banner.bottom{{margin-top:48px;padding:18px 20px;font-size:13.5px}}
+  .btn{{display:inline-block;margin-top:12px;background:#3b65a2;color:#fff;
+       font:600 14px 'Public Sans',sans-serif;text-decoration:none;
+       padding:9px 16px;border-radius:4px}}
+  .btn:hover{{background:#2c4d7e;color:#fff;text-decoration:none}}
+  header{{margin-top:36px}}
+  header h1{{font:700 36px/1.2 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px;
+            text-wrap:balance}}
+  header .meta{{font:400 13px 'Public Sans',sans-serif;color:#737373;
+               margin-bottom:14px}}
+  .stamp{{background:#f2f1ec;border:1px solid #e2e0d8;padding:14px 18px;
+         margin:0 0 18px;font:400 15.5px/1.55 'PT Serif',serif;color:#2c2c2a}}
+  .intro,.standfirst{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+                     margin:0 0 6px;text-wrap:pretty}}
+  .card{{margin-top:46px}}
+  .chead{{display:flex;justify-content:space-between;align-items:baseline;
+         gap:12px}}
+  .cnum{{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
+        color:#737373;text-transform:uppercase}}
+  .dl{{font:400 12px 'Public Sans',sans-serif;white-space:nowrap}}
+  .card h2{{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:6px 0 4px}}
+  .sub{{font:400 13px 'Public Sans',sans-serif;color:#737373;margin-bottom:2px}}
+  .fig{{margin:14px 0 0}}
+  .frame{{border:1px solid #e4e2da;background:{paper}}}
+  figcaption,.figcap{{max-width:680px;margin:8px auto 0;
+    font:400 12.5px/1.5 'Public Sans',sans-serif;color:#8a8a82}}
+  .capnote{{font-style:italic}}
+  .section{{margin:56px 0 0;border-top:2px solid #1c1c1c;padding-top:16px}}
+  .section h2{{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c}}
+  .secnote{{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373;
+           margin-top:8px}}
+  .tablewrap{{overflow-x:auto;margin-top:14px}}
+  table.fc{{border-collapse:collapse;min-width:460px;width:100%;
+           font:400 14px 'Public Sans',sans-serif}}
+  table.fc th{{text-align:right;font-weight:600;color:#737373;font-size:12px;
+              padding:7px 12px;border-bottom:1.5px solid #888780}}
   table.fc th:first-child{{text-align:left}}
   table.fc td{{text-align:right;padding:8px 12px;border-bottom:1px solid #EDEBE4}}
   table.fc td:first-child{{text-align:left;font-weight:600}}
-  table.fc tr.rule td{{border-bottom:2px solid {ink}}}
-  footer{{font-size:12px;color:{grey};margin-top:30px;line-height:1.7}}
-  footer a{{color:{blue}}}
+  table.fc tr.rule td{{border-bottom:2px solid #1c1c1c}}
+  .about{{margin-top:60px}}
+  .about h2{{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px}}
+  .about p{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;margin:0 0 18px;
+           text-wrap:pretty}}
+  .refs{{border-top:1px solid #d8d6ce;padding-top:16px;margin-top:26px}}
+  .refslabel{{font:700 12px 'Public Sans',sans-serif;letter-spacing:1.4px;
+             color:#737373;text-transform:uppercase;margin-bottom:10px}}
+  .refs p{{font:400 13.5px/1.6 'PT Serif',serif;color:#54544e;margin:0 0 10px}}
+  .endnote{{font:400 13px/1.7 'Public Sans',sans-serif;color:#737373;
+           margin-top:44px}}
+  .disclaimer{{font:400 10.5px/1.55 'Public Sans',sans-serif;color:#9a9a92;
+              margin:14px auto 0;max-width:680px;text-wrap:pretty}}
+  .nav{{font:400 12px 'Public Sans',sans-serif;color:#9a9a92;margin:10px auto 0;
+       max-width:680px}}
   @media(max-width:640px){{
-    body{{padding:18px 12px 40px}}
-    header h1{{font-size:22px}}
-    .card{{padding:14px 12px 10px}}
-    .card h2{{font-size:17px}}
+    body{{padding:24px 12px 48px}}
+    header h1{{font-size:26px}}
+    .card h2{{font-size:19px}}
   }}
 </style>
 </head>
 <body>
-<header>
-  <div class="kicker">Japan Macro Advisors — chart data</div>
+<div class="text">
+  <div class="mrow">
+    <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
+    <span class="mdate">{mast_date}</span>
+  </div>
+  <div class="mrow2">
+    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="slabel">{series_label}</span>
+  </div>
+</div>
+
+<div class="banner top">{top_banner}</div>
+
+<header class="text">
   <h1>{title}</h1>
-  <div class="meta">{meta}</div>
-  <p class="standfirst">{standfirst}</p>
+  {meta}
+  {stamp}
+  {lead}
   {workbook}
 </header>
 
 {cards}
 
-<footer>
-  {footer_note}
-  Hover to read values, drag to zoom, double-click to reset. Each card links its
-  own CSV.<br>
-  Japan Macro Advisors is independent research. Nothing here constitutes
-  investment advice.<br>
-  <a href="../">All data packs</a> ·
-  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a>
-</footer>
+{about}
+
+{endnote}
+
+<div class="banner bottom">
+  <p>{bottom_banner}</p>
+  <a class="btn" href="{subscribe_url}">Subscribe</a>
+</div>
+
+<p class="disclaimer">{disclaimer}</p>
+<p class="nav"><a href="../">All data packs</a> ·
+  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>
 
 <script src="{plotly}" charset="utf-8"></script>
 <script>
