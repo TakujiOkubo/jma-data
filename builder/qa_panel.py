@@ -233,227 +233,12 @@ def qa_long_climb(root, manifest, page, figs) -> None:
     gate("Behind the article" in page, "section divider rendered before chart 8")
 
 
-MODEL_TITLES = [
-    "10-year JGB yield: risk-neutral component and term premium",
-    "Term premia by maturity: 5 to 40 years",
-    "Policy rate and risk-neutral rates: 2-year and 10-year",
-    "Spot yield curve: current estimate and forecast year-ends",
-    "10-year term premium: standard ACM versus JMA model",
-    "Forecast table: spot yields to 2029",
-]
-
 TP_COLORS = {"5Y": "#A8CEEE", "10Y": "#378ADD", "20Y": "#888780",
              "30Y": "#D85A30", "40Y": "#EF9F27"}
 
 
-def qa_yield_curve(root, manifest, page, figs) -> None:
-    panel = list(csv.DictReader(open(root / "data/jma-jgb-yield-curve-panel.csv",
-                                     newline="", encoding="utf-8-sig")))
-    by_ym = {r["YM"]: r for r in panel}
-    last_actual = [r["YM"] for r in panel if r["Type"] == "actual"][-1]
 
-    # ---- the approved neutral titles, exact and in order --------------------
-    print("\nTitles")
-    got = [c["title"] for c in manifest["charts"]]
-    gate(got == MODEL_TITLES, "manifest titles match the approved list exactly")
-    h2s = re.findall(r"<h2>(.*?)</h2>", page)
-    gate(h2s[:6] == MODEL_TITLES,
-         "delivered page shows the six titles in exhibit order")
-    # The approved table title carries "to 2029" — a forecast horizon, not an
-    # as-of date. What must not appear in a title is a vintage/as-of date.
-    gate(not any("As of" in t or "19 July" in t or "July 2026" in t
-                 for t in MODEL_TITLES),
-         "no as-of dates in titles (dates live in source notes)")
-
-    # ---- page texts: stamp, intro, About, references ------------------------
-    print("\nPage texts")
-    gate("Model vintage: 19 July 2026. Estimates are revised periodically, "
-         "and updated estimates are available for paid users upon request."
-         in page, "vintage stamp verbatim")
-    gate(page.index("Model vintage: 19 July 2026.") < page.index("<h2>"),
-         "stamp sits above the first exhibit")
-    gate("splits each JGB yield into interest-rate expectations and a term "
-         "premium" in page, "intro sentence 1")
-    gate('href="https://takujiokubo.substack.com/p/'
-         'the-long-climb-in-jgb-yields-is-nearly"' in page,
-         "intro links the report")
-    gate("The charts below are interactive. Hover for exact values, zoom, "
-         "and download the data behind each chart." in page,
-         "intro interactivity sentence")
-    gate("The blocks below explain the model behind that reading." in page,
-         "About lead-in present")
-    for head, frag in [
-        ("What the model is.",
-         "Term premia are benchmarked against their 2004 to 2012 averages"),
-        ("Why we do not use a standard model.",
-         "significantly overestimate the premium"),
-        ("What goes in.", "The value is not in the ingredients."),
-        ("What we publish, and what we do not.", "We do not publish how."),
-    ]:
-        gate(f"<strong>{head}</strong>" in page and frag in page,
-             f"About block: {head}")
-    for ref, anchor in [
-        ("Adrian, Crump &amp; Moench (2013)",
-         "newyorkfed.org/research/data_indicators/term-premia-tabs"),
-        ("Bauer &amp; Rudebusch (2020)", "Interest Rates Under Falling Stars"),
-        ("Bank of Japan Monetary Affairs Department", "rev26e04.htm"),
-        ("Osada &amp; Nakazawa (BoJ, 2024)", "rev24e04.htm"),
-    ]:
-        gate(ref in page and anchor in page, f"reference present: {ref[:24]}…")
-    gate(page.index("standard ACM versus JMA model") < page.index('id="about"'),
-         "ACM exhibit precedes the About section")
-
-    # The 1.2% figure is from the published report, not derivable from the
-    # delivered data — assert only its presence. The 0.6–0.7% claim IS
-    # derivable and is bracket-checked against the delivered ACM figure below.
-    gate("around 1.2%" in page, "the report's 1.2% standard-ACM figure quoted")
-
-    # ---- the identity, checked on what the page actually plots -------------
-    print("\nChart 1 — 10Y decomposition")
-    f1 = figs["chart_1"]
-    bars = [t for t in f1["data"] if t["type"] == "bar"]
-    lines = [t for t in f1["data"] if t["type"] == "scatter"]
-    gate([t["name"] for t in bars] == ["Interest rate expectations", "Term premium"],
-         "components drawn as stacked bars, expectations first")
-    gate(f1["layout"]["barmode"] == "relative",
-         "relative stacking, so a negative premium hangs below zero")
-    gate(any(s["y0"] == 0 and s.get("xref") == "paper"
-             for s in f1["layout"]["shapes"]), "zero line drawn")
-
-    # the total line is split across two traces; merge them back
-    total = [a if a is not None else b
-             for a, b in zip(lines[0]["y"], lines[1]["y"])]
-    rn, tp = bars[0]["y"], bars[1]["y"]
-    breaks = [(lines[0]["x"][i], total[i], rn[i], tp[i])
-              for i in range(len(total))
-              if None not in (total[i], rn[i], tp[i])
-              and abs(total[i] - (rn[i] + tp[i])) > 2e-3]
-    gate(not breaks, "Yield = expectations + term premium on every plotted point",
-         f"{len(total)} points checked" if not breaks else str(breaks[:2]))
-    gate(min(v for v in tp if v is not None) < 0,
-         "the term premium does go negative — the reason for relative stacking",
-         f"min {min(v for v in tp if v is not None)}")
-
-    # ---- history / projection split ---------------------------------------
-    gate(len(lines) == 2 and lines[1].get("showlegend") is False,
-         "total drawn as history + projection")
-    gate(lines[1]["line"].get("dash") == "dot", "projection leg dotted")
-    li = max(i for i, v in enumerate(lines[0]["y"]) if v is not None)
-    gate(lines[0]["x"][li][:7] == last_actual,
-         "solid history ends at the last actual month",
-         f"{lines[0]['x'][li][:7]} == {last_actual}")
-    gate(lines[1]["y"][li] is not None,
-         "projection leg carries the last actual point, so the lines join")
-    ops = bars[0]["marker"]["opacity"]
-    gate(ops[li] == 1.0 and ops[li + 1] < 1.0,
-         "projection bars lightened from the first forecast month")
-    gate(any(a.get("text") == "forecast →" for a in f1["layout"].get("annotations", [])),
-         "forecast boundary marked on the chart")
-
-    # ---- chart 2: term premia, 5Y-40Y --------------------------------------
-    print("\nChart 2 — term premia by maturity")
-    f2 = figs["chart_2"]
-    t40 = [t for t in f2["data"] if t["name"] == "40Y"][0]
-    first_i = next(i for i, v in enumerate(t40["y"]) if v is not None)
-    gate(t40["x"][first_i][:7] == "2007-11",
-         "40Y term premium starts at first issuance, Nov 2007", t40["x"][first_i][:7])
-    gate(all(v is None for v in t40["y"][:first_i]),
-         "pre-issuance months are null, not zero")
-
-    # The five maturities, coloured by meaning (work order: 10Y blue, 30Y
-    # coral, 40Y amber, 20Y grey, 5Y faded blue).
-    names = [t["name"] for t in f2["data"] if not t["line"].get("dash")]
-    gate(names == list(TP_COLORS), "five maturities plotted, 5Y first",
-         str(names))
-    for lbl, want in TP_COLORS.items():
-        legs = [t for t in f2["data"] if t["name"] == lbl]
-        gate(all(t["line"]["color"] == want for t in legs),
-             f"{lbl} drawn in {want}")
-
-    # The identity on every plotted 5Y point: the plotted TP_5Y must equal
-    # Yield_5Y − RN_5Y from the panel, within plot rounding.
-    t5h, t5p = [t for t in f2["data"] if t["name"] == "5Y"]
-    tp5 = [a if a is not None else b for a, b in zip(t5h["y"], t5p["y"])]
-    n5, breaks5 = 0, []
-    for i, v in enumerate(tp5):
-        if v is None:
-            continue
-        n5 += 1
-        r = by_ym[t5h["x"][i][:7]]
-        want = float(r["Yield_5Y"]) - float(r["RN_5Y"])
-        if abs(v - want) > 2e-3:
-            breaks5.append((t5h["x"][i], v, round(want, 4)))
-    gate(n5 == len(panel), "5Y plotted on every panel month", f"{n5} points")
-    gate(not breaks5,
-         "Yield = RN + TP holds on every plotted 5Y point",
-         f"{n5} points checked" if not breaks5 else str(breaks5[:2]))
-
-    # ---- chart 4: the cross-section ----------------------------------------
-    print("\nChart 4 — curve cross-section")
-    f4 = figs["chart_4"]
-    tenors = [2, 5, 10, 20, 30, 40]
-    labels = [f"{t}Y" for t in tenors]
-    gate(f4["layout"]["xaxis"].get("type") == "category",
-         "maturities spaced evenly, so the short end is readable")
-    for ln in manifest["charts"][3]["lines"]:
-        t = trace(f4, ln["label"])
-        gate(t["x"] == labels, f"{ln['label']}: plotted at every maturity")
-        src = [round(float(by_ym[ln["ym"]][f"Yield_{n}Y"]), 3) for n in tenors]
-        gate(t["y"] == src, f"{ln['label']}: matches the panel row for {ln['ym']}")
-
-    # 5Y sits on the curve, and the identity holds at the plotted rows too.
-    for ln in manifest["charts"][3]["lines"]:
-        t = trace(f4, ln["label"])
-        r = by_ym[ln["ym"]]
-        want = float(r["RN_5Y"]) + float(r["TP_5Y"])
-        gate(abs(t["y"][tenors.index(5)] - want) <= 2e-3,
-             f"{ln['label']}: plotted 5Y yield = RN_5Y + TP_5Y",
-             f"{t['y'][tenors.index(5)]} vs {want:.4f}")
-
-    # ---- chart 5: the ACM comparison, shared with the Long Climb panel -----
-    print("\nChart 5 — standard ACM vs JMA")
-    gate(manifest["charts"][4]["csv"]
-         == "../2026-07-20-long-climb/data/chart-5-tp-10y-jma-vs-acm.csv",
-         "single-copy pattern: reads the Long Climb CSV by relative path")
-    gate(not (root / "data/chart-5-tp-10y-jma-vs-acm.csv").exists(),
-         "no duplicate ACM CSV in the model page's data folder")
-    _, lc_figs = load_delivered(REPO / "2026-07-20-long-climb")
-    f5, lc5 = figs["chart_5"], lc_figs["chart_5"]
-    for name in ("JMA model", "Standard ACM"):
-        tm, tl = trace(f5, name), trace(lc5, name)
-        gate(tm["x"] == tl["x"] and tm["y"] == tl["y"],
-             f"{name}: numerically identical to the Long Climb copy",
-             f"{sum(1 for v in tm['y'] if v is not None)} points")
-    jma = trace(f5, "JMA model")
-    v = jma["y"][jma["x"].index("2026-07-01")] / 100
-    gate(0.6 <= v <= 0.7,
-         "About's 0.6%-0.7% claim brackets the delivered mid-July 10Y TP",
-         f"{v:.4f}%")
-
-    # ---- cross-source: the curve vs the published forecast table -----------
-    print("\nCross-source consistency")
-    ft = list(csv.DictReader(open(root / "data/jgb-spot-yield-forecast.csv",
-                                  newline="", encoding="utf-8-sig")))
-    label_by_ym = {r["ym"]: r for r in ft}
-    for ln in manifest["charts"][3]["lines"]:
-        row = label_by_ym.get(ln["ym"])
-        if not row:
-            continue
-        t = trace(f4, ln["label"])
-        diffs = {f"{n}Y": round(t["y"][i] - float(row[f"{n}Y"]), 4)
-                 for i, n in enumerate(tenors) if f"{n}Y" in row}
-        worst = max(abs(v) for v in diffs.values())
-        gate(worst <= 0.005,
-             f"curve at {ln['ym']} agrees with the published forecast table",
-             f"largest gap {worst:.4f}pp")
-
-    # ---- chart 5: the table ------------------------------------------------
-    print("\nTable")
-    gate(page.count("<tr") == len(ft) + 1, "every table row rendered")
-    gate('class="rule"' in page, "actual/forecast rule drawn")
-
-
-ALT_TITLES = [
+MODEL_TITLES = [
     "10-year JGB yield: risk-neutral component and term premium",
     "5-year JGB yield: risk-neutral component and term premium",
     "20-year JGB yield: risk-neutral component and term premium",
@@ -467,24 +252,24 @@ ALT_TITLES = [
 ACM_TITLE = "10-year term premium: standard ACM versus JMA model"
 
 
-def qa_yield_curve_alt(root, manifest, page, figs) -> None:
-    """The alternative layout: decomposition-led run, curve + table, TP and
-    policy charts, ACM embedded in the About section."""
+def qa_yield_curve(root, manifest, page, figs) -> None:
+    """The model page: decomposition-led run, curve + forecast table, TP and
+    policy charts, with the ACM comparison embedded in the About section."""
     panel = list(csv.DictReader(open(
-        root / "../jgb-yield-curve-model/data/jma-jgb-yield-curve-panel.csv",
+        root / "data/jma-jgb-yield-curve-panel.csv",
         newline="", encoding="utf-8-sig")))
     by_ym = {r["YM"]: r for r in panel}
 
     print("\nTitles and order")
     h2s = re.findall(r"<h2>(.*?)</h2>", page)
-    gate(h2s[:9] == ALT_TITLES,
+    gate(h2s[:9] == MODEL_TITLES,
          "the nine main exhibits run in the agreed order",
          str([t[:22] for t in h2s[:9]]))
     gate(h2s[9:11] == ["About the model", ACM_TITLE],
          "ACM chart is embedded inside the About section")
-    gate("jgb-yield-curve-model-alt" not in
+    gate('href="jgb-yield-curve-model/"' in
          (REPO / "index.html").read_text(encoding="utf-8"),
-         "alt page stays off the landing page (unlisted)")
+         "model page listed on the landing page")
 
     print("\nDecomposition at each maturity")
     for cid, tenor in zip(range(1, 6), ["10Y", "5Y", "20Y", "30Y", "40Y"]):
@@ -514,7 +299,7 @@ def qa_yield_curve_alt(root, manifest, page, figs) -> None:
         src = [round(float(by_ym[ln["ym"]][f"Yield_{n}Y"]), 3) for n in tenors]
         gate(t["y"] == src, f"curve {ln['label']}: matches the panel row")
     ft = list(csv.DictReader(open(
-        root / "../jgb-yield-curve-model/data/jgb-spot-yield-forecast.csv",
+        root / "data/jgb-spot-yield-forecast.csv",
         newline="", encoding="utf-8-sig")))
     gate(page.count("<tr") == len(ft) + 1, "every table row rendered")
     gate(page.index(">Spot yield curve:") < page.index(">Forecast table:")
@@ -579,8 +364,7 @@ def qa_yield_curve_alt(root, manifest, page, figs) -> None:
 
 
 QA = {"2026-07-20-long-climb": qa_long_climb,
-      "jgb-yield-curve-model": qa_yield_curve,
-      "jgb-yield-curve-model-alt": qa_yield_curve_alt}
+      "jgb-yield-curve-model": qa_yield_curve}
 
 
 def main(slug: str) -> int:
