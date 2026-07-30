@@ -25,11 +25,11 @@
       },
       {
         "head": "What goes in.",
-        "text": "Every input is public. The yield curve data come from the Ministry of Finance and the JSDA. Our equilibrium real rate is a weighted average of the natural-rate estimates compiled by the Bank of Japan. Our trend inflation expectations extend the BoJ’s Composite Index of Inflation Expectations. The value is not in the ingredients. It is in the combination, the estimation choices behind it, and the maintenance of a current, consistent series."
+        "text": "The model uses public data throughout. The yield curve data come from the Ministry of Finance and the JSDA. Our equilibrium real rate is a weighted average of the natural-rate estimates compiled by the Bank of Japan, and our trend inflation expectations extend the BoJ’s Composite Index of Inflation Expectations."
       },
       {
         "head": "What we publish, and what we do not.",
-        "text": "This page carries monthly estimates of spot yields, risk-neutral rates and term premia at 2, 5, 10, 20, 30 and 40 years, from 2002, together with a three-year forecast of the spot curve. The estimation architecture, the parameter choices, and the adjustments that make the model behave are proprietary. We describe what the model does and why. We do not publish how. Readers who want to test our estimates against their own models are welcome to download the data on this page."
+        "text": "This page carries monthly estimates of spot yields, risk-neutral rates and term premia at 2, 5, 10, 20, 30 and 40 years, from 2002, together with a three-year forecast of the spot curve. The model itself is described in outline above, and in the appendix of our report. Readers who want to test our estimates against their own models are welcome to download the data on this page."
       }
     ],
     "references_html": [
