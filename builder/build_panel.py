@@ -2,6 +2,13 @@
 """
 build_panel.py — build the interactive companion panel for one article.
 
+STATUS: PROTOTYPE (Takuji's ruling, 2026-07-29). This works and its output is
+published, but how JMA distributes subscriber data is being reconsidered from
+first principles. Hosting, the public repo, free-versus-gated and the
+per-article unit are all provisional — do not extend the pattern to new
+articles before that question is settled. The durable findings live in
+`40.Projects/Substack/sessions/S04-2026-07-29.md` in the vault.
+
 The panel is the web-viewable twin of the XLSX data pack that ships below the
 Substack paywall. Same input (the chart library's tidy ``*_data.csv`` files, in
 article order), second output: one self-contained static page of interactive
