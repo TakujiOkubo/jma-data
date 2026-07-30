@@ -619,8 +619,10 @@ def build(slug: str) -> Path:
         a = m["about"]
         parts = []
         for i, b in enumerate(a.get("blocks", []), start=1):
+            # "text_html" carries pre-approved HTML (links); "text" is escaped.
+            body = b["text_html"] if "text_html" in b else html.escape(b["text"])
             parts.append(f'<p><strong>{html.escape(b["head"])}</strong> '
-                         f'{html.escape(b["text"])}</p>')
+                         f"{body}</p>")
             if i in about_cards:
                 # The embedded card breaks out to figure width, so the text
                 # column is closed around it and reopened after.
