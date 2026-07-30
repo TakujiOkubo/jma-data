@@ -23,6 +23,10 @@ def main() -> Path:
     packs = []
     for mf in sorted(REPO.glob("*/panel.json")):
         m = json.loads(mf.read_text(encoding="utf-8"))
+        # Comparison variants and drafts carry "unlisted": true — published at
+        # their URL but kept off the landing page.
+        if m.get("unlisted"):
+            continue
         n_charts = len(m["charts"])
         packs.append((mf.parent.name, m, n_charts))
     # Article slugs start with their date; a standing dataset does not, so it
