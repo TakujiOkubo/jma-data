@@ -8,7 +8,7 @@
   "stamp": "Model vintage: 19 July 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
   "intro_html": "The JMA yield curve model splits each JGB yield into interest-rate expectations and a term premium, letting Japan’s long-run interest rate move with its fundamentals. If you are new to this page, a fuller explanation of the model sits at the bottom, and the full argument is in our report, <em><a href=\"https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly\">The Long Climb in JGB Yields Is Nearly Over</a></em>. The charts below are interactive. Hover for exact values, zoom, and download the data behind each chart.",
 
-  "_note": "Extracted from the subscriber pack 'JMA JGB Yield Curve - Spot Yields and Term Premia - 2026-07.xlsx' (vintage v30_3-jul-hlfix-main-acm, built by make_subscriber_pack.py). Freeze rule (work order model-page-v2): every data change on this page comes from that same 19 July 2026 vintage; never refresh to a newer one without a new decision. Exhibit 5 reads the Long Climb panel's CSV by relative path — one copy of the file, per the S04 single-copy pattern. The About texts below are final wording, approved 2026-07-30; the reference entries are copied verbatim from the published report's appendix.",
+  "_note": "Extracted from the subscriber pack 'JMA JGB Yield Curve - Spot Yields and Term Premia - 2026-07.xlsx' (vintage v30_3-jul-hlfix-main-acm). Freeze rule (work order model-page-v2): every data change on this page comes from that same 19 July 2026 vintage; never refresh to a newer one without a new decision. Layout: decomposition-led (Takuji's pick, 2026-07-30, over the exhibit-per-view S04 arrangement) — 10Y decomp then 5/20/30/40Y in parallel, curve + forecast table, TP-by-maturity and policy-rate charts; the ACM comparison is embedded in the About section after the block that argues it, so that block's closing sentence reads 'below'. Exhibit 9 reads the Long Climb panel's CSV by relative path (single-copy pattern). About texts are final wording (approved 2026-07-30); reference entries are verbatim from the published report's appendix.",
 
   "about": {
     "heading": "About the model",
@@ -20,7 +20,7 @@
       },
       {
         "head": "Why we do not use a standard model.",
-        "text": "A model with a fixed long-run rate has no place to record Japan’s post-2022 rise in inflation expectations except in the term premium. It therefore reads a genuine repricing of expected rates as a surge in risk compensation. We have seen estimates of a surging JGB term premium circulating in the market. In our judgement they mostly come from standard models and significantly overestimate the premium. As of mid-July 2026, a standard model puts the 10-year term premium around 1.2%. Our estimate reads 0.6% to 0.7%. The chart above shows the difference."
+        "text": "A model with a fixed long-run rate has no place to record Japan’s post-2022 rise in inflation expectations except in the term premium. It therefore reads a genuine repricing of expected rates as a surge in risk compensation. We have seen estimates of a surging JGB term premium circulating in the market. In our judgement they mostly come from standard models and significantly overestimate the premium. As of mid-July 2026, a standard model puts the 10-year term premium around 1.2%. Our estimate reads 0.6% to 0.7%. The chart below shows the difference."
       },
       {
         "head": "What goes in.",
@@ -61,6 +61,119 @@
     },
     {
       "n": 2,
+      "kind": "decomp",
+      "title": "5-year JGB yield: risk-neutral component and term premium",
+      "subtitle": "5Y spot yield decomposed into expected policy rates and the term premium",
+      "ylabel": "Per cent per annum",
+      "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.",
+      "csv": "data/jma-jgb-yield-curve-panel.csv",
+      "x": "YM",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "components": [
+        {"col": "RN_5Y", "label": "Interest rate expectations", "color": "#A8CEEE"},
+        {"col": "TP_5Y", "label": "Term premium", "color": "#D85A30"}
+      ],
+      "total": {"col": "Yield_5Y", "label": "5Y spot yield", "color": "#2C2C2A"}
+    },
+    {
+      "n": 3,
+      "kind": "decomp",
+      "title": "20-year JGB yield: risk-neutral component and term premium",
+      "subtitle": "20Y spot yield decomposed into expected policy rates and the term premium",
+      "ylabel": "Per cent per annum",
+      "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.",
+      "csv": "data/jma-jgb-yield-curve-panel.csv",
+      "x": "YM",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "components": [
+        {"col": "RN_20Y", "label": "Interest rate expectations", "color": "#A8CEEE"},
+        {"col": "TP_20Y", "label": "Term premium", "color": "#D85A30"}
+      ],
+      "total": {"col": "Yield_20Y", "label": "20Y spot yield", "color": "#2C2C2A"}
+    },
+    {
+      "n": 4,
+      "kind": "decomp",
+      "title": "30-year JGB yield: risk-neutral component and term premium",
+      "subtitle": "30Y spot yield decomposed into expected policy rates and the term premium",
+      "ylabel": "Per cent per annum",
+      "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.",
+      "csv": "data/jma-jgb-yield-curve-panel.csv",
+      "x": "YM",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "components": [
+        {"col": "RN_30Y", "label": "Interest rate expectations", "color": "#A8CEEE"},
+        {"col": "TP_30Y", "label": "Term premium", "color": "#D85A30"}
+      ],
+      "total": {"col": "Yield_30Y", "label": "30Y spot yield", "color": "#2C2C2A"}
+    },
+    {
+      "n": 5,
+      "kind": "decomp",
+      "title": "40-year JGB yield: risk-neutral component and term premium",
+      "subtitle": "40Y spot yield decomposed into expected policy rates and the term premium",
+      "ylabel": "Per cent per annum",
+      "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Lightened bars and the dotted line from August 2026 = JMA baseline projection.",
+      "csv": "data/jma-jgb-yield-curve-panel.csv",
+      "x": "YM",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "components": [
+        {"col": "RN_40Y", "label": "Interest rate expectations", "color": "#A8CEEE"},
+        {"col": "TP_40Y", "label": "Term premium", "color": "#D85A30"}
+      ],
+      "total": {"col": "Yield_40Y", "label": "40Y spot yield", "color": "#2C2C2A"},
+      "note": "The series begins in November 2007, when the 40-year JGB was first issued."
+    },
+    {
+      "n": 6,
+      "kind": "curve",
+      "title": "Spot yield curve: current estimate and forecast year-ends",
+      "subtitle": "Fitted spot yield by maturity",
+      "ylabel": "Spot yield, % per annum",
+      "xlabel": "Maturity",
+      "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Forecast rows are the JMA baseline as of the vintage date.",
+      "csv": "data/jma-jgb-yield-curve-panel.csv",
+      "x": "YM",
+      "decimals": 3,
+      "tenors": [2, 5, 10, 20, 30, 40],
+      "value_prefix": "Yield_",
+      "lines": [
+        {"ym": "2026-07", "label": "July 2026 (actual)", "color": "#2C2C2A", "width": 2.6},
+        {"ym": "2026-12", "label": "Dec 2026", "color": "#378ADD", "dash": "dot"},
+        {"ym": "2027-12", "label": "Dec 2027", "color": "#EF9F27", "dash": "dot"},
+        {"ym": "2028-12", "label": "Dec 2028", "color": "#D85A30", "dash": "dot"}
+      ],
+      "note": "The same numbers as the decomposition charts above, read across a row instead of down a column. This is the view in which the shape of the forecast is the thing you see."
+    },
+    {
+      "n": 10,
+      "kind": "table",
+      "label": "Table",
+      "title": "Forecast table: spot yields to 2029",
+      "source": "Source: JMA. As published in JMA reports.",
+      "csv": "data/jgb-spot-yield-forecast.csv",
+      "columns": [
+        {"col": "label", "label": ""},
+        {"col": "5Y", "label": "5Y"},
+        {"col": "10Y", "label": "10Y"},
+        {"col": "20Y", "label": "20Y"},
+        {"col": "30Y", "label": "30Y"},
+        {"col": "40Y", "label": "40Y"}
+      ],
+      "rule_after_col": "kind",
+      "rule_after_value": "actual",
+      "note": "Year-end values, spot (zero-coupon) basis. Forecast rows are revised with each model vintage."
+    },
+    {
+      "n": 7,
       "kind": "line",
       "title": "Term premia by maturity: 5 to 40 years",
       "subtitle": "Compensation for duration, by maturity",
@@ -81,7 +194,7 @@
       "note": "The 40Y series begins in November 2007, when the 40-year JGB was first issued. Term premia are benchmarked against their 2004–2012 averages, the last era of free JGB pricing."
     },
     {
-      "n": 3,
+      "n": 8,
       "kind": "line",
       "title": "Policy rate and risk-neutral rates: 2-year and 10-year",
       "subtitle": "BoJ policy rate against the risk-neutral component at 2Y and 10Y",
@@ -100,29 +213,9 @@
       "note": "The gap between the policy rate and the 2-year risk-neutral rate is the near-term tightening the market has already priced. The 10-year version is where the market thinks rates settle."
     },
     {
-      "n": 4,
-      "kind": "curve",
-      "title": "Spot yield curve: current estimate and forecast year-ends",
-      "subtitle": "Fitted spot yield by maturity",
-      "ylabel": "Spot yield, % per annum",
-      "xlabel": "Maturity",
-      "source": "Source: JMA JGB yield-curve model, vintage 19 July 2026. Forecast rows are the JMA baseline as of the vintage date.",
-      "csv": "data/jma-jgb-yield-curve-panel.csv",
-      "x": "YM",
-      "decimals": 3,
-      "tenors": [2, 5, 10, 20, 30, 40],
-      "value_prefix": "Yield_",
-      "lines": [
-        {"ym": "2026-07", "label": "July 2026 (actual)", "color": "#2C2C2A", "width": 2.6},
-        {"ym": "2026-12", "label": "Dec 2026", "color": "#378ADD", "dash": "dot"},
-        {"ym": "2027-12", "label": "Dec 2027", "color": "#EF9F27", "dash": "dot"},
-        {"ym": "2028-12", "label": "Dec 2028", "color": "#D85A30", "dash": "dot"}
-      ],
-      "note": "The same numbers as the three charts above, read across a row instead of down a column. This is the view in which the shape of the forecast is the thing you see."
-    },
-    {
-      "n": 5,
+      "n": 9,
       "kind": "line",
+      "about_after_block": 2,
       "title": "10-year term premium: standard ACM versus JMA model",
       "ylabel": "10Y term premium, bp",
       "source": "Source: JMA. As of 19 July 2026.",
@@ -134,25 +227,6 @@
         {"col": "tp_acm_10y_bp", "label": "Standard ACM", "color": "#D85A30"}
       ],
       "note": "Basis points, not percent. Over 2022-2026 the standard model puts the rise at +157bp against our +70bp."
-    },
-    {
-      "n": 6,
-      "kind": "table",
-      "label": "Table",
-      "title": "Forecast table: spot yields to 2029",
-      "source": "Source: JMA. As published in JMA reports.",
-      "csv": "data/jgb-spot-yield-forecast.csv",
-      "columns": [
-        {"col": "label", "label": ""},
-        {"col": "5Y", "label": "5Y"},
-        {"col": "10Y", "label": "10Y"},
-        {"col": "20Y", "label": "20Y"},
-        {"col": "30Y", "label": "30Y"},
-        {"col": "40Y", "label": "40Y"}
-      ],
-      "rule_after_col": "kind",
-      "rule_after_value": "actual",
-      "note": "Year-end values, spot (zero-coupon) basis. Forecast rows are revised with each model vintage."
     }
   ]
 }
