@@ -5,9 +5,14 @@ build_panel.py — build the interactive companion panel for one article.
 STATUS: PROTOTYPE (Takuji's ruling, 2026-07-29). This works and its output is
 published, but how JMA distributes subscriber data is being reconsidered from
 first principles. Hosting, the public repo, free-versus-gated and the
-per-article unit are all provisional — do not extend the pattern to new
-articles before that question is settled. The durable findings live in
+per-article unit are all provisional. The durable findings live in
 `40.Projects/Substack/sessions/S04-2026-07-29.md` in the vault.
+
+The original ruling also said not to extend the pattern to new articles before
+that question was settled. Takuji lifted that on 2026-07-31, instructing a
+panel for the FX carry-unwind note (`2026-07-31-fx-carry-unwind`, public
+teaser). The distribution question itself is still open — a third panel is
+still a decision, not a default.
 
 The panel is the web-viewable twin of the XLSX data pack that ships below the
 Substack paywall. Same input (the chart library's tidy ``*_data.csv`` files, in
@@ -43,6 +48,13 @@ MANIFEST (panel.json)
                     hlines[{y,label}], decimals
     kind "bar_line" x, resample ("year_end"), bars[{col,label,color}],
                     line{col,label,color}, flag_col, flag_note, decimals
+    kind "ranked_bars"
+                    label_col, year_col, top_n,
+                    panels[{col,header,color,decimals,thousands,prefix,suffix}]
+    kind "signed_bar_line"
+                    year_col, q_col, value{col,pos_label,neg_label,
+                    pos_color,neg_color}, flag_col, line{col,label,color},
+                    yrange/ytick, y2range/y2tick, hlines2[{y,label}]
     kind "table"    columns[{col,label}], row_label_col, rule_after_col/value
 """
 
@@ -321,6 +333,231 @@ def fig_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
     return dict(data=traces, layout=layout)
 
 
+def fig_ranked_bars(spec: dict, rows: list[dict], T: dict) -> dict:
+    """Two side-by-side panels of horizontal bars over the SAME rows in the SAME
+    order — the reserve league table beside the same reserves as a share of the
+    holder's own GDP.
+
+    The re-ordering between the panels is the chart's point, so the order is set
+    once, by the first panel's column, and the second panel inherits it rather
+    than sorting itself. Rows are filtered to the reference year (the latest one
+    present) before ranking: the source CSV carries every candidate economy
+    stamped with its own last observation, and mixing vintages inside one bar
+    chart is exactly the failure the chart script guards against — Russia's
+    figure stops a year early and would otherwise rank tenth on stale data.
+
+    No gridlines: on horizontal bars a gridline is vertical, which house style
+    forbids. The value labels at the bar ends carry the scale instead, which is
+    also why neither x-axis shows ticks.
+    """
+    label_col = spec.get("label_col", "country")
+    year_col = spec.get("year_col")
+    panels = spec["panels"]
+
+    kept = list(rows)
+    if year_col:
+        ref = max(int(r[year_col]) for r in kept)
+        kept = [r for r in kept if int(r[year_col]) == ref]
+    kept.sort(key=lambda r: -(to_float(r.get(panels[0]["col"])) or 0.0))
+    kept = kept[: spec.get("top_n", 10)]
+
+    names = [r[label_col].strip() for r in kept]
+    # Plotly stacks the first category at the bottom; reversing the category
+    # array puts rank 1 at the top, as the published chart has it.
+    order = names[::-1]
+
+    def fmt(v, p):
+        if v is None:
+            return ""
+        dec = p.get("decimals", 0)
+        s = f"{v:,.{dec}f}" if p.get("thousands") else f"{v:.{dec}f}"
+        return f"{p.get('prefix', '')}{s}{p.get('suffix', '')}"
+
+    traces, annos = [], []
+    for i, p in enumerate(panels):
+        axis = "" if i == 0 else str(i + 1)
+        vals = [to_float(r.get(p["col"])) for r in kept]
+        colour = p.get("color", T["BLUE"])
+        traces.append(dict(
+            type="bar", orientation="h", name=p["header"],
+            x=vals, y=names, xaxis=f"x{axis}", yaxis=f"y{axis}",
+            marker=dict(color=colour),
+            text=[fmt(v, p) for v in vals], textposition="outside",
+            textfont=dict(size=15, color=colour),
+            cliponaxis=False,
+            hovertemplate=f"%{{y}}<extra>{html.escape(p['header'])}: "
+                          f"%{{x:,.{p.get('decimals', 0)}f}}"
+                          f"{p.get('suffix', '')}</extra>",
+        ))
+
+    # Panel headers stand in for the axis titles, colour-matched to their bars,
+    # exactly as the PNG does — there is no legend.
+    domains = [(0.0, 0.46), (0.54, 1.0)]
+    layout = base_layout(spec, T, legend=False)
+    layout["bargap"] = 0.30
+    layout["margin"] = dict(l=132, r=64, t=40, b=28)
+    layout.pop("yaxis", None)
+    layout.pop("xaxis", None)
+    for i, p in enumerate(panels):
+        axis = "" if i == 0 else str(i + 1)
+        d0, d1 = domains[i]
+        vals = [to_float(r.get(p["col"])) or 0.0 for r in kept]
+        layout[f"xaxis{axis}"] = dict(
+            domain=[d0, d1], anchor=f"y{axis}", showgrid=False, zeroline=False,
+            showline=False, ticks="", showticklabels=False,
+            range=[0, max(vals) * 1.22],   # headroom for the end labels
+        )
+        layout[f"yaxis{axis}"] = dict(
+            domain=[0, 1], anchor=f"x{axis}", type="category",
+            categoryorder="array", categoryarray=order,
+            showgrid=False, zeroline=False, showline=False, ticks="",
+            showticklabels=(i == 0),       # same rows, labelled once
+            tickfont=dict(size=16, color=T["INK"]),
+        )
+        annos.append(dict(
+            xref="paper", x=d0, yref="paper", y=1.02, yanchor="bottom",
+            xanchor="left", text=p["header"], showarrow=False,
+            font=dict(size=15, color=p.get("color", T["BLUE"])),
+        ))
+    layout["annotations"] = annos
+    layout["hovermode"] = "closest"
+
+    # Phone width. Side by side, each panel gets about 100px once the country
+    # column is paid for — the bars vanish and the second panel's header runs
+    # off the frame (measured: 36px past the edge at 375). Stacked, both panels
+    # keep the full width and the shared order still reads down the page, which
+    # is the comparison the chart exists to make.
+    narrow = {
+        "maxwidth": 560, "height": spec.get("narrow_height", 720),
+        "wide_height": spec.get("height", 470),
+        "layout": {
+            "xaxis.domain": [0, 1], "xaxis2.domain": [0, 1],
+            "yaxis.domain": [0.56, 1], "yaxis2.domain": [0, 0.44],
+            "yaxis2.showticklabels": True,
+            "yaxis.tickfont.size": 13, "yaxis2.tickfont.size": 13,
+            "annotations[0].y": 1.03, "annotations[1].y": 0.47,
+            # stacked, the second header starts at the left edge like the first
+            "annotations[1].x": 0.0,
+            "margin.l": 104, "margin.r": 46, "margin.b": 12,
+        },
+        "wide": {
+            "xaxis.domain": list(domains[0]), "xaxis2.domain": list(domains[1]),
+            "yaxis.domain": [0, 1], "yaxis2.domain": [0, 1],
+            "yaxis2.showticklabels": False,
+            "yaxis.tickfont.size": 16, "yaxis2.tickfont.size": 16,
+            "annotations[0].y": 1.02, "annotations[1].y": 1.02,
+            "annotations[1].x": domains[1][0],
+            "margin.l": 132, "margin.r": 64, "margin.b": 28,
+        },
+        "style": {"textfont.size": 12},
+        "wide_style": {"textfont.size": 15},
+    }
+    return dict(data=traces, layout=layout, narrow=narrow)
+
+
+def fig_signed_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
+    """Signed quarterly bars with an overlay line on a second y-axis.
+
+    Sign carries meaning rather than magnitude alone: a bar above the zero line
+    is Japan buying dollars, one below it Japan selling, so the two directions
+    are separate traces with their own colours and their own legend entries —
+    which is where the PNG's direction arrows go on an interactive page.
+
+    The two axes are deliberately offset (the left range runs far above the
+    bars, the right far below the line) so the bars occupy the lower half of the
+    frame and the exchange rate the upper half. That is not padding: it lets a
+    reader read up from a bar to the rate that prevailed when it was
+    transacted, and it is why both ranges and both tick sets are stated in the
+    manifest rather than left to autoscale.
+    """
+    dec = spec.get("decimals", 2)
+    ycol = spec["value"]["col"]
+    flag_col = spec.get("flag_col")
+
+    def qdate(r):
+        """Quarter → the ISO date of its first day, so the axis is a real time
+        axis: 143 quarters as categories would render as an unreadable comb."""
+        y, q = int(r[spec.get("year_col", "year")]), int(r[spec.get("q_col", "q")])
+        return f"{y}-{(q - 1) * 3 + 1:02d}-01"
+
+    v = spec["value"]
+    traces = []
+    for sign, label, colour in (
+            (1, v["pos_label"], v.get("pos_color", T["BLUE"])),
+            (-1, v["neg_label"], v.get("neg_color", T["CORAL"]))):
+        # Zero quarters are dropped rather than drawn flat — a zero-height bar
+        # on a 143-quarter axis reads as a tick mark, i.e. as an operation.
+        sel = [r for r in rows
+               if (to_float(r.get(ycol)) or 0.0) * sign > 0]
+        if not sel:
+            continue
+        flags = [str(r.get(flag_col, "")).strip() in ("1", "True", "true")
+                 for r in sel] if flag_col else None
+        marker = dict(color=colour)
+        if flags and any(flags):
+            # Provisional quarters are drawn at reduced opacity — the PNG
+            # hatches them, which a Plotly bar cannot do; a faded bar reads the
+            # same way ("announced or estimated, not yet in MOF's record").
+            marker["opacity"] = [0.45 if f else 1.0 for f in flags]
+        traces.append(dict(
+            type="bar", name=label,
+            x=[qdate(r) for r in sel],
+            y=[round(to_float(r.get(ycol)), 4) for r in sel],
+            marker=marker, width=6_946_560_000,     # 0.22 of a year, in ms
+            hovertemplate=f"%{{y:.{dec}f}}<extra>{html.escape(label)}</extra>",
+        ))
+
+    if spec.get("line"):
+        ln = spec["line"]
+        sel = [r for r in rows if to_float(r.get(ln["col"])) is not None]
+        ldec = ln.get("decimals", dec)
+        traces.append(dict(
+            type="scatter", mode="lines", name=ln["label"], yaxis="y2",
+            x=[qdate(r) for r in sel],
+            y=[round(to_float(r.get(ln["col"])), 4) for r in sel],
+            line=dict(color=ln.get("color", T["AMBER"]), width=2.2),
+            hovertemplate=f"%{{y:.{ldec}f}}<extra>{html.escape(ln['label'])}</extra>",
+        ))
+
+    layout = base_layout(spec, T, legend=True)
+    layout["barmode"] = "overlay"
+    layout["xaxis"]["hoverformat"] = "%b %Y"
+    if spec.get("yrange"):
+        layout["yaxis"]["range"] = spec["yrange"]
+    if spec.get("ytick"):
+        layout["yaxis"]["tickmode"] = "array"
+        layout["yaxis"]["tickvals"] = spec["ytick"]
+    layout["yaxis2"] = dict(
+        overlaying="y", side="right", showgrid=False, zeroline=False,
+        showline=False, ticks="", tickfont=dict(size=18, color=T["GREY"]),
+    )
+    if spec.get("y2range"):
+        layout["yaxis2"]["range"] = spec["y2range"]
+    if spec.get("y2tick"):
+        layout["yaxis2"]["tickmode"] = "array"
+        layout["yaxis2"]["tickvals"] = spec["y2tick"]
+
+    # The zero baseline separates buying from selling — it is the chart's axis
+    # of meaning, not decoration.
+    shapes = [dict(type="line", xref="paper", x0=0, x1=1, yref="y", y0=0, y1=0,
+                   line=dict(color=T["GREY"], width=1.1), layer="below")]
+    annos = []
+    for h in spec.get("hlines2", []):
+        shapes.append(dict(
+            type="line", xref="paper", x0=0, x1=1, yref="y2",
+            y0=h["y"], y1=h["y"],
+            line=dict(color=T["INK"], width=1.3, dash="dash"), layer="below"))
+        if h.get("label"):
+            annos.append(dict(
+                xref="paper", x=0.02, yref="y2", y=h["y"], text=h["label"],
+                showarrow=False, xanchor="left", yanchor="bottom", yshift=3,
+                font=dict(size=13, color=T["INK"])))
+    layout["shapes"] = shapes
+    if annos:
+        layout["annotations"] = annos
+    return dict(data=traces, layout=layout)
+
+
 def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     """Stacked decomposition: the components filled from the zero line, the
     total drawn over them as a line.
@@ -547,7 +784,9 @@ def build(slug: str) -> Path:
         else:
             div_id = f"chart_{n}"
             kinds = {"line": fig_line, "bar_line": fig_bar_line,
-                     "curve": fig_curve, "decomp": fig_decomp}
+                     "curve": fig_curve, "decomp": fig_decomp,
+                     "ranked_bars": fig_ranked_bars,
+                     "signed_bar_line": fig_signed_bar_line}
             fig = kinds[spec["kind"]](spec, rows, T)
             figs.append((div_id, fig))
             h = spec.get("height", 470)
@@ -813,8 +1052,31 @@ PAGE = """<!DOCTYPE html>
   var FIGS = {figs_json};
   var CFG = {{responsive:true, displaylogo:false,
               modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d']}};
+  // A figure may carry a "narrow" block: a relayout patch for phone width and
+  // its inverse, applied on load and on resize. Only the two-panel ranked-bars
+  // chart uses one — side by side, its panels do not survive a 375px frame.
+  function fitNarrow(f){{
+    var n = f.fig.narrow; if(!n) return;
+    var el = document.getElementById(f.id);
+    var want = el.clientWidth <= n.maxwidth;
+    if(el.dataset.narrow === String(want)) return;
+    el.dataset.narrow = String(want);
+    el.style.height = (want ? n.height : n.wide_height) + 'px';
+    Plotly.relayout(el, want ? n.layout : n.wide);
+    Plotly.restyle(el, want ? n.style : n.wide_style);
+  }}
+  window.addEventListener('resize', function(){{ FIGS.forEach(fitNarrow); }});
+
   FIGS.forEach(function(f){{
-    Plotly.newPlot(f.id, f.fig.data, f.fig.layout, CFG);
+    Plotly.newPlot(f.id, f.fig.data, f.fig.layout, CFG).then(function(){{
+      fitNarrow(f);
+      // A window resize is not the only way the frame changes width (an
+      // orientation change on a phone, a container reflow after the webfont
+      // lands). Observe the element itself as well.
+      if(f.fig.narrow && window.ResizeObserver)
+        new ResizeObserver(function(){{ fitNarrow(f); }})
+          .observe(document.getElementById(f.id));
+    }});
   }});
 </script>
 </body>

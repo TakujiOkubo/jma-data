@@ -368,8 +368,152 @@ def qa_yield_curve(root, manifest, page, figs) -> None:
     gate("around 1.2%" in page, "the report's 1.2% standard-ACM figure quoted")
 
 
+# The chart library's own copies. A panel CSV that has drifted from the file
+# the published PNG was drawn from is the one failure that cannot be seen by
+# looking at the page, so it is checked byte-for-byte where the library is
+# mounted, and skipped (loudly) where it is not.
+LIBRARY = Path(r"G:\My Drive\charts")
+FX_SOURCES = {
+    "data/chart-1-world-fx-reserves-top-holders.csv":
+        "global-reserves/top-holders/world_fx_reserves_top_holders_data.csv",
+    "data/chart-2-usd-reserve-share-alloc.csv":
+        "global-reserves/usd-reserve-share-alloc/usd_reserve_share_alloc_data.csv",
+    "data/chart-3-jpn-fx-intervention-history.csv":
+        "global-reserves/jpn-fx-intervention-history/jpn_fx_intervention_history_data.csv",
+}
+
+
+def qa_fx_carry_unwind(root, manifest, page, figs) -> None:
+    """The FX carry-unwind panel: reserve league table, the dollar's reserve
+    share, and 35 years of intervention against USD/JPY.
+
+    The gates that matter are the ones the article can be checked against —
+    every level and every date it prints — plus the two chart forms this panel
+    introduced, where a plausible-looking drawing would be the easiest way to
+    ship something that is not the published chart.
+    """
+    print("\nSource CSVs")
+    for local, lib in FX_SOURCES.items():
+        src = LIBRARY / lib
+        if not src.exists():
+            print(f"  SKIP  library not mounted — cannot check {local}")
+            continue
+        gate((root / local).read_bytes() == src.read_bytes(),
+             f"{local.split('/')[-1]} is the chart library's file, unmodified")
+
+    # ---- chart 1: the reserve league table, two panels ---------------------
+    print("\nChart 1 — top FX reserve holders, level and % of GDP")
+    f1 = figs["chart_1"]
+    lvl, pct = f1["data"][0], f1["data"][1]
+    src1 = list(csv.DictReader(open(root / manifest["charts"][0]["csv"],
+                                    newline="", encoding="utf-8-sig")))
+    ref = max(int(r["year"]) for r in src1)
+    gate(ref == 2025, "reference year is end-2025, as the headline says", str(ref))
+    gate(lvl["y"] == pct["y"],
+         "both panels carry the same holders in the same order",
+         "the re-ordering between them is the chart's point")
+    gate(len(lvl["y"]) == 10, "top ten plotted", f"{len(lvl['y'])} rows")
+    gate(lvl["x"] == sorted(lvl["x"], reverse=True),
+         "ranked by the level panel, descending")
+    # Russia's IMF figure stops a year early; plotting it here would put two
+    # vintages in one bar chart, which is the failure the chart script guards.
+    stale = [r["country"] for r in src1 if int(r["year"]) != ref]
+    gate(all(c not in lvl["y"] for c in stale),
+         "economies on an older vintage stay out of the panels",
+         f"excluded: {', '.join(stale) or 'none'}")
+    for country, level, share in (("China", 3357.9, 17.1), ("Japan", 1180.5, 26.6),
+                                  ("Switzerland", 914.7, 87.6)):
+        i = lvl["y"].index(country)
+        gate(abs(lvl["x"][i] - level) < 1e-9 and abs(pct["x"][i] - share) < 1e-9,
+             f"{country} = ${level:,.1f}bn / {share}% of GDP",
+             f"{lvl['x'][i]} / {pct['x'][i]}")
+    gate(lvl["y"].index("Japan") == 1,
+         "Japan ranks 2nd, as the headline and the article both say")
+    gate(lvl["y"][2] == "Switzerland" and abs(lvl["x"][2] - 914.7) < 1e-9,
+         "Switzerland 3rd at $915bn, the article's comparison")
+    gate(lvl["text"][0] == "3,358" and lvl["text"][1] == "1,180"
+         and pct["text"][lvl["y"].index("Hong Kong")] == "100%",
+         "value labels carry the scale (no x-axis ticks)")
+    gate(not any(f1["layout"][a]["showgrid"]
+                 for a in ("xaxis", "xaxis2", "yaxis", "yaxis2")),
+         "no gridlines: on horizontal bars they would run vertical")
+    gate(f1["layout"]["xaxis"]["domain"][1] <= f1["layout"]["xaxis2"]["domain"][0],
+         "the two panels sit side by side, not overlaid")
+    nar = f1.get("narrow")
+    gate(bool(nar) and nar["layout"]["xaxis.domain"] == [0, 1]
+         and nar["layout"]["yaxis.domain"][0] > nar["layout"]["yaxis2.domain"][1],
+         "phone width stacks the panels instead of shrinking them")
+
+    # ---- chart 2: the dollar's share of allocated reserves ------------------
+    print("\nChart 2 — USD share of allocated FX reserves")
+    f2 = figs["chart_2"]
+    xs, ys = f2["data"][0]["x"], f2["data"][0]["y"]
+    gate(xs[0].startswith("1995"),
+         "window honoured (starts 1995 on the COFER basis, not 1980)", xs[0])
+    by_year = dict(zip((x[:4] for x in xs), ys))
+    gate(69.0 <= by_year["1999"] <= 72.0,
+         "1999 is the article's 'about 70%'", f"{by_year['1999']}%")
+    below = [y for y, v in sorted(by_year.items()) if v < 60.0]
+    gate(below and below[0] == "2020" and len(below) == len(
+         [y for y in sorted(by_year) if y >= "2020"]),
+         "below 60% from 2020 onward and never back above — the article's claim",
+         f"first year under 60: {below[0] if below else 'none'}")
+    gate(ys[-1] == min(ys), "the last observation is the 30-year low of the title",
+         f"{ys[-1]}% in {xs[-1][:4]}")
+
+    # ---- chart 3: 35 years of intervention against USD/JPY -----------------
+    print("\nChart 3 — intervention history")
+    f3 = figs["chart_3"]
+    buys = trace(f3, "Japan buys USD (sells yen)")
+    sells = trace(f3, "Japan sells USD (buys yen)")
+    line = trace(f3, "USD/JPY (right axis)")
+    gate(all(v > 0 for v in buys["y"]) and all(v < 0 for v in sells["y"]),
+         "sign separates the two directions — no bar on the wrong side")
+    gross_sell = round(sum(buys["y"]), 2)
+    gate(abs(gross_sell - 80.90) < 0.05,
+         "gross yen-selling matches MOF's ¥80.9trn", f"¥{gross_sell}trn")
+    gate(buys["x"][-1][:4] == "2011",
+         "the last dollar purchase is 2011, as the article says", buys["x"][-1])
+    quiet = [x for x in buys["x"] + sells["x"] if "2012" <= x[:4] <= "2021"]
+    gate(not quiet, "no intervention 2012-2021 — the article's 'not once'",
+         f"{len(quiet)} bars found in the window")
+    gate(abs(sells["y"][-1] + 16.0) < 1e-9 and sells["x"][-1] == "2026-07-01",
+         "the 30-31 July operation is the last bar, ¥16trn (~$100bn at ~¥160)",
+         f"{sells['y'][-1]} at {sells['x'][-1]}")
+    gate(abs(sells["y"][-2] + 11.7349) < 1e-9,
+         "the April-May window is MOF's announced ¥11.73trn", f"{sells['y'][-2]}")
+    ops = sells["marker"].get("opacity", [])
+    gate(len(ops) == len(sells["y"]) and ops[-1] < 1.0
+         and all(o == 1.0 for o in ops[:-1]),
+         "only the provisional July bar is faded — the rest are MOF's record")
+    gate(line["yaxis"] == "y2", "USD/JPY reads on the right axis")
+    gate(abs(line["y"][-1] - 162.19) < 1e-9,
+         "USD/JPY ends at the 2026Q3 average, above the ¥160 of the title",
+         f"¥{line['y'][-1]}")
+    gate(abs(min(line["y"]) - 77.31) < 1e-9,
+         "the trough is the 2011 quarter Japan bought into", f"¥{min(line['y'])}")
+    book = [s for s in f3["layout"]["shapes"]
+            if s["yref"] == "y2" and s["line"].get("dash") == "dash"]
+    gate(len(book) == 1 and book[0]["y0"] == 114.0,
+         "the ¥114 book cost is drawn on the rate axis, dashed",
+         "the report's own estimate, range ¥110-120")
+    gate(any("114" in a["text"] for a in f3["layout"].get("annotations", [])),
+         "the book-cost line is labelled")
+    lay = f3["layout"]
+    gate(lay["yaxis"]["range"] == [-19, 50] and lay["yaxis2"]["range"] == [-36, 171],
+         "the axis offset is preserved: bars in the lower band, rate in the upper")
+    gate(lay["yaxis2"]["showgrid"] is False,
+         "only one axis carries gridlines")
+
+    # ---- the page is the public teaser ------------------------------------
+    print("\nTier")
+    gate("Only paid subscribers" not in page,
+         "public teaser: no paid-access banner on this page")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
-      "jgb-yield-curve-model": qa_yield_curve}
+      "jgb-yield-curve-model": qa_yield_curve,
+      "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind}
 
 
 def main(slug: str) -> int:

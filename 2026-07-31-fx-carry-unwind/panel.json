@@ -1,0 +1,77 @@
+{
+  "slug": "2026-07-31-fx-carry-unwind",
+  "title": "Japan Cashes In Its National Carry Trade",
+  "date": "31 July 2026",
+  "masthead_date": "31 July 2026",
+  "post_url": "https://takujiokubo.substack.com/p/japan-cashes-in-its-national-carry",
+  "standfirst": "Japan bought its dollars at ¥114 and is selling them at ¥160. A same-day note on the 30-31 July yen-buying intervention: what 35 years of buying and selling foreign currency has actually earned, and why a shrinking reserve is not a cost to Japan.",
+
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim (chart 1's headline and source note are the strings its script composes at render time from the plotted rows). Windows, chart form, panel order and series labels are read off the same scripts' plotting code — the data CSV cannot carry them.",
+
+  "charts": [
+    {
+      "n": 1,
+      "kind": "ranked_bars",
+      "title": "Japan is the 2nd largest FX reserve holder at end-2025.",
+      "source": "Source: IMF International Liquidity (IL); Taiwan from CBC; GDP from IMF WEO, JMA. End-2025. FX reserves exclude gold, SDRs and the IMF reserve position.",
+      "csv": "data/chart-1-world-fx-reserves-top-holders.csv",
+      "label_col": "country",
+      "year_col": "year",
+      "top_n": 10,
+      "height": 560,
+      "panels": [
+        {"col": "fx_reserves_usd_bn", "header": "FX reserves, US$ bn", "color": "#378ADD", "decimals": 0, "thousands": true},
+        {"col": "reserves_pct_gdp", "header": "FX reserves, % of GDP", "color": "#D85A30", "decimals": 0, "suffix": "%"}
+      ],
+      "note": "The same ten holders in the same order in both panels, ranked by the level on the left — the re-ordering between the panels is the chart's point. Hong Kong holds more than its own annual GDP; Japan's reserve is a quarter of its GDP against China's sixth. The CSV carries twenty-one economies; the panels show the top ten reporting at end-2025, so Russia (whose IMF figure stops at 2024, and which would otherwise rank tenth) is out of frame rather than plotted on a different vintage."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "The dollar's reserve share is at a 30-year low",
+      "ylabel": "% of allocated FX reserves",
+      "source": "Source: IMF COFER via api.imf.org SDMX 3.0, annual, USD share of allocated FX reserves; ECU look-through applied 1995-1997. JMA",
+      "csv": "data/chart-2-usd-reserve-share-alloc.csv",
+      "x": "date",
+      "start": "1995-01-01",
+      "decimals": 2,
+      "series": [
+        {"col": "usd_reserve_share_alloc_a", "label": "USD share of allocated FX reserves", "color": "#378ADD"}
+      ],
+      "note": "The CSV runs back to 1980; the published chart windows from 1995 because that is where the IMF's own COFER basis begins — the earlier years are a JMA reconstruction from IMF Annual Report vintages and are deliberately out of frame for report use. Zoom out to see the full file. About 70% in 1999, below 60% since 2020."
+    },
+    {
+      "n": 3,
+      "kind": "signed_bar_line",
+      "title": "Japan bought dollars at ¥80, sells them at ¥160",
+      "ylabel": "¥trn per quarter",
+      "source": "Source: MOF Foreign Exchange Intervention Operations (daily records, to 2026Q1); MOF monthly announcement (2026Q2, ¥11.73trn); JMA estimate (2026Q3, ~$100bn, provisional). Book cost is a JMA estimate from the MOF FEFSA accounts.",
+      "csv": "data/chart-3-jpn-fx-intervention-history.csv",
+      "quarter_col": "quarter",
+      "year_col": "year",
+      "q_col": "q",
+      "decimals": 2,
+      "height": 520,
+      "value": {
+        "col": "intervention_yen_trn",
+        "pos_label": "Japan buys USD (sells yen)",
+        "neg_label": "Japan sells USD (buys yen)",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "flag_col": "provisional",
+      "line": {
+        "col": "usdjpy_avg",
+        "label": "USD/JPY (right axis)",
+        "color": "#EF9F27",
+        "decimals": 2
+      },
+      "yrange": [-19, 50],
+      "ytick": [-15, -10, -5, 0, 5, 10, 15],
+      "y2range": [-36, 171],
+      "y2tick": [80, 100, 120, 140, 160],
+      "hlines2": [{"y": 114, "label": "Est. book cost ¥114"}],
+      "note": "Signed quarterly flows: bars above the line are dollar purchases, below it dollar sales. The two axes are deliberately offset so the bars occupy the lower half of the frame and the exchange rate the upper half — read up from a bar to the rate that prevailed when it was transacted. The faded final bar is the 30-31 July 2026 operation, a JMA estimate of about $100bn at around ¥160, not yet in MOF's record. Japan intervened in 65 of the 168 months to 2004 but only 10 of the 259 months since 2005, and not once between 2012 and 2021; the last large purchase was 2011, $184bn at about ¥78."
+    }
+  ]
+}
