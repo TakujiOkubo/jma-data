@@ -67,6 +67,8 @@ to a vendored copy of the same values and says so.
 | `decomp` | components stacked to a total | `components[]`, `total`, `split_col` |
 | `curve` | a cross-section: maturity on the x-axis | `tenors[]`, `value_prefix`, `lines[]`, `xscale` |
 | `bar_line` | grouped bars with an overlay line | `resample`, `bars[]`, `line`, `flag_col` |
+| `signed_bar_line` | bars where the sign carries meaning, plus a line on a second axis | `value{col,pos_label,neg_label}`, `line`, `flag_col`, `yrange`/`ytick`, `y2range`/`y2tick`, `hlines2[]` |
+| `ranked_bars` | a league table: two panels of horizontal bars over the same rows in the same order | `label_col`, `year_col`, `top_n`, `panels[]` |
 | `table` | a table, not a series | `columns[]`, `rule_after_col`/`rule_after_value` |
 
 Any time-series kind accepts `split_col` / `solid_value`: set them and every
@@ -82,6 +84,21 @@ positive one still rises from it.
 `curve` spaces maturities evenly by default. On a true linear axis 2Y and 5Y sit
 inside the leftmost 7% of a 40-year span, which crushes the part of the curve the
 policy rate actually moves. Pass `"xscale": "linear"` for year spacing.
+
+`signed_bar_line` splits the series into two traces by sign, so each direction
+gets its own colour and its own legend entry — that is where the published PNG's
+direction arrows go on a page a reader can zoom. Its two y-ranges are stated
+rather than autoscaled: the intervention chart deliberately offsets them so the
+bars occupy the lower half of the frame and the exchange rate the upper half,
+which is what lets a reader read up from a bar to the rate that prevailed.
+
+`ranked_bars` sorts once, by the first panel's column, and the second panel
+inherits the order — the re-ordering between the panels is the point of the
+chart. Rows are filtered to the latest year present first: the reserve CSV
+carries every candidate economy stamped with its own last observation, and one
+bar chart must not mix vintages. At phone width the panels stack rather than
+shrink; side by side, each would get about 100px once the label column is paid
+for.
 
 ## Why a manifest
 

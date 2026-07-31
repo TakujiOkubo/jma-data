@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Japan Cashes In Its National Carry Trade — data | Japan Macro Advisors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  /* Web Report page identity — WEB_REPORT_GUIDE.md §Page style tokens.
+     The charts inside the frames keep the Plotly house theme untouched. */
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'PT Serif',Georgia,serif;background:#FCFBF8;color:#2a2a28;
+       line-height:1.7;padding:40px 20px 80px;max-width:880px;margin:0 auto}
+  a{color:#3b65a2;text-decoration:none}
+  a:hover{color:#2c4d7e;text-decoration:underline}
+  .text{max-width:680px;margin-left:auto;margin-right:auto}
+  .mrow{display:flex;justify-content:space-between;align-items:flex-end;
+        padding-bottom:12px;border-bottom:2px solid #1c1c1c}
+  .mrow img{height:24px;width:auto;display:block;flex:none}
+  .mdate{font:400 12px 'Public Sans',sans-serif;color:#737373}
+  .mrow2{display:flex;justify-content:space-between;align-items:baseline;
+         padding-top:6px}
+  .tagline{font:italic 400 12px 'PT Serif',serif;color:#8a8a82}
+  .slabel{font:600 10.5px 'Public Sans',sans-serif;letter-spacing:1.6px;
+          color:#a08a5f;text-transform:uppercase}
+  .banner{background:#f2f1ec;border:1px solid #e2e0d8;padding:11px 18px;
+          margin:22px auto 0;max-width:680px;
+          font:400 13px/1.55 'Public Sans',sans-serif;color:#54544e}
+  .banner.bottom{margin-top:48px;padding:18px 20px;font-size:13.5px}
+  .btn{display:inline-block;margin-top:12px;background:#3b65a2;color:#fff;
+       font:600 14px 'Public Sans',sans-serif;text-decoration:none;
+       padding:9px 16px;border-radius:4px}
+  .btn:hover{background:#2c4d7e;color:#fff;text-decoration:none}
+  header{margin-top:36px}
+  header h1{font:700 36px/1.2 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px;
+            text-wrap:balance}
+  header .meta{font:400 13px 'Public Sans',sans-serif;color:#737373;
+               margin-bottom:14px}
+  .stamp{background:#f2f1ec;border:1px solid #e2e0d8;padding:14px 18px;
+         margin:0 0 18px;font:400 15.5px/1.55 'PT Serif',serif;color:#2c2c2a}
+  .intro,.standfirst{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+                     margin:0 0 6px;text-wrap:pretty}
+  .card{margin-top:46px}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;
+         gap:12px}
+  .cnum{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
+        color:#737373;text-transform:uppercase}
+  .dl{font:600 13px 'Public Sans',sans-serif;white-space:nowrap;
+      border:1px solid #3b65a2;border-radius:3px;padding:4px 11px;
+      color:#3b65a2}
+  .dl:hover{background:#3b65a2;color:#fff;text-decoration:none}
+  .card h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:6px 0 4px}
+  .sub{font:400 13px 'Public Sans',sans-serif;color:#737373;margin-bottom:2px}
+  .fig{margin:14px 0 0}
+  .frame{border:1px solid #e4e2da;background:#E9E7E0}
+  figcaption,.figcap{max-width:680px;margin:8px auto 0;
+    font:400 12.5px/1.5 'Public Sans',sans-serif;color:#8a8a82}
+  .capnote{font-style:italic}
+  .section{margin:56px 0 0;border-top:2px solid #1c1c1c;padding-top:16px}
+  .section h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c}
+  .secnote{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373;
+           margin-top:8px}
+  .tablewrap{overflow-x:auto;margin-top:14px}
+  table.fc{border-collapse:collapse;min-width:460px;width:100%;
+           font:400 14px 'Public Sans',sans-serif}
+  table.fc th{text-align:right;font-weight:600;color:#737373;font-size:12px;
+              padding:7px 12px;border-bottom:1.5px solid #888780}
+  table.fc th:first-child{text-align:left}
+  table.fc td{text-align:right;padding:8px 12px;border-bottom:1px solid #EDEBE4}
+  table.fc td:first-child{text-align:left;font-weight:600}
+  table.fc tr.rule td{border-bottom:2px solid #1c1c1c}
+  .about{margin-top:60px}
+  .about h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px}
+  .about p,.about-cont p{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+           margin:0 0 18px;text-wrap:pretty}
+  .about-cont{margin-top:34px}
+  .refs{border-top:1px solid #d8d6ce;padding-top:16px;margin-top:26px}
+  .refslabel{font:700 12px 'Public Sans',sans-serif;letter-spacing:1.4px;
+             color:#737373;text-transform:uppercase;margin-bottom:10px}
+  .refs p{font:400 13.5px/1.6 'PT Serif',serif;color:#54544e;margin:0 0 10px}
+  .endnote{font:400 13px/1.7 'Public Sans',sans-serif;color:#737373;
+           margin-top:44px}
+  .disclaimer{font:400 10.5px/1.55 'Public Sans',sans-serif;color:#9a9a92;
+              margin:14px auto 0;max-width:680px;text-wrap:pretty}
+  .nav{font:400 12px 'Public Sans',sans-serif;color:#9a9a92;margin:10px auto 0;
+       max-width:680px}
+  @media(max-width:640px){
+    body{padding:24px 12px 48px}
+    header h1{font-size:26px}
+    .card h2{font-size:19px}
+  }
+</style>
+</head>
+<body>
+<div class="text">
+  <div class="mrow">
+    <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
+    <span class="mdate">31 July 2026</span>
+  </div>
+  <div class="mrow2">
+    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="slabel">Chart data</span>
+  </div>
+</div>
+
+<div class="banner top">The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors.</div>
+
+<header class="text">
+  <h1>Japan Cashes In Its National Carry Trade</h1>
+  <div class="meta">31 July 2026 · <a href="https://takujiokubo.substack.com/p/japan-cashes-in-its-national-carry">read the article</a></div>
+  
+  <p class="standfirst">Japan bought its dollars at ¥114 and is selling them at ¥160. A same-day note on the 30-31 July yen-buying intervention: what 35 years of buying and selling foreign currency has actually earned, and why a shrinking reserve is not a cost to Japan.</p>
+  
+</header>
+
+<section class="card" id="c1">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 1</span>
+      <a class="dl" href="data/chart-1-world-fx-reserves-top-holders.csv" download>Download CSV</a>
+    </div>
+    <h2>Japan is the 2nd largest FX reserve holder at end-2025.</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_1" style="height:560px;width:100%"></div></div><figcaption>Source: IMF International Liquidity (IL); Taiwan from CBC; GDP from IMF WEO, JMA. End-2025. FX reserves exclude gold, SDRs and the IMF reserve position.<br><span class="capnote">The same ten holders in the same order in both panels, ranked by the level on the left — the re-ordering between the panels is the chart&#x27;s point. Hong Kong holds more than its own annual GDP; Japan&#x27;s reserve is a quarter of its GDP against China&#x27;s sixth. The CSV carries twenty-one economies; the panels show the top ten reporting at end-2025, so Russia (whose IMF figure stops at 2024, and which would otherwise rank tenth) is out of frame rather than plotted on a different vintage.</span></figcaption></figure>
+</section>
+<section class="card" id="c2">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 2</span>
+      <a class="dl" href="data/chart-2-usd-reserve-share-alloc.csv" download>Download CSV</a>
+    </div>
+    <h2>The dollar&#x27;s reserve share is at a 30-year low</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_2" style="height:470px;width:100%"></div></div><figcaption>Source: IMF COFER via api.imf.org SDMX 3.0, annual, USD share of allocated FX reserves; ECU look-through applied 1995-1997. JMA<br><span class="capnote">The CSV runs back to 1980; the published chart windows from 1995 because that is where the IMF&#x27;s own COFER basis begins — the earlier years are a JMA reconstruction from IMF Annual Report vintages and are deliberately out of frame for report use. Zoom out to see the full file. About 70% in 1999, below 60% since 2020.</span></figcaption></figure>
+</section>
+<section class="card" id="c3">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 3</span>
+      <a class="dl" href="data/chart-3-jpn-fx-intervention-history.csv" download>Download CSV</a>
+    </div>
+    <h2>Japan bought dollars at ¥80, sells them at ¥160</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_3" style="height:520px;width:100%"></div></div><figcaption>Source: MOF Foreign Exchange Intervention Operations (daily records, to 2026Q1); MOF monthly announcement (2026Q2, ¥11.73trn); JMA estimate (2026Q3, ~$100bn, provisional). Book cost is a JMA estimate from the MOF FEFSA accounts.<br><span class="capnote">Signed quarterly flows: bars above the line are dollar purchases, below it dollar sales. The two axes are deliberately offset so the bars occupy the lower half of the frame and the exchange rate the upper half — read up from a bar to the rate that prevailed when it was transacted. The faded final bar is the 30-31 July 2026 operation, a JMA estimate of about $100bn at around ¥160, not yet in MOF&#x27;s record. Japan intervened in 65 of the 168 months to 2004 but only 10 of the 259 months since 2005, and not once between 2012 and 2021; the last large purchase was 2011, $184bn at about ¥78.</span></figcaption></figure>
+</section>
+
+
+
+<p class="endnote text">Every chart above is the one published in the article, drawn from the same data. Hover to read values, drag to zoom, double-click to reset. Each card links its own CSV.</p>
+
+<div class="banner bottom">
+  <p>The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Paid subscribers have access to our Yield Curve Model estimate output, including historical term premia decomposition estimates as well as our forecasts that are periodically updated. Paid subscribers are encouraged to send questions on my research and receive priority in my replies in either English or Japanese.</p>
+  <a class="btn" href="https://takujiokubo.substack.com/subscribe">Subscribe</a>
+</div>
+
+<p class="disclaimer">This report is provided for information purposes only. It does not constitute investment advice or an offer or solicitation to buy or sell any security. While the information herein is believed to be reliable, Japan Macro Advisors makes no representation as to its accuracy or completeness. &copy; 2026 Japan Macro Advisors. All rights reserved.</p>
+<p class="nav"><a href="../">All data packs</a> ·
+  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>
+
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<script>
+  var FIGS = [{"id":"chart_1","fig":{"data":[{"type":"bar","orientation":"h","name":"FX reserves, US$ bn","x":[3357.9,1180.5,914.7,602.5,552.9,434.9,427.6,403.0,397.0,310.1],"y":["China","Japan","Switzerland","Taiwan","India","Saudi Arabia","Hong Kong","Korea","Singapore","Brazil"],"xaxis":"x","yaxis":"y","marker":{"color":"#378ADD"},"text":["3,358","1,180","915","602","553","435","428","403","397","310"],"textposition":"outside","textfont":{"size":15,"color":"#378ADD"},"cliponaxis":false,"hovertemplate":"%{y}<extra>FX reserves, US$ bn: %{x:,.0f}</extra>"},{"type":"bar","orientation":"h","name":"FX reserves, % of GDP","x":[17.1,26.6,87.6,65.5,14.1,34.1,100.1,21.5,65.7,13.6],"y":["China","Japan","Switzerland","Taiwan","India","Saudi Arabia","Hong Kong","Korea","Singapore","Brazil"],"xaxis":"x2","yaxis":"y2","marker":{"color":"#D85A30"},"text":["17%","27%","88%","66%","14%","34%","100%","22%","66%","14%"],"textposition":"outside","textfont":{"size":15,"color":"#D85A30"},"cliponaxis":false,"hovertemplate":"%{y}<extra>FX reserves, % of GDP: %{x:,.0f}%</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"hovermode":"closest","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":132,"r":64,"t":40,"b":28},"showlegend":false,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"},"bargap":0.3,"xaxis":{"domain":[0.0,0.46],"anchor":"y","showgrid":false,"zeroline":false,"showline":false,"ticks":"","showticklabels":false,"range":[0,4096.638]},"yaxis":{"domain":[0,1],"anchor":"x","type":"category","categoryorder":"array","categoryarray":["Brazil","Singapore","Korea","Hong Kong","Saudi Arabia","India","Taiwan","Switzerland","Japan","China"],"showgrid":false,"zeroline":false,"showline":false,"ticks":"","showticklabels":true,"tickfont":{"size":16,"color":"#2C2C2A"}},"xaxis2":{"domain":[0.54,1.0],"anchor":"y2","showgrid":false,"zeroline":false,"showline":false,"ticks":"","showticklabels":false,"range":[0,122.12199999999999]},"yaxis2":{"domain":[0,1],"anchor":"x2","type":"category","categoryorder":"array","categoryarray":["Brazil","Singapore","Korea","Hong Kong","Saudi Arabia","India","Taiwan","Switzerland","Japan","China"],"showgrid":false,"zeroline":false,"showline":false,"ticks":"","showticklabels":false,"tickfont":{"size":16,"color":"#2C2C2A"}},"annotations":[{"xref":"paper","x":0.0,"yref":"paper","y":1.02,"yanchor":"bottom","xanchor":"left","text":"FX reserves, US$ bn","showarrow":false,"font":{"size":15,"color":"#378ADD"}},{"xref":"paper","x":0.54,"yref":"paper","y":1.02,"yanchor":"bottom","xanchor":"left","text":"FX reserves, % of GDP","showarrow":false,"font":{"size":15,"color":"#D85A30"}}]},"narrow":{"maxwidth":560,"height":720,"wide_height":560,"layout":{"xaxis.domain":[0,1],"xaxis2.domain":[0,1],"yaxis.domain":[0.56,1],"yaxis2.domain":[0,0.44],"yaxis2.showticklabels":true,"yaxis.tickfont.size":13,"yaxis2.tickfont.size":13,"annotations[0].y":1.03,"annotations[1].y":0.47,"annotations[1].x":0.0,"margin.l":104,"margin.r":46,"margin.b":12},"wide":{"xaxis.domain":[0.0,0.46],"xaxis2.domain":[0.54,1.0],"yaxis.domain":[0,1],"yaxis2.domain":[0,1],"yaxis2.showticklabels":false,"yaxis.tickfont.size":16,"yaxis2.tickfont.size":16,"annotations[0].y":1.02,"annotations[1].y":1.02,"annotations[1].x":0.54,"margin.l":132,"margin.r":64,"margin.b":28},"style":{"textfont.size":12},"wide_style":{"textfont.size":15}}}},{"id":"chart_2","fig":{"data":[{"type":"scatter","mode":"lines","name":"USD share of allocated FX reserves","x":["1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[66.11,68.04,70.47,69.28,71.01,69.74,70.78,64.94,63.53,63.32,64.89,63.67,62.6,62.87,62.19,61.94,62.51,61.84,61.72,62.68,64.15,64.68,62.71,62.06,61.32,59.53,59.4,58.95,58.98,58.41,56.42],"line":{"color":"#378ADD","width":2},"connectgaps":false,"hovertemplate":"%{y:.2f}<extra>USD share of allocated FX reserves</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"}},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"% of allocated FX reserves","font":{"size":18,"color":"#888780"}}},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":52},"showlegend":false,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"}}}},{"id":"chart_3","fig":{"data":[{"type":"bar","name":"Japan buys USD (sells yen)","x":["1993-04-01","1993-07-01","1994-01-01","1994-04-01","1994-07-01","1994-10-01","1995-01-01","1995-04-01","1995-07-01","1996-01-01","1999-01-01","1999-04-01","1999-07-01","1999-10-01","2000-01-01","2000-04-01","2000-07-01","2001-07-01","2002-04-01","2003-01-01","2003-04-01","2003-07-01","2003-10-01","2004-01-01","2010-07-01","2011-01-01","2011-07-01","2011-10-01"],"y":[1.7113,0.8467,0.5603,0.8139,0.3339,0.3558,1.7954,0.6051,2.5584,1.6037,0.6563,3.0392,2.3876,1.5579,1.6442,1.3854,0.1435,3.2107,4.0162,2.3869,4.6115,7.5511,5.8755,14.8313,2.1249,0.6925,4.5129,9.0917],"marker":{"color":"#378ADD"},"width":6946560000,"hovertemplate":"%{y:.2f}<extra>Japan buys USD (sells yen)</extra>"},{"type":"bar","name":"Japan sells USD (buys yen)","x":["1991-04-01","1992-01-01","1992-04-01","1992-07-01","1997-10-01","1998-04-01","2022-07-01","2022-10-01","2024-04-01","2024-07-01","2026-04-01","2026-07-01"],"y":[-0.0563,-0.1346,-0.5186,-0.0638,-1.0591,-3.047,-2.8382,-6.3498,-9.7885,-5.5348,-11.7349,-16.0],"marker":{"color":"#D85A30","opacity":[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.45]},"width":6946560000,"hovertemplate":"%{y:.2f}<extra>Japan sells USD (buys yen)</extra>"},{"type":"scatter","mode":"lines","name":"USD/JPY (right axis)","yaxis":"y2","x":["1991-04-01","1991-07-01","1991-10-01","1992-01-01","1992-04-01","1992-07-01","1992-10-01","1993-01-01","1993-04-01","1993-07-01","1993-10-01","1994-01-01","1994-04-01","1994-07-01","1994-10-01","1995-01-01","1995-04-01","1995-07-01","1995-10-01","1996-01-01","1996-04-01","1996-07-01","1996-10-01","1997-01-01","1997-04-01","1997-07-01","1997-10-01","1998-01-01","1998-04-01","1998-07-01","1998-10-01","1999-01-01","1999-04-01","1999-07-01","1999-10-01","2000-01-01","2000-04-01","2000-07-01","2000-10-01","2001-01-01","2001-04-01","2001-07-01","2001-10-01","2002-01-01","2002-04-01","2002-07-01","2002-10-01","2003-01-01","2003-04-01","2003-07-01","2003-10-01","2004-01-01","2004-04-01","2004-07-01","2004-10-01","2005-01-01","2005-04-01","2005-07-01","2005-10-01","2006-01-01","2006-04-01","2006-07-01","2006-10-01","2007-01-01","2007-04-01","2007-07-01","2007-10-01","2008-01-01","2008-04-01","2008-07-01","2008-10-01","2009-01-01","2009-04-01","2009-07-01","2009-10-01","2010-01-01","2010-04-01","2010-07-01","2010-10-01","2011-01-01","2011-04-01","2011-07-01","2011-10-01","2012-01-01","2012-04-01","2012-07-01","2012-10-01","2013-01-01","2013-04-01","2013-07-01","2013-10-01","2014-01-01","2014-04-01","2014-07-01","2014-10-01","2015-01-01","2015-04-01","2015-07-01","2015-10-01","2016-01-01","2016-04-01","2016-07-01","2016-10-01","2017-01-01","2017-04-01","2017-07-01","2017-10-01","2018-01-01","2018-04-01","2018-07-01","2018-10-01","2019-01-01","2019-04-01","2019-07-01","2019-10-01","2020-01-01","2020-04-01","2020-07-01","2020-10-01","2021-01-01","2021-04-01","2021-07-01","2021-10-01","2022-01-01","2022-04-01","2022-07-01","2022-10-01","2023-01-01","2023-04-01","2023-07-01","2023-10-01","2024-01-01","2024-04-01","2024-07-01","2024-10-01","2025-01-01","2025-04-01","2025-07-01","2025-10-01","2026-01-01","2026-04-01","2026-07-01"],"y":[138.33,136.48,129.56,128.56,130.29,124.88,123.0,120.79,109.89,105.6,108.3,107.54,103.22,99.12,98.86,96.04,84.5,94.11,101.44,105.71,107.47,109.0,112.8,120.98,119.61,117.88,125.08,128.12,135.83,139.9,119.42,116.66,120.83,113.27,104.41,106.96,106.71,107.61,109.71,118.16,122.54,121.69,123.3,132.41,126.86,119.2,122.52,118.9,118.51,117.49,108.89,107.22,109.76,109.97,105.74,104.49,107.56,111.18,117.33,116.88,114.34,116.22,117.75,119.37,120.83,117.85,113.13,105.45,104.58,107.54,96.15,93.68,97.29,93.58,89.79,90.73,92.15,85.74,82.56,82.3,81.59,77.69,77.31,79.31,80.04,78.63,81.06,92.24,98.82,98.95,100.27,102.8,102.11,103.97,114.28,119.12,121.48,122.24,121.41,115.27,107.99,102.37,109.41,113.66,111.22,110.99,112.88,108.35,109.17,111.45,112.86,110.14,109.88,107.31,108.68,108.94,107.51,106.13,104.47,106.1,109.41,110.08,113.69,116.33,129.86,138.25,141.52,132.34,137.54,144.52,148.03,148.43,155.82,149.34,152.22,152.53,144.5,147.5,154.05,156.91,159.39,162.19],"line":{"color":"#EF9F27","width":2.2},"hovertemplate":"%{y:.2f}<extra>USD/JPY (right axis)</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"hoverformat":"%b %Y"},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"\u00a5trn per quarter","font":{"size":18,"color":"#888780"}},"range":[-19,50],"tickmode":"array","tickvals":[-15,-10,-5,0,5,10,15]},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":92},"showlegend":true,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"},"barmode":"overlay","yaxis2":{"overlaying":"y","side":"right","showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"range":[-36,171],"tickmode":"array","tickvals":[80,100,120,140,160]},"shapes":[{"type":"line","xref":"paper","x0":0,"x1":1,"yref":"y","y0":0,"y1":0,"line":{"color":"#888780","width":1.1},"layer":"below"},{"type":"line","xref":"paper","x0":0,"x1":1,"yref":"y2","y0":114,"y1":114,"line":{"color":"#2C2C2A","width":1.3,"dash":"dash"},"layer":"below"}],"annotations":[{"xref":"paper","x":0.02,"yref":"y2","y":114,"text":"Est. book cost \u00a5114","showarrow":false,"xanchor":"left","yanchor":"bottom","yshift":3,"font":{"size":13,"color":"#2C2C2A"}}]}}}];
+  var CFG = {responsive:true, displaylogo:false,
+              modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d']};
+  // A figure may carry a "narrow" block: a relayout patch for phone width and
+  // its inverse, applied on load and on resize. Only the two-panel ranked-bars
+  // chart uses one — side by side, its panels do not survive a 375px frame.
+  function fitNarrow(f){
+    var n = f.fig.narrow; if(!n) return;
+    var el = document.getElementById(f.id);
+    var want = el.clientWidth <= n.maxwidth;
+    if(el.dataset.narrow === String(want)) return;
+    el.dataset.narrow = String(want);
+    el.style.height = (want ? n.height : n.wide_height) + 'px';
+    Plotly.relayout(el, want ? n.layout : n.wide);
+    Plotly.restyle(el, want ? n.style : n.wide_style);
+  }
+  window.addEventListener('resize', function(){ FIGS.forEach(fitNarrow); });
+
+  FIGS.forEach(function(f){
+    Plotly.newPlot(f.id, f.fig.data, f.fig.layout, CFG).then(function(){
+      fitNarrow(f);
+      // A window resize is not the only way the frame changes width (an
+      // orientation change on a phone, a container reflow after the webfont
+      // lands). Observe the element itself as well.
+      if(f.fig.narrow && window.ResizeObserver)
+        new ResizeObserver(function(){ fitNarrow(f); })
+          .observe(document.getElementById(f.id));
+    });
+  });
+</script>
+</body>
+</html>
