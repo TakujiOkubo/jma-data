@@ -6,11 +6,11 @@
   "date": "Model vintage August 2026 · monthly, July 2002 – July 2029",
   "masthead_date": "3 August 2026",
   "sort": "2026-08-03",
-  "standfirst": "The JMA yield-curve model's output under a faster Bank of Japan: three 25 basis point increases, in September 2026, March 2027 and December 2027, to a terminal rate of 1.75 per cent. Fitted spot yields split into interest-rate expectations and term premia at six maturities, monthly from 2002, projected to July 2029 with a one-standard-deviation band.",
+  "standfirst": "The JMA yield-curve model's output under a faster Bank of Japan: three 25 basis point increases, in September 2026, March 2027 and December 2027, to a terminal rate of 1.75 per cent. Fitted spot yields split into interest-rate expectations and term premia at six maturities, monthly from 2002, projected to July 2029.",
   "stamp": "Model vintage: August 2026, origin July 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
   "intro_html": "The JMA yield curve model splits each JGB yield into interest-rate expectations and a term premium, letting Japan’s long-run interest rate move with its fundamentals. This page carries the full decomposition — history and projection — under our <strong>Alternative</strong> scenario, in which the Bank of Japan moves sooner and goes further than our central case assumes. A fuller explanation of the model sits at the bottom of the page, and the argument behind it is in our report, <em><a href=\"https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly\">The Long Climb in JGB Yields Is Nearly Over</a></em>. The charts below are interactive. Hover for exact values, zoom, and download the data behind each chart.",
   "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. We will update our yield curve model estimates periodically, but in case the published estimate is more than 2 weeks old, paid subscribers can request an updated estimate and we should be able to reply within 2 business days.",
-  "_note": "PAID scenario page, Alternative ('Faster and Further'). Decomposition-led and RN/TP-heavy, per Takuji 2026-08-03: casual readers do not want model detail, paying professionals do, and the earlier slim build (jgb-forecast-alternative, now parked) was the free-tier shape. Takuji also ruled this page SUPERSEDES the frozen /jgb-yield-curve-model/ page — an explicit reversal of the S05 freeze, which the work order required be instructed rather than inferred. Data cut by builder/make_scenario_data.py from runs\\fan-sigma-after-v307 (branch v30_7-changes). WATCH THE INVERSION: v30_6 is the OLDER branch but the HIGHER 1.75% terminal, and it is the Alternative. The band is carried on the TERM PREMIUM as well as the yield because the risk-neutral leg is identical in the up, base and down runs — the whole fan is term-premium uncertainty, and the cut script refuses to run if that ever stops being true. About blocks and references are the S06-approved text, verbatim. The Bauer-Rudebusch reference typo ('It is seminal paper demostrating') was corrected on Takuji's instruction 2026-08-03, in the same edit across all three pages AND the report markdown, so the copies stay identical. Exhibits 14 and 15 read the Long Climb panel's CSVs by relative path (single-copy pattern).",
+  "_note": "PAID scenario page, Alternative ('Faster and Further'). Decomposition-led and RN/TP-heavy, per Takuji 2026-08-03: casual readers do not want model detail, paying professionals do, and the earlier slim build (jgb-forecast-alternative, now parked) was the free-tier shape. Takuji also ruled this page SUPERSEDES the frozen /jgb-yield-curve-model/ page — an explicit reversal of the S05 freeze, which the work order required be instructed rather than inferred. Data cut by builder/make_scenario_data.py from runs\\fan-sigma-after-v307 (branch v30_7-changes). WATCH THE INVERSION: v30_6 is the OLDER branch but the HIGHER 1.75% terminal, and it is the Alternative. NO uncertainty band is drawn on this page: Takuji had it removed 2026-08-03. The Fan_* columns remain in curve-panel.csv (the data is still delivered to subscribers) and the builder still supports the band kind, which the parked slim pages use — so restoring it is a manifest change, not a rebuild. QA now asserts no band reaches the page, so it cannot creep back unnoticed. About blocks and references are the S06-approved text, verbatim. The Bauer-Rudebusch reference typo ('It is seminal paper demostrating') was corrected on Takuji's instruction 2026-08-03, in the same edit across all three pages AND the report markdown, so the copies stay identical. Exhibits 14 and 15 read the Long Climb panel's CSVs by relative path (single-copy pattern).",
   "assumptions": {
     "heading": "What this projection assumes",
     "items": [
@@ -20,7 +20,7 @@
       },
       {
         "head": "The US term premium.",
-        "text": "A rise in the US 10-year term premium following the change of Federal Reserve chair at the end of May 2026, peaking at 122 basis points at end-November 2026 with half the rise retained thereafter. Identical to the Main Forecast's assumption. About a quarter of a US term-premium move passes into superlong JGB yields. The shaded band on the charts is a one-standard-deviation range around this assumption alone."
+        "text": "A rise in the US 10-year term premium following the change of Federal Reserve chair at the end of May 2026, peaking at 122 basis points at end-November 2026 with half the rise retained thereafter. Identical to the Main Forecast's assumption. About a quarter of a US term-premium move passes into superlong JGB yields."
       }
     ],
     "more": {
@@ -276,8 +276,8 @@
     {
       "n": 7,
       "kind": "line",
-      "title": "10-year spot yield: projection and its uncertainty band",
-      "subtitle": "The central path with the one-standard-deviation range",
+      "title": "10-year spot yield: history and projection",
+      "subtitle": "A closer view of the projected path",
       "ylabel": "Per cent per annum",
       "source": "Source: JMA JGB yield-curve model, Alternative Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
       "csv": "data/curve-panel.csv",
@@ -286,11 +286,6 @@
       "decimals": 3,
       "split_col": "Type",
       "solid_value": "actual",
-      "band": {
-        "lo": "Fan_lo_10Y",
-        "hi": "Fan_hi_10Y",
-        "label": "±1 s.d. range"
-      },
       "series": [
         {
           "col": "Yield_10Y",
@@ -298,13 +293,13 @@
           "color": "#2C2C2A"
         }
       ],
-      "note": "The band widens over the first twelve months and then holds, because the assumption it prices is a one-standard-deviation twelve-month move in the US term premium rather than a compounding one."
+      "note": "The same series as the 10-year decomposition above, windowed from 2022 so the projected path can be read directly."
     },
     {
       "n": 8,
       "kind": "line",
-      "title": "30-year spot yield: projection and its uncertainty band",
-      "subtitle": "The central path with the one-standard-deviation range",
+      "title": "30-year spot yield: history and projection",
+      "subtitle": "A closer view of the projected path",
       "ylabel": "Per cent per annum",
       "source": "Source: JMA JGB yield-curve model, Alternative Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
       "csv": "data/curve-panel.csv",
@@ -313,12 +308,6 @@
       "decimals": 3,
       "split_col": "Type",
       "solid_value": "actual",
-      "band": {
-        "lo": "Fan_lo_30Y",
-        "hi": "Fan_hi_30Y",
-        "label": "±1 s.d. range",
-        "fillcolor": "rgba(216,90,48,0.13)"
-      },
       "series": [
         {
           "col": "Yield_30Y",
@@ -372,8 +361,8 @@
     {
       "n": 10,
       "kind": "line",
-      "title": "10-year term premium: projection and its uncertainty band",
-      "subtitle": "Where the band actually sits — the risk-neutral path is the same in every leg",
+      "title": "10-year term premium: history and projection",
+      "subtitle": "A closer view of the projected path",
       "ylabel": "Term premium, % per annum",
       "source": "Source: JMA JGB yield-curve model, Alternative Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
       "csv": "data/curve-panel.csv",
@@ -382,11 +371,6 @@
       "decimals": 3,
       "split_col": "Type",
       "solid_value": "actual",
-      "band": {
-        "lo": "Fan_lo_TP_10Y",
-        "hi": "Fan_hi_TP_10Y",
-        "label": "±1 s.d. range"
-      },
       "series": [
         {
           "col": "TP_10Y",
@@ -394,12 +378,12 @@
           "color": "#378ADD"
         }
       ],
-      "note": "The band here is the same width as the band on the yield chart above, because the expected-rate path does not move between the upper and lower runs. All of the projection's uncertainty in this exercise is compensation for risk, not a different view of policy."
+      "note": "The 10-year premium finishes normalizing over the projection, held up in 2026-27 by the assumed US term-premium episode before that fades."
     },
     {
       "n": 11,
       "kind": "line",
-      "title": "30-year term premium: projection and its uncertainty band",
+      "title": "30-year term premium: history and projection",
       "subtitle": "The superlong premium, where the US spillover lands hardest",
       "ylabel": "Term premium, % per annum",
       "source": "Source: JMA JGB yield-curve model, Alternative Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
@@ -409,12 +393,6 @@
       "decimals": 3,
       "split_col": "Type",
       "solid_value": "actual",
-      "band": {
-        "lo": "Fan_lo_TP_30Y",
-        "hi": "Fan_hi_TP_30Y",
-        "label": "±1 s.d. range",
-        "fillcolor": "rgba(216,90,48,0.13)"
-      },
       "series": [
         {
           "col": "TP_30Y",
@@ -466,11 +444,6 @@
       "x": "YM",
       "start": "2015-01",
       "decimals": 1,
-      "band": {
-        "lo": "US_TP10_down_bp",
-        "hi": "US_TP10_up_bp",
-        "label": "±1 s.d. range"
-      },
       "series": [
         {
           "col": "US_TP10_bp",

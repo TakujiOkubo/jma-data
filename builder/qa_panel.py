@@ -570,13 +570,13 @@ IDS = {
                               yband={"10Y": 1, "30Y": 2}, tpband={}),
     "jgb-forecast-alternative": dict(policy=5, curve=3, ustp=6, curve_spec=2,
                                      yband={"10Y": 1, "30Y": 2}, tpband={}),
+    # The paid pages carry no band (removed 2026-08-03), so they name no
+    # banded charts. Charts 7/8 and 10/11 are still there as 2022-onward
+    # close-ups of the yield and term-premium paths.
     "jgb-yield-curve-main": dict(policy=12, curve=6, ustp=13, curve_spec=5,
-                                 yband={"10Y": 7, "30Y": 8},
-                                 tpband={"10Y": 10, "30Y": 11}),
+                                 yband={}, tpband={}),
     "jgb-yield-curve-alternative": dict(policy=12, curve=6, ustp=13,
-                                        curve_spec=5,
-                                        yband={"10Y": 7, "30Y": 8},
-                                        tpband={"10Y": 10, "30Y": 11}),
+                                        curve_spec=5, yband={}, tpband={}),
 }
 
 
@@ -676,7 +676,23 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
          f"{len(fan_src)} month-tenor pairs")
 
     # ---- the fan ----------------------------------------------------------
-    print("\nUncertainty band")
+    # A page either draws the band everywhere it declares one, or nowhere at
+    # all. The paid pages had it removed (Takuji, 2026-08-03); the parked slim
+    # pages still carry it. Both states are gated, so neither can drift.
+    has_band = any(c.get("band") for c in manifest["charts"])
+
+    print("\nUncertainty band" if has_band else "\nUncertainty band removed")
+    if not has_band:
+        stray = [(cid, t.get("name")) for cid, f in figs.items()
+                 for t in f["data"]
+                 if t.get("name") == BAND or t.get("fill") == "tonexty"]
+        gate(not stray, "no band trace reaches any chart on this page",
+             f"{len(figs)} figures checked")
+        gate(BAND not in page and "uncertainty band" not in page.lower(),
+             "no band is referred to in the page text")
+        gate(not any("Fan_" in str(c.get("band", "")) for c in manifest["charts"]),
+             "no chart spec declares a band")
+
     for tenor, cid in ids["yband"].items():
         f = figs[f"chart_{cid}"]
         edges = [t for t in f["data"] if t["name"] == BAND]
@@ -723,13 +739,14 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
              f"{len(shared)} months, worst gap {worst:.2f}bp")
 
     f6 = figs[f"chart_{ids['ustp']}"]
-    edges = [t for t in f6["data"] if t["name"] == BAND]
-    xs6 = [x[:7] for x in edges[0]["x"]]
-    i6 = {x: i for i, x in enumerate(xs6)}
-    hw = (edges[0]["y"][i6["2029-07"]] - edges[1]["y"][i6["2029-07"]]) / 2
-    gate(abs(hw - SIGMA10_BP) < 0.1,
-         f"US TP fan half-width is the published sigma, {SIGMA10_BP}bp",
-         f"{hw:.1f}bp")
+    if has_band:
+        edges = [t for t in f6["data"] if t["name"] == BAND]
+        xs6 = [x[:7] for x in edges[0]["x"]]
+        i6 = {x: i for i, x in enumerate(xs6)}
+        hw = (edges[0]["y"][i6["2029-07"]] - edges[1]["y"][i6["2029-07"]]) / 2
+        gate(abs(hw - SIGMA10_BP) < 0.1,
+             f"US TP fan half-width is the published sigma, {SIGMA10_BP}bp",
+             f"{hw:.1f}bp")
 
     print("\nThe US term-premium assumption (shared by both scenarios)")
     assumed = trace(f6, "Assumed path")
