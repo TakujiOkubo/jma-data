@@ -815,6 +815,28 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
          "the assumptions block is on the page, above the charts")
     gate(page.index('class="assump"') < page.index('class="card"'),
          "assumptions are stated before any forecast number is shown")
+    if manifest["assumptions"].get("more"):
+        mo = manifest["assumptions"]["more"]
+        wording = mo["text"] if mo.get("url") else mo.get("text_pending",
+                                                          mo["text"])
+        gate(wording in page,
+             "the assumptions block points to the fuller write-up")
+        gate(len(manifest["assumptions"]["items"]) == 2,
+             "the assumptions block is the trimmed two-bullet version",
+             f"{len(manifest['assumptions']['items'])} bullets")
+        # The report was unpublished when these pages were built, so the
+        # pointer is deliberately not a link yet. Whichever state it is in has
+        # to be internally consistent: a set url must reach the page as an
+        # anchor, an unset one must leave no half-built link behind.
+        if mo.get("url"):
+            gate(f'<a href="{mo["url"]}">{mo["anchor"]}</a>' in page,
+                 "the report pointer is a working link")
+        else:
+            gate('class="assumpmore"' in page
+                 and '<a href="">' not in page
+                 and 'href="None"' not in page,
+                 "report not yet published: the pointer renders as plain text, "
+                 "with no dead link")
 
     # ---- the two pages differ where they should, and only there -----------
     print("\nAgainst the sibling scenario")

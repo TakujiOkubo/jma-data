@@ -897,11 +897,33 @@ def build(slug: str) -> Path:
             + (it["text_html"] if "text_html" in it else html.escape(it["text"]))
             + "</p>"
             for it in a.get("items", []))
+        # The pointer to the fuller write-up. "url" is deliberately allowed to
+        # be null: the report may not be published when the page is. In that
+        # case the sentence still reads correctly as plain text, and the build
+        # says so out loud rather than leaving a dead link or a silent TODO.
+        more = ""
+        if a.get("more"):
+            mo = a["more"]
+            url = mo.get("url")
+            if url:
+                anchor = html.escape(mo.get("anchor", "our report"))
+                body = html.escape(mo["text"]).replace(
+                    anchor, f'<a href="{html.escape(url)}">{anchor}</a>', 1)
+            else:
+                # Both wordings are authored up front, so publishing the report
+                # is a single field change — set the url and the sentence stops
+                # saying "forthcoming" and becomes a link in the same edit.
+                # Nothing to remember, nothing to leave stale.
+                body = html.escape(mo.get("text_pending", mo["text"]))
+                print(f"  note: assumptions 'more' link is unset for {slug} — "
+                      "using the pending wording, no link. Set "
+                      "assumptions.more.url once the report is published.")
+            more = f'<p class="assumpmore">{body}</p>'
         assumptions = (
             f'<div class="assump">'
             f'<div class="assumplabel">'
             f'{html.escape(a.get("heading", "Scenario assumptions"))}</div>'
-            f"{items}</div>")
+            f"{items}{more}</div>")
 
     # The sibling scenario's page. Each of the two pages is only half the
     # picture, so the link out is part of the page, not a footnote.
@@ -993,6 +1015,8 @@ SCENARIO_CSS = """  .assump{margin:24px 0 0;border-left:3px solid #3b65a2;backgr
                color:#3b65a2;text-transform:uppercase;margin-bottom:10px}
   .assump p{font:400 15.5px/1.6 'PT Serif',serif;color:#2c2c2a;margin:0 0 12px;
             text-wrap:pretty}
+  .assump p.assumpmore{font-style:italic;color:#54544e}
+  .assump p.assumpmore a{color:#3b65a2}
   .sib{margin:18px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;
        gap:4px 10px}
   .sib a{font:600 15px 'Public Sans',sans-serif;color:#3b65a2}
