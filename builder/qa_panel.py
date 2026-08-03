@@ -792,7 +792,10 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
              "the model exposition is linked, not duplicated")
         gate('id="about"' not in page,
              "no About/methodology section duplicated on this page")
-        gate("It is seminal paper demostrating" not in page,
+        # Match a reference the list always carries, not a typo — the typo was
+        # corrected 2026-08-03 and a test for it would now pass on any page.
+        gate("Pricing the Term Structure with Linear Regressions" not in page
+             and 'class="refs"' not in page,
              "the report's reference list is not restated here")
 
     print("\nSibling and tier")
