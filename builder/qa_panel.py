@@ -986,13 +986,254 @@ def qa_scenario_model(root, manifest, page, figs) -> None:
          "ACM card sits after the block that argues it")
 
 
+# ------------------------------------------------ the Warsh article panel
+# Every figure below is a claim the article makes in words. The manifest's own
+# notes state them precisely enough to check, which is what these gates do:
+# each one re-derives a printed number from the delivered page and, where the
+# number originates in the forecast pipeline, from the production run directory
+# rather than from the CSV this repo cut from it.
+WARSH_TITLES = [
+    "Long Term Inflation Expectation: Getting Closer to 2%",
+    "US 30Y Treasury Yield: Highest Since 2007",
+    "US Curve 2-30Y Spread: The sharp steepening on FOMC day",
+    "US 10Y Term premia: Rising till Nov 2026",
+    "Main forecast: JGB spot yields, %",
+    "Alternative forecast: JGB spot yields, %",
+    "The 30-year peaks near 4.5%, then declines",
+]
+# The scenario each forecast table belongs to, and the policy path its caption
+# claims. Swapping the two CSVs is the failure this page is most exposed to:
+# both tables are the same shape and either would render without complaint.
+WARSH_TABLES = {
+    5: dict(scenario="Main", run="fan-sigma-after-v307",
+            hikes=[("2026-10", 1.25), ("2027-03", 1.50)]),
+    6: dict(scenario="Alternative", run="fan-sigma-after-v306",
+            hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)]),
+}
+WARSH_FLAT = {"fan-sigma-after-v307": "ustp-flat-v307",
+              "fan-sigma-after-v306": "ustp-flat-v306"}
+
+
+def _run_curve(run: str) -> dict:
+    with open(RUNS / run / f"{run}_consolidated_curve.csv",
+              newline="", encoding="utf-8-sig") as f:
+        return {r["YM"].strip(): r for r in csv.DictReader(f)}
+
+
+def qa_warsh_panel(root, manifest, page, figs) -> None:
+    """The free companion panel to "The Warsh Factor in the JGB Curve"."""
+    def csv_rows(name):
+        with open(root / "data" / name, newline="", encoding="utf-8-sig") as f:
+            return list(csv.DictReader(f))
+
+    print("\nTitles and order")
+    h2s = re.findall(r"<h2>(.*?)</h2>", page)
+    gate(h2s[:7] == WARSH_TITLES, "the seven exhibits run in the article's order",
+         str([t[:20] for t in h2s[:7]]))
+    gate(f'href="{manifest["post_url"]}"' in page, "links back to the article")
+
+    print("\nChart 1 — inflation expectations approaching 2%")
+    f1 = figs["chart_1"]
+    ys = [v for v in trace(f1, "10Y inflation expectations")["y"] if v is not None]
+    gate(any(abs(s.get("y0", 0) - 2.0) < 1e-9 for s in f1["layout"]["shapes"]),
+         "the 2% target line is drawn")
+    gate(any(a["text"] == "BoJ 2% target"
+             for a in f1["layout"].get("annotations", [])),
+         "the 2% line is labelled")
+    latest = ys[-1]
+    gate(abs(latest - 1.74) < 0.005,
+         "the latest bar is 1.74%, as the caption states", f"{latest:.4f}%")
+    gate(0 < 2.0 - latest < 0.30,
+         "'getting closer to 2%': the latest reading is within 30bp, still below",
+         f"{(2.0-latest)*100:.0f}bp short")
+    rises = 0
+    for i in range(len(ys) - 1, 0, -1):
+        if ys[i] > ys[i - 1]:
+            rises += 1
+        else:
+            break
+    gate(rises >= 6, "at least six consecutive annual rises, per the caption",
+         f"{rises}")
+
+    print("\nChart 2 — 'Highest Since 2007', audited not asserted")
+    f2 = figs["chart_2"]
+    t2 = trace(f2, "US 30Y Treasury yield")
+    pts = [(x[:10], y) for x, y in zip(t2["x"], t2["y"]) if y is not None]
+    line = next(s["y0"] for s in f2["layout"]["shapes"])
+    gate(abs(line - 5.21) < 1e-9, "the reference line is the 5.21% latest close")
+    gate(abs(pts[-1][1] - 5.21) < 5e-3 and pts[-1][0] == "2026-07-30",
+         "the line equals the last drawn observation", str(pts[-1]))
+    after = [p for p in pts if p[0] > "2007-07-12" and p[1] > 5.21]
+    gate(not after,
+         "nothing drawn exceeds 5.21% after 12 July 2007 — the headline holds",
+         f"{len(after)} exceedances")
+    before = [p for p in pts if p[0] <= "2007-07-12" and p[1] > 5.21]
+    gate(bool(before),
+         "...and something before it does, so 'since 2007' is not vacuous",
+         f"{len(before)} earlier points, max {max(p[1] for p in before)}")
+
+    print("\nChart 3 — the FOMC-day steepening")
+    t3 = trace(figs["chart_3"], "30Y minus 2Y")
+    sp = {x[:10]: y for x, y in zip(t3["x"], t3["y"]) if y is not None}
+    gate(abs(sp["2026-07-28"] - 83) < 0.5 and abs(sp["2026-07-29"] - 98) < 0.5,
+         "83bp to 98bp across the FOMC decision, as the caption states",
+         f"{sp['2026-07-28']:.0f} -> {sp['2026-07-29']:.0f}")
+    ks = sorted(sp)
+    moves = [(ks[i], sp[ks[i]] - sp[ks[i - 1]]) for i in range(1, len(ks))]
+    biggest = max(moves, key=lambda m: m[1])
+    gate(biggest[0] == "2026-07-29" and abs(biggest[1] - 15) < 0.5,
+         "+15bp is the sharpest one-day steepening in the drawn window",
+         f"{biggest[0]} {biggest[1]:+.0f}bp")
+    gate(abs(sp[ks[0]] - 139) < 0.5 and 35 < sp[ks[0]] - sp[ks[-1]] < 45,
+         "the year opened at 139bp and is still ~40bp steeper than now",
+         f"{sp[ks[0]]:.0f} -> {sp[ks[-1]]:.0f}bp")
+
+    print("\nChart 4 — the assumed US term-premium path")
+    f4 = figs["chart_4"]
+    legs = [t for t in f4["data"] if t["name"] == "10Y term premium"]
+    gate(len(legs) == 2, "observed and assumed legs are drawn separately")
+    merged = [a if a is not None else b for a, b in zip(legs[0]["y"], legs[1]["y"])]
+    xs = [x[:7] for x in legs[0]["x"]]
+    at = dict(zip(xs, merged))
+    # The figure rounds to the chart's `decimals`, so a claim stated to a tenth
+    # is checked on the SOURCE, and the figure is checked against that source at
+    # the precision it is drawn in. Comparing a rounded pixel value against an
+    # unrounded claim only measures the rounding.
+    src4 = {r["ym"]: float(r["tp10_bp"]) for r in csv_rows("chart-4-us-tp10.csv")
+            if (r.get("tp10_bp") or "").strip()}
+    dec4 = next(c for c in manifest["charts"] if c["n"] == 4).get("decimals", 3)
+    gate(all(v is None or abs(v - round(src4[ym], dec4)) < 1e-9
+             for ym, v in at.items() if ym in src4),
+         "every drawn point is its source value at the chart's precision",
+         f"{len(src4)} months, {dec4}dp")
+    peak_ym = max(src4, key=src4.get)
+    gate(peak_ym == "2026-11" and abs(src4[peak_ym] - 122.2) < 0.05,
+         "the path peaks at 122bp just past the November midterms",
+         f"{src4[peak_ym]:.1f}bp at {peak_ym}")
+    last4 = src4[max(src4)]
+    gate(abs(last4 - 94.5) < 0.05, "and retains 94bp at the horizon",
+         f"{last4:.1f}bp")
+    gate("122bp" in page and "94bp" in page,
+         "the caption quotes both figures as the chart rounds them")
+    base = src4.get("2026-05")
+    if base is not None:
+        half = base + (src4[peak_ym] - base) / 2
+        gate(abs(last4 - half) < 1.0,
+             "the terminal level is half the shock retained, as described",
+             f"baseline {base:.1f} peak {src4[peak_ym]:.1f} -> half {half:.1f}bp")
+
+    print("\nCharts 5 and 6 — the forecast tables, against the production runs")
+    seen = {}
+    for n, spec in WARSH_TABLES.items():
+        c = next(c for c in manifest["charts"] if c["n"] == n)
+        gate(spec["scenario"].lower() in c["title"].lower(),
+             f"chart {n} is titled as the {spec['scenario']} forecast")
+        tbl = csv_rows(Path(c["csv"]).name)
+        seen[n] = tbl
+        src = _run_curve(spec["run"])
+        bad = []
+        for r in tbl:
+            ym = {"Current (Jul 2026)": "2026-07", "Dec 2026": "2026-12",
+                  "Dec 2027": "2027-12", "Dec 2028": "2028-12",
+                  "Jul 2029": "2029-07"}.get(r["label"].strip())
+            if ym is None:
+                bad.append(f"unmapped row {r['label']}")
+                continue
+            for t in ("5Y", "10Y", "20Y", "30Y", "40Y"):
+                want = round(float(src[ym][f"Yield_{t}"]), 2)
+                if abs(float(r[t]) - want) > 5e-3:
+                    bad.append(f"{ym} {t}: {r[t]} vs {want}")
+        gate(not bad, f"chart {n}: every cell matches {spec['run']}",
+             f"{len(tbl)}x5 cells" if not bad else "; ".join(bad[:3]))
+        # the caption's policy path, re-derived from the run itself
+        steps, prev = [], None
+        for ym, row in sorted(src.items()):
+            pr = float(row["Policy_Rate"])
+            if row["Type"].strip() == "forecast" and prev is not None \
+                    and abs(pr - prev) > 1e-4 and pr > 1.0 + 1e-6:
+                steps.append((ym, round(pr, 2)))
+            prev = pr
+        gate(steps == [(y, r) for y, r in spec["hikes"]],
+             f"chart {n}: the caption's policy path is the run's", str(steps))
+        for ym, rate in spec["hikes"]:
+            month = ["January","February","March","April","May","June","July",
+                     "August","September","October","November","December"][int(ym[5:7])-1]
+            gate(f"{rate:.2f}% from {month} {ym[:4]}" in page
+                 or f"{rate:.2f}% terminal from {month} {ym[:4]}" in page,
+                 f"chart {n}: caption names {rate:.2f}% from {month} {ym[:4]}")
+    gate(seen[5] != seen[6],
+         "the two tables are not the same file — a swap or duplicate would show here")
+
+    print("\nChart 7 — the two scenario paths")
+    f7 = figs["chart_7"]
+    names = [t["name"] for t in f7["data"]]
+    gate(names.index("Alternative") < names.index("Main"),
+         "Alternative is drawn first so Main sits on top, per the manifest note")
+    def merge(name):
+        a, b = [t for t in f7["data"] if t["name"] == name]
+        return dict(zip([x[:7] for x in a["x"]],
+                        [p if p is not None else q for p, q in zip(a["y"], b["y"])]))
+    main, alt = merge("Main"), merge("Alternative")
+    # The 8.3bp claim is about the forecast, so it is checked on the source at
+    # full precision. At the chart's 2dp the same gap can READ as 9bp — that is
+    # the display rounding, not a broken claim, and is asserted separately so a
+    # future reader is not surprised by it.
+    src7 = {r["ym"]: r for r in csv_rows("chart-7-jgb-30y-scenarios.csv")}
+    exact = {ym: (float(r["alt_pct"]) - float(r["main_pct"])) * 100
+             for ym, r in src7.items()
+             if (r.get("alt_pct") or "").strip() and (r.get("main_pct") or "").strip()}
+    worst = max(exact.items(), key=lambda kv: abs(kv[1]))
+    gate(abs(worst[1]) <= 8.35,
+         "the two paths never differ by more than 8.3bp, as the caption states",
+         f"max {worst[1]:+.2f}bp at {worst[0]}")
+    drawn_gap = max(abs(alt[ym] - main[ym]) * 100 for ym in main
+                    if main[ym] is not None and alt.get(ym) is not None)
+    gate(drawn_gap <= abs(worst[1]) + 1.0,
+         "the 2dp drawn series widens that gap by less than a basis point",
+         f"drawn max {drawn_gap:.1f}bp vs source {abs(worst[1]):.2f}bp")
+    peak = max((v for v in main.values() if v is not None))
+    peak_ym = next(k for k, v in main.items() if v == peak)
+    gate(4.45 <= peak <= 4.55 and peak_ym.startswith("2026"),
+         "the 30-year peaks near 4.5% in 2026, as the title claims",
+         f"{peak:.3f}% at {peak_ym}")
+    gate(abs(main["2028-06"] - 3.8) < 0.06,
+         "...and is down to about 3.8% by mid-2028",
+         f"{main['2028-06']:.3f}%")
+    hist = [ym for ym in main if ym <= "2026-07"]
+    gate(all(abs(main[ym] - alt[ym]) < 1e-9 for ym in hist),
+         "over history the two lines carry the same actual", f"{len(hist)} months")
+    for name, col, spec in (("Main", "main_pct", WARSH_TABLES[5]),
+                            ("Alternative", "alt_pct", WARSH_TABLES[6])):
+        src = _run_curve(spec["run"])
+        bad = sum(1 for ym, r in src7.items()
+                  if (r.get(col) or "").strip() and ym in src
+                  and abs(float(r[col]) - float(src[ym]["Yield_30Y"])) > 1e-3)
+        gate(not bad, f"{name}: the page's 30Y is {spec['run']}'s own",
+             f"{len(src7)} months")
+        series = merge(name)
+        off = sum(1 for ym, v in series.items()
+                  if v is not None and ym in src7
+                  and (src7[ym].get(col) or "").strip()
+                  and abs(v - round(float(src7[ym][col]), 2)) > 1e-9)
+        gate(not off, f"{name}: every drawn point is its source at 2dp")
+
+    print("\nThe standfirst's 10bp claim, against the no-Warsh runs")
+    for scen, spec in (("Main", WARSH_TABLES[5]), ("Alternative", WARSH_TABLES[6])):
+        w, fl = _run_curve(spec["run"]), _run_curve(WARSH_FLAT[spec["run"]])
+        d = (float(w["2026-12"]["Yield_10Y"]) - float(fl["2026-12"]["Yield_10Y"])) * 100
+        gate(8.0 <= d <= 12.0,
+             f"{scen}: the Warsh factor adds ~10bp to the 10Y at end-2026",
+             f"{d:+.1f}bp")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
       "jgb-yield-curve-model": qa_yield_curve,
       "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind,
       "jgb-forecast-main": qa_scenario_forecast,
       "jgb-forecast-alternative": qa_scenario_forecast,
       "jgb-yield-curve-main": qa_scenario_model,
-      "jgb-yield-curve-alternative": qa_scenario_model}
+      "jgb-yield-curve-alternative": qa_scenario_model,
+      "2026-08-03-jgb-warsh": qa_warsh_panel}
 
 BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 
