@@ -242,6 +242,13 @@ def cut(key: str) -> None:
 
     data_dirs = []
     for slug in spec["slugs"]:
+        # Only cut data for pages that actually exist here. The parked slim
+        # pages live on the scenario-forecast-pages branch and are absent from
+        # the deploy branch; without this, a refresh on the deploy branch would
+        # silently recreate them as orphan data folders with no manifest.
+        if not (REPO / slug / "panel.json").exists():
+            print(f"  skipping {slug}: no panel.json on this branch")
+            continue
         d = REPO / slug / "data"
         d.mkdir(parents=True, exist_ok=True)
         data_dirs.append(d)
