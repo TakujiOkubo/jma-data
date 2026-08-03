@@ -293,6 +293,13 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
         layout["shapes"] = layout.get("shapes", []) + shapes
     if annos:
         layout["annotations"] = layout.get("annotations", []) + annos
+        # An hline label sits in the right margin. The default 60px holds a
+        # short one ("4%") but clipped "Terminal 1.50%" to "Terminal", so the
+        # margin is sized to the longest label rather than left at a width
+        # that happens to fit the labels used so far.
+        longest = max(len(h["label"]) for h in spec["hlines"] if h.get("label"))
+        layout["margin"]["r"] = max(layout["margin"]["r"],
+                                    18 + int(longest * 6.6))
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
 
