@@ -906,9 +906,12 @@ def build(slug: str) -> Path:
             mo = a["more"]
             url = mo.get("url")
             if url:
+                # The anchor is a report title, so it is italicised to match
+                # how intro_html renders one.
                 anchor = html.escape(mo.get("anchor", "our report"))
                 body = html.escape(mo["text"]).replace(
-                    anchor, f'<a href="{html.escape(url)}">{anchor}</a>', 1)
+                    anchor,
+                    f'<a href="{html.escape(url)}"><em>{anchor}</em></a>', 1)
             else:
                 # Both wordings are authored up front, so publishing the report
                 # is a single field change — set the url and the sentence stops

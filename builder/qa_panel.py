@@ -836,8 +836,14 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
         mo = manifest["assumptions"]["more"]
         wording = mo["text"] if mo.get("url") else mo.get("text_pending",
                                                           mo["text"])
-        gate(wording in page,
-             "the assumptions block points to the fuller write-up")
+        # Compare the RENDERED sentence, not the raw string: once the report is
+        # published the anchor is wrapped in <a><em>, so the manifest text is
+        # no longer a literal substring of the page.
+        frag = re.search(r'<p class="assumpmore">(.*?)</p>', page, re.S)
+        shown = re.sub(r"<[^>]+>", "", frag.group(1)) if frag else ""
+        gate(shown.strip() == wording,
+             "the assumptions block points to the fuller write-up",
+             shown.strip()[:70] + "…")
         gate(len(manifest["assumptions"]["items"]) == 2,
              "the assumptions block is the trimmed two-bullet version",
              f"{len(manifest['assumptions']['items'])} bullets")
@@ -846,8 +852,10 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
         # to be internally consistent: a set url must reach the page as an
         # anchor, an unset one must leave no half-built link behind.
         if mo.get("url"):
-            gate(f'<a href="{mo["url"]}">{mo["anchor"]}</a>' in page,
+            gate(f'<a href="{mo["url"]}"><em>{mo["anchor"]}</em></a>' in page,
                  "the report pointer is a working link")
+            gate("forthcoming" not in page,
+                 "the pending wording is gone now the report is published")
         else:
             gate('class="assumpmore"' in page
                  and '<a href="">' not in page
