@@ -511,9 +511,275 @@ def qa_fx_carry_unwind(root, manifest, page, figs) -> None:
          "public teaser: no paid-access banner on this page")
 
 
+# --------------------------------------------------- scenario forecast pages
+# The scenario table restated independently of make_scenario_data.py. Gating a
+# page against the script that cut it would only prove the script is
+# self-consistent; these figures come from the settled taxonomy (vault note
+# scenario-naming-main-alternative-2026-08-02.md) and from the forecast tables
+# printed in fan-sigma-12m-impact-2026-08-02.md.
+RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
+
+SCENARIO = {
+    "jgb-forecast-main": dict(
+        name="Main Forecast",
+        run="fan-sigma-after-v307",
+        sibling="jgb-forecast-alternative",
+        hikes=[("2026-10", 1.25), ("2027-03", 1.50)],
+        terminal=1.50,
+        # bp, from the note's V30.7 base forecast table
+        printed={"2026-12": dict(Y10=312.1, Y20=399.5, Y30=447.2, Y40=440.6),
+                 "2027-12": dict(Y10=328.2, Y20=380.2, Y30=402.4, Y40=408.4),
+                 "2028-12": dict(Y10=314.0, Y20=369.0, Y30=381.0, Y40=392.6),
+                 "2029-07": dict(Y10=312.6, Y20=367.4, Y30=379.5, Y40=391.2)},
+    ),
+    "jgb-forecast-alternative": dict(
+        name="Alternative Forecast: Faster and Further",
+        run="fan-sigma-after-v306",
+        sibling="jgb-forecast-main",
+        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
+        terminal=1.75,
+        # bp, from the note's V30.6 base forecast table
+        printed={"2026-12": dict(Y10=306.6, Y20=397.3, Y30=445.5, Y40=439.3),
+                 "2027-12": dict(Y10=344.6, Y20=391.0, Y30=410.6, Y40=415.0),
+                 "2028-12": dict(Y10=336.1, Y20=379.8, Y30=389.3, Y40=399.2),
+                 "2029-07": dict(Y10=327.2, Y20=378.1, Y30=387.8, Y40=397.8)},
+    ),
+}
+
+# Horizon-end fan half-widths in bp, and the sigma behind them, as published in
+# fan-sigma-12m-impact-2026-08-02.md. Identical on both scenarios by
+# construction: sigma depends on US data only, not the BoJ path.
+FAN_HALFWIDTH_2029 = {"10Y": 17.4, "20Y": 21.7, "30Y": 19.8, "40Y": 19.0}
+SIGMA10_BP = 77.5
+USTP_PEAK = ("2026-11", 122.2)
+USTP_TERMINAL = ("2029-07", 94.5)
+BAND = "±1 s.d. range"
+
+
+def _run_rows(spec, which):
+    stem = spec["run"]
+    name = {"curve": "consolidated_curve", "fcst": "stage3_forecast"}[which]
+    with open(RUNS / stem / f"{stem}_{name}.csv",
+              newline="", encoding="utf-8-sig") as f:
+        return list(csv.DictReader(f))
+
+
+def qa_scenario_forecast(root, manifest, page, figs) -> None:
+    """A scenario forecast page. The gates that matter here are (a) that the
+    page is labelled with the scenario it actually carries — the branch version
+    numbers invert the scenario rank, so a page mislabelled from a branch name
+    would look entirely plausible — and (b) that the delivered numbers
+    re-derive from the production run directory, not merely from the CSV this
+    repo cut from it."""
+    slug = manifest["slug"]
+    spec = SCENARIO[slug]
+    panel = list(csv.DictReader(open(root / "data/curve-panel.csv",
+                                     newline="", encoding="utf-8-sig")))
+    by_ym = {r["YM"]: r for r in panel}
+
+    # ---- scenario identity: the inversion trap ----------------------------
+    print("\nScenario identity")
+    gate(spec["name"] in manifest["title"],
+         f"page is titled as the {spec['name']}")
+
+    src = {r["YM"].strip(): r for r in _run_rows(spec, "curve")}
+    steps, prev = [], None
+    pol = trace(figs["chart_5"], "BoJ policy rate")
+    drawn = [t for t in figs["chart_5"]["data"] if t["name"] == "BoJ policy rate"]
+    merged = [a if a is not None else b
+              for a, b in zip(drawn[0]["y"], drawn[1]["y"])]
+    xs = [x[:7] for x in pol["x"]]
+    for ym, v in zip(xs, merged):
+        if v is not None and prev is not None and abs(v - prev) > 1e-4 \
+                and v > 1.0 + 1e-6:
+            steps.append((ym, round(v, 2)))
+        if v is not None:
+            prev = v
+    gate(steps == [(ym, r) for ym, r in spec["hikes"]],
+         "the DELIVERED policy path carries exactly the declared hikes",
+         str(steps))
+    gate(abs(merged[-1] - spec["terminal"]) < 1e-6,
+         f"terminal rate on the page is {spec['terminal']:.2f}%",
+         f"{merged[-1]:.4f}")
+    for ym, rate in spec["hikes"]:
+        gate(f"{ym[:4]}" in page, f"hike year {ym[:4]} appears in the page text")
+    month = {"01": "January", "02": "February", "03": "March", "04": "April",
+             "05": "May", "06": "June", "07": "July", "08": "August",
+             "09": "September", "10": "October", "11": "November",
+             "12": "December"}
+    for ym, _ in spec["hikes"]:
+        want = f"{month[ym[5:7]]} {ym[:4]}"
+        gate(want in page,
+             f"assumptions text names the {want} increase")
+    gate(f"{spec['terminal']:.2f} per cent" in page,
+         f"assumptions text states the {spec['terminal']:.2f}% terminal rate")
+
+    # ---- the delivered numbers re-derive from the production run ----------
+    print("\nAgainst the production run directory")
+    bad = 0
+    for ym, r in by_ym.items():
+        s = src.get(ym)
+        if not s:
+            bad += 1
+            continue
+        for t in ("2Y", "5Y", "10Y", "20Y", "30Y", "40Y"):
+            a, b = (r[f"Yield_{t}"] or "").strip(), (s[f"Yield_{t}"] or "").strip()
+            if a == "" and b == "":
+                continue
+            if a == "" or b == "" or abs(float(a) - float(b)) > 5e-5:
+                bad += 1
+    gate(not bad, f"every yield in the page CSV matches {spec['run']}",
+         f"{len(by_ym)} months x 6 maturities")
+
+    fc = _run_rows(spec, "fcst")
+    fan_src = {}
+    for r in fc:
+        fan_src.setdefault((r["YM"].strip(), r["Tenor"].strip()),
+                           {})[r["Scenario"].strip()] = float(r["Y_fcst"])
+    bad = 0
+    for (ym, t), legs in fan_src.items():
+        r = by_ym.get(ym)
+        if r is None:
+            bad += 1
+            continue
+        for side, colname in (("up", "Fan_hi"), ("down", "Fan_lo")):
+            v = (r[f"{colname}_{t}"] or "").strip()
+            if v == "" or abs(float(v) - legs[side]) > 5e-5:
+                bad += 1
+    gate(not bad, "every fan bound matches the run's stage-3 forecast",
+         f"{len(fan_src)} month-tenor pairs")
+
+    # ---- the fan ----------------------------------------------------------
+    print("\nUncertainty band")
+    for cid, tenor in ((1, "10Y"), (2, "30Y")):
+        f = figs[f"chart_{cid}"]
+        edges = [t for t in f["data"] if t["name"] == BAND]
+        gate(len(edges) == 2, f"chart {cid}: band drawn as two edges")
+        hi, lo = edges
+        gate(lo.get("fill") == "tonexty" and hi.get("line", {}).get("width") == 0,
+             f"chart {cid}: lower edge fills up to the invisible upper edge")
+        xs = [x[:7] for x in hi["x"]]
+        idx = {x: i for i, x in enumerate(xs)}
+        got = (hi["y"][idx["2029-07"]] - lo["y"][idx["2029-07"]]) / 2 * 100
+        gate(abs(got - FAN_HALFWIDTH_2029[tenor]) < 0.1,
+             f"{tenor}: horizon-end half-width is "
+             f"±{FAN_HALFWIDTH_2029[tenor]}bp as published", f"±{got:.1f}bp")
+        # The band must not appear over history: an uncertainty range drawn on
+        # observations would be a straightforward misstatement.
+        hist = [i for i, x in enumerate(xs)
+                if by_ym[x]["Type"] == "actual" and x != "2026-07"]
+        gate(all(hi["y"][i] is None and lo["y"][i] is None for i in hist),
+             f"chart {cid}: no band over the observed period",
+             f"{len(hist)} observed months")
+        gate(hi["y"][idx["2026-07"]] == lo["y"][idx["2026-07"]],
+             f"chart {cid}: band opens from the last observation at zero width")
+        gate(all(t.get("hoverinfo") == "skip" for t in edges),
+             f"chart {cid}: band edges stay out of the hover readout")
+
+    f6 = figs["chart_6"]
+    edges = [t for t in f6["data"] if t["name"] == BAND]
+    xs6 = [x[:7] for x in edges[0]["x"]]
+    i6 = {x: i for i, x in enumerate(xs6)}
+    hw = (edges[0]["y"][i6["2029-07"]] - edges[1]["y"][i6["2029-07"]]) / 2
+    gate(abs(hw - SIGMA10_BP) < 0.1,
+         f"US TP fan half-width is the published sigma, {SIGMA10_BP}bp",
+         f"{hw:.1f}bp")
+
+    print("\nThe US term-premium assumption (shared by both scenarios)")
+    assumed = trace(f6, "Assumed path")
+    ia = {x[:7]: i for i, x in enumerate(assumed["x"])}
+    for ym, want in (USTP_PEAK, USTP_TERMINAL):
+        gate(abs(assumed["y"][ia[ym]] - want) < 0.1,
+             f"assumed US TP at {ym} is {want}bp",
+             f"{assumed['y'][ia[ym]]:.1f}bp")
+    peak = max(v for v in assumed["y"] if v is not None)
+    gate(abs(peak - USTP_PEAK[1]) < 0.1
+         and assumed["x"][assumed["y"].index(peak)][:7] == USTP_PEAK[0],
+         "the assumed path peaks where the assumption says it does")
+    obs = trace(f6, "Observed (ACM)")
+    gate(all(v is None for v in obs["y"][ia["2026-08"]:]),
+         "the observed ACM series stops at the forecast origin")
+
+    # ---- the published forecast tables ------------------------------------
+    print("\nAgainst the printed forecast tables")
+    ft = list(csv.DictReader(open(root / "data/forecast-table.csv",
+                                  newline="", encoding="utf-8-sig")))
+    ftr = {r["ym"]: r for r in ft}
+    for ym, want in spec["printed"].items():
+        for key, v in want.items():
+            t = f"{key[1:]}Y"
+            drawn = float(by_ym[ym][f"Yield_{t}"]) * 100
+            gate(abs(drawn - v) < 0.06,
+                 f"{ym} {t}: {v}bp as printed in the reference tables",
+                 f"{drawn:.1f}bp")
+        if ym in ftr:
+            for key, v in want.items():
+                t = f"{key[1:]}Y"
+                gate(abs(float(ftr[ym][t]) * 100 - v) < 0.6,
+                     f"forecast table {ym} {t} rounds to the printed figure",
+                     f"{ftr[ym][t]}")
+    gate(page.count("<tr") == len(ft) + 1, "every table row rendered")
+    gate([r["kind"] for r in ft].count("actual") == 1,
+         "exactly one actual-origin row above the rule")
+
+    # ---- the curve chart ---------------------------------------------------
+    print("\nCurve chart")
+    f3 = figs["chart_3"]
+    for ln in manifest["charts"][2]["lines"]:
+        t = trace(f3, ln["label"])
+        want = [round(float(by_ym[ln["ym"]][f"Yield_{n}Y"]), 3)
+                for n in (2, 5, 10, 20, 30, 40)]
+        gate(t["y"] == want, f"curve {ln['label']}: matches the panel row")
+
+    # ---- relation to the model page and the sibling ------------------------
+    print("\nSlim-page structure, sibling and tier")
+    gate('href="../jgb-yield-curve-model/"' in page,
+         "the model exposition is linked, not duplicated")
+    gate("about" not in {c.get("kind") for c in manifest["charts"]}
+         and 'class="about"' not in page,
+         "no About/methodology section duplicated on this page")
+    gate("It is seminal paper demostrating" not in page,
+         "the report's reference list is not restated here")
+    sib = manifest["sibling"]
+    gate(sib["href"] == f'../{spec["sibling"]}/'
+         and (REPO / spec["sibling"] / "index.html").exists(),
+         "sibling link points at the other scenario page, which exists")
+    gate(f'href="{sib["href"]}"' in page, "sibling link reaches the page")
+    gate(manifest.get("unlisted") is True
+         and f'href="{slug}/"' not in
+         (REPO / "index.html").read_text(encoding="utf-8"),
+         "unlisted: the page is not on the landing page")
+    gate("Only paid subscribers" in page,
+         "paid-access banner present (this is not a teaser page)")
+    gate('class="assump"' in page and "What this forecast assumes" in page,
+         "the assumptions block is on the page, above the charts")
+    gate(page.index('class="assump"') < page.index('class="card"'),
+         "assumptions are stated before any forecast number is shown")
+
+    # ---- the two pages differ where they should, and only there -----------
+    print("\nAgainst the sibling scenario")
+    other = SCENARIO[spec["sibling"]]
+    o_src = {r["YM"].strip(): r for r in _run_rows(other, "curve")}
+    diff = sum(1 for ym in by_ym
+               if ym in o_src and (src[ym]["Policy_Rate"] or "")
+               != (o_src[ym]["Policy_Rate"] or ""))
+    gate(diff > 0, "the two scenarios' policy paths genuinely differ",
+         f"{diff} months")
+    same = all(abs(float(src[ym]["US_TP10_base"]) -
+                   float(o_src[ym]["US_TP10_base"])) < 5e-5
+               for ym in by_ym
+               if (src[ym]["US_TP10_base"] or "").strip()
+               and (o_src[ym]["US_TP10_base"] or "").strip())
+    gate(same, "the US term-premium assumption is identical on both scenarios")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
       "jgb-yield-curve-model": qa_yield_curve,
-      "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind}
+      "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind,
+      "jgb-forecast-main": qa_scenario_forecast,
+      "jgb-forecast-alternative": qa_scenario_forecast}
+
+BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 
 
 def main(slug: str) -> int:
