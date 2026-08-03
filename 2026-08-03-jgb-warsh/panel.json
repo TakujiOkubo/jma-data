@@ -1,0 +1,132 @@
+{
+  "slug": "2026-08-03-jgb-warsh",
+  "title": "The Warsh Factor in the JGB Curve",
+  "date": "3 August 2026",
+  "masthead_date": "3 August 2026",
+  "post_url": "https://takujiokubo.substack.com/p/the-warsh-factor-in-the-jgb-curve",
+  "unlisted": true,
+  "standfirst": "The US bond market is charging a risk premium as the new Fed chair obfuscates. About a quarter of that lands on JGBs, raising 10Y about 10bp at end-2026.",
+
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. Windows, chart form and series labels are read off the same scripts' plotting code — the data CSV cannot carry them. Charts 5 and 6 take their figcaptions from the same script's BASIS and SCENARIOS constants.",
+
+  "charts": [
+    {
+      "n": 1,
+      "kind": "bar_line",
+      "title": "Long Term Inflation Expectation: Getting Closer to 2%",
+      "ylabel": "10-year inflation expectations, %",
+      "source": "Source: BoJ Composite Index of Inflation Expectation (BoJ-CIE), with our estimate for 2024Q2 onward. Year-end.",
+      "csv": "data/chart-1-inflation-expectations.csv",
+      "x": "ym",
+      "resample": "year_end",
+      "decimals": 2,
+      "yrange": [0, 2.32],
+      "bars": [
+        {"col": "pi_star_10y", "label": "10Y inflation expectations", "color": "#378ADD"}
+      ],
+      "hlines": [{"y": 2.0, "label": "BoJ 2% target"}],
+      "note": "Year-end samples of a monthly series. The 2026 bar is July, the latest reading: 1.74%, about 26bp short of the target, and the sixth consecutive annual rise. The parent chart in the library fades its recent bars as provisional; that flag tracks the equilibrium real rate, not inflation expectations, so it is deliberately not carried here."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "US 30Y Treasury Yield: Highest Since 2007",
+      "ylabel": "%",
+      "source": "Source: US Treasury, JMA. Daily. Dotted line marks the latest level.",
+      "csv": "data/chart-2-ust-30y.csv",
+      "x": "date",
+      "decimals": 2,
+      "series": [
+        {"col": "yield_pct", "label": "US 30Y Treasury yield", "color": "#378ADD"}
+      ],
+      "hlines": [{"y": 5.21, "label": "5.21%, 30 Jul 2026"}],
+      "note": "The series rises above that line nowhere after 12 July 2007, when the 30-year last closed at 5.22%. That is how the headline is audited rather than asserted."
+    },
+    {
+      "n": 3,
+      "kind": "line",
+      "title": "US Curve 2-30Y Spread: The sharp steepening on FOMC day",
+      "ylabel": "bp",
+      "source": "Source: US Treasury, JMA. Daily. 29 July 2026 was the Warsh FOMC decision day.",
+      "csv": "data/chart-3-ust-2s30s.csv",
+      "x": "date",
+      "decimals": 0,
+      "series": [
+        {"col": "spread_bp", "label": "30Y minus 2Y", "color": "#378ADD"}
+      ],
+      "note": "83bp on 28 July to 98bp on 29 July — +15bp in one session, the sharpest one-day steepening since 1 August 2025, and still about 40bp flatter than the 139bp at which the year opened."
+    },
+    {
+      "n": 4,
+      "kind": "line",
+      "title": "US 10Y Term premia: Rising till Nov 2026",
+      "ylabel": "bp",
+      "source": "Source: New York Fed (ACM), JMA. Dashed line is JMA's assumed path.",
+      "csv": "data/chart-4-us-tp10.csv",
+      "x": "ym",
+      "decimals": 0,
+      "split_col": "kind",
+      "solid_value": "actual",
+      "series": [
+        {"col": "tp10_bp", "label": "10Y term premium", "color": "#378ADD"}
+      ],
+      "note": "The dashed leg is JMA's assumed path, building to 122bp just past the November US midterms and then retaining half the shock at 94bp. It carries what we expect, not what has already happened."
+    },
+    {
+      "n": 5,
+      "kind": "table",
+      "label": "Chart 5",
+      "title": "Main forecast: JGB spot yields, %",
+      "source": "Source: JMA",
+      "csv": "data/chart-5-forecast-main.csv",
+      "columns": [
+        {"col": "label", "label": ""},
+        {"col": "5Y", "label": "5Y"},
+        {"col": "10Y", "label": "10Y"},
+        {"col": "20Y", "label": "20Y"},
+        {"col": "30Y", "label": "30Y"},
+        {"col": "40Y", "label": "40Y"}
+      ],
+      "rule_after_col": "kind",
+      "rule_after_value": "actual",
+      "note": "Zero-coupon (spot) yields — not directly comparable with quoted MoF par yields. Policy rate assumption: 1.25% from October 2026, 1.50% terminal from March 2027."
+    },
+    {
+      "n": 6,
+      "kind": "table",
+      "label": "Chart 6",
+      "title": "Alternative forecast: JGB spot yields, %",
+      "source": "Source: JMA",
+      "csv": "data/chart-6-forecast-alternative.csv",
+      "columns": [
+        {"col": "label", "label": ""},
+        {"col": "5Y", "label": "5Y"},
+        {"col": "10Y", "label": "10Y"},
+        {"col": "20Y", "label": "20Y"},
+        {"col": "30Y", "label": "30Y"},
+        {"col": "40Y", "label": "40Y"}
+      ],
+      "rule_after_col": "kind",
+      "rule_after_value": "actual",
+      "note": "Zero-coupon (spot) yields — not directly comparable with quoted MoF par yields. Policy rate assumption: 1.25% from September 2026, 1.50% from March 2027, 1.75% terminal from December 2027."
+    },
+    {
+      "n": 7,
+      "kind": "line",
+      "title": "The 30-year peaks near 4.5%, then declines",
+      "ylabel": "JGB 30-year spot yield, %",
+      "source": "Source: JMA. Dashed lines are forecasts.",
+      "csv": "data/chart-7-jgb-30y-scenarios.csv",
+      "x": "ym",
+      "decimals": 2,
+      "split_col": "kind",
+      "solid_value": "actual",
+      "_series_order": "Alternative is listed FIRST so Main draws last and sits on top. Over history the two columns carry the same actual, so whichever is drawn second owns the solid line: with Main first the history rendered coral, against the published PNG's blue. This order also reproduces the PNG's z-order at the seam, where Main is drawn over Alternative. The legend reads in trace order, which is why Alternative appears first in it.",
+      "series": [
+        {"col": "alt_pct", "label": "Alternative", "color": "#D85A30"},
+        {"col": "main_pct", "label": "Main", "color": "#378ADD"}
+      ],
+      "note": "Monthly. Actual to July 2026, then the two scenario paths: Main assumes a 1.50% BoJ terminal rate, Alternative 1.75%. Over history both lines carry the same actual and sit on top of each other. The two paths never differ by more than 8.3bp, because the long end responds to the terminal level rather than to the timing of the hikes that reach it."
+    }
+  ]
+}

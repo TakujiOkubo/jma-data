@@ -47,7 +47,8 @@ MANIFEST (panel.json)
     kind "line"     x, start, end, series[{col,label,color,dash}],
                     hlines[{y,label}], decimals
     kind "bar_line" x, resample ("year_end"), bars[{col,label,color}],
-                    line{col,label,color}, flag_col, flag_note, decimals
+                    line{col,label,color} (optional), flag_col, flag_note,
+                    hlines[{y,label}], decimals
     kind "ranked_bars"
                     label_col, year_col, top_n,
                     panels[{col,header,color,decimals,thousands,prefix,suffix}]
@@ -182,6 +183,44 @@ def in_window(raw: str, start: str | None, end: str | None) -> bool:
 
 
 # ------------------------------------------------------------ figure assembly
+def apply_hlines(spec: dict, layout: dict, T: dict) -> None:
+    """Reference lines and their right-margin labels, added in place.
+
+    Shared by fig_line and fig_bar_line rather than written twice. A reference
+    line is the chart's argument, not decor — the Long Climb's 4% mark, the 2%
+    target on the inflation-expectations bars — so the two kinds have to place
+    and label it identically, and a copied block is where that stops being true.
+
+    Extends rather than assigns: both callers may already have put a shape on
+    the layout (the history/projection boundary marker in fig_line, the zero
+    baseline in fig_bar_line), and a chart setting both would otherwise lose it.
+    """
+    shapes, annos = [], []
+    for h in spec.get("hlines", []):
+        shapes.append(dict(
+            type="line", xref="paper", x0=0, x1=1, yref="y",
+            y0=h["y"], y1=h["y"],
+            line=dict(color=T["GREY"], width=1.4, dash="dash"), layer="below",
+        ))
+        if h.get("label"):
+            annos.append(dict(
+                xref="paper", x=1, yref="y", y=h["y"], text=h["label"],
+                showarrow=False, xanchor="left", yanchor="middle",
+                font=dict(size=11, color=T["GREY"]), xshift=6,
+            ))
+    if shapes:
+        layout["shapes"] = layout.get("shapes", []) + shapes
+    if annos:
+        layout["annotations"] = layout.get("annotations", []) + annos
+        # An hline label sits in the right margin. The default 60px holds a
+        # short one ("4%") but clipped "Terminal 1.50%" to "Terminal", so the
+        # margin is sized to the longest label rather than left at a width
+        # that happens to fit the labels used so far.
+        longest = max(len(h["label"]) for h in spec["hlines"] if h.get("label"))
+        layout["margin"]["r"] = max(layout["margin"]["r"],
+                                    18 + int(longest * 6.6))
+
+
 def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
     xcol = spec.get("x", "date")
     start, end = spec.get("start"), spec.get("end")
@@ -273,33 +312,7 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
             font=dict(size=11, color=T["GREY"])))
 
     # Reference lines (chart 1's 4% mark is the chart's whole argument, not decor)
-    shapes, annos = [], []
-    for h in spec.get("hlines", []):
-        shapes.append(dict(
-            type="line", xref="paper", x0=0, x1=1, yref="y",
-            y0=h["y"], y1=h["y"],
-            line=dict(color=T["GREY"], width=1.4, dash="dash"), layer="below",
-        ))
-        if h.get("label"):
-            annos.append(dict(
-                xref="paper", x=1, yref="y", y=h["y"], text=h["label"],
-                showarrow=False, xanchor="left", yanchor="middle",
-                font=dict(size=11, color=T["GREY"]), xshift=6,
-            ))
-    # Extend rather than assign: the history/projection boundary marker was
-    # already put on layout["shapes"] above, and a page that sets both hlines
-    # and split_col would otherwise lose it.
-    if shapes:
-        layout["shapes"] = layout.get("shapes", []) + shapes
-    if annos:
-        layout["annotations"] = layout.get("annotations", []) + annos
-        # An hline label sits in the right margin. The default 60px holds a
-        # short one ("4%") but clipped "Terminal 1.50%" to "Terminal", so the
-        # margin is sized to the longest label rather than left at a width
-        # that happens to fit the labels used so far.
-        longest = max(len(h["label"]) for h in spec["hlines"] if h.get("label"))
-        layout["margin"]["r"] = max(layout["margin"]["r"],
-                                    18 + int(longest * 6.6))
+    apply_hlines(spec, layout, T)
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
 
@@ -364,6 +377,8 @@ def fig_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
         type="line", xref="paper", x0=0, x1=1, yref="y", y0=0, y1=0,
         line=dict(color=T["GREY"], width=1.1), layer="below",
     )]
+    # After the baseline, so the helper extends that list instead of replacing it.
+    apply_hlines(spec, layout, T)
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
     return dict(data=traces, layout=layout)
