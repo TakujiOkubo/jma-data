@@ -202,6 +202,31 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
         is_solid, boundary = None, None
 
     traces = []
+
+    # Optional uncertainty band, appended before the series so the lines draw
+    # on top of it. Two traces: an invisible upper edge, then the lower edge
+    # filled up to it. The band columns are blank over history, so the fill
+    # covers the forecast only; connectgaps stays off so a gap is never bridged
+    # and the band can never appear over a period it was not computed for.
+    band = spec.get("band")
+    if band:
+        edges = {}
+        for side in ("hi", "lo"):
+            vals = [to_float(r.get(band[side])) for r in kept]
+            edges[side] = [None if v is None else round(v, dec) for v in vals]
+        blabel = band.get("label", "Uncertainty band")
+        traces.append(dict(
+            type="scatter", mode="lines", name=blabel, x=xs, y=edges["hi"],
+            line=dict(width=0, color="rgba(0,0,0,0)"), showlegend=False,
+            hoverinfo="skip", connectgaps=False,
+        ))
+        traces.append(dict(
+            type="scatter", mode="lines", name=blabel, x=xs, y=edges["lo"],
+            line=dict(width=0, color="rgba(0,0,0,0)"), fill="tonexty",
+            fillcolor=band.get("fillcolor", "rgba(55,138,221,0.14)"),
+            showlegend=True, hoverinfo="skip", connectgaps=False,
+        ))
+
     for s in spec["series"]:
         ys = [to_float(r.get(s["col"])) for r in kept]
         ys = [None if y is None else round(y, dec) for y in ys]
@@ -234,7 +259,8 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
             hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']} (forecast)</extra>",
         ))
 
-    layout = base_layout(spec, T, legend=len(spec["series"]) > 1)
+    layout = base_layout(
+        spec, T, legend=len(spec["series"]) > 1 or bool(spec.get("band")))
 
     if boundary is not None and boundary + 1 < len(xs):
         layout.setdefault("shapes", []).append(dict(
@@ -260,10 +286,20 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
                 showarrow=False, xanchor="left", yanchor="middle",
                 font=dict(size=11, color=T["GREY"]), xshift=6,
             ))
+    # Extend rather than assign: the history/projection boundary marker was
+    # already put on layout["shapes"] above, and a page that sets both hlines
+    # and split_col would otherwise lose it.
     if shapes:
-        layout["shapes"] = shapes
+        layout["shapes"] = layout.get("shapes", []) + shapes
     if annos:
         layout["annotations"] = layout.get("annotations", []) + annos
+        # An hline label sits in the right margin. The default 60px holds a
+        # short one ("4%") but clipped "Terminal 1.50%" to "Terminal", so the
+        # margin is sized to the longest label rather than left at a width
+        # that happens to fit the labels used so far.
+        longest = max(len(h["label"]) for h in spec["hlines"] if h.get("label"))
+        layout["margin"]["r"] = max(layout["margin"]["r"],
+                                    18 + int(longest * 6.6))
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
 
@@ -850,6 +886,57 @@ def build(slug: str) -> Path:
     else:
         lead = ""
 
+    # A scenario page states the assumptions its numbers rest on before it
+    # shows any of them, so a reader cannot take a forecast path for a
+    # unconditional prediction. Article panels carry no such block.
+    assumptions = ""
+    if m.get("assumptions"):
+        a = m["assumptions"]
+        items = "".join(
+            f'<p><strong>{html.escape(it["head"])}</strong> '
+            + (it["text_html"] if "text_html" in it else html.escape(it["text"]))
+            + "</p>"
+            for it in a.get("items", []))
+        # The pointer to the fuller write-up. "url" is deliberately allowed to
+        # be null: the report may not be published when the page is. In that
+        # case the sentence still reads correctly as plain text, and the build
+        # says so out loud rather than leaving a dead link or a silent TODO.
+        more = ""
+        if a.get("more"):
+            mo = a["more"]
+            url = mo.get("url")
+            if url:
+                # The anchor is a report title, so it is italicised to match
+                # how intro_html renders one.
+                anchor = html.escape(mo.get("anchor", "our report"))
+                body = html.escape(mo["text"]).replace(
+                    anchor,
+                    f'<a href="{html.escape(url)}"><em>{anchor}</em></a>', 1)
+            else:
+                # Both wordings are authored up front, so publishing the report
+                # is a single field change — set the url and the sentence stops
+                # saying "forthcoming" and becomes a link in the same edit.
+                # Nothing to remember, nothing to leave stale.
+                body = html.escape(mo.get("text_pending", mo["text"]))
+                print(f"  note: assumptions 'more' link is unset for {slug} — "
+                      "using the pending wording, no link. Set "
+                      "assumptions.more.url once the report is published.")
+            more = f'<p class="assumpmore">{body}</p>'
+        assumptions = (
+            f'<div class="assump">'
+            f'<div class="assumplabel">'
+            f'{html.escape(a.get("heading", "Scenario assumptions"))}</div>'
+            f"{items}{more}</div>")
+
+    # The sibling scenario's page. Each of the two pages is only half the
+    # picture, so the link out is part of the page, not a footnote.
+    sibling = ""
+    if m.get("sibling"):
+        s = m["sibling"]
+        sibling = (f'<div class="sib"><a href="{html.escape(s["href"])}">'
+                   f'{html.escape(s["label"])} &rarr;</a>'
+                   f'<span>{html.escape(s["text"])}</span></div>')
+
     # The About section (model page): lead-in, titled blocks, references.
     # references_html entries are pre-approved HTML copied verbatim from the
     # published report's appendix — inserted unescaped.
@@ -902,6 +989,12 @@ def build(slug: str) -> Path:
         meta=meta,
         stamp=stamp,
         lead=lead,
+        # The scenario blocks and their styling are emitted only for a page
+        # that uses them, so every existing page still rebuilds byte-identical
+        # — which is what lets the frozen model page be rebuilt at all.
+        header_extra=("\n  " + "\n  ".join(x for x in (assumptions, sibling) if x)
+                      if (assumptions or sibling) else ""),
+        scenario_css=SCENARIO_CSS if (assumptions or sibling) else "",
         about=about,
         endnote=endnote,
         cards="\n".join(cards),
@@ -914,6 +1007,24 @@ def build(slug: str) -> Path:
     out.write_text(page, encoding="utf-8")
     return out
 
+
+# Styling for the scenario-page blocks. Held out of PAGE and injected only for
+# a page that carries them: an unused rule in every other page's stylesheet
+# would change bytes on pages that are meant to be frozen. Single braces — this
+# is a format *value*, not part of the format template.
+SCENARIO_CSS = """  .assump{margin:24px 0 0;border-left:3px solid #3b65a2;background:#f2f1ec;
+          padding:16px 20px 4px}
+  .assumplabel{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
+               color:#3b65a2;text-transform:uppercase;margin-bottom:10px}
+  .assump p{font:400 15.5px/1.6 'PT Serif',serif;color:#2c2c2a;margin:0 0 12px;
+            text-wrap:pretty}
+  .assump p.assumpmore{font-style:italic;color:#54544e}
+  .assump p.assumpmore a{color:#3b65a2}
+  .sib{margin:18px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;
+       gap:4px 10px}
+  .sib a{font:600 15px 'Public Sans',sans-serif;color:#3b65a2}
+  .sib span{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373}
+"""
 
 PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -959,7 +1070,7 @@ PAGE = """<!DOCTYPE html>
          margin:0 0 18px;font:400 15.5px/1.55 'PT Serif',serif;color:#2c2c2a}}
   .intro,.standfirst{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
                      margin:0 0 6px;text-wrap:pretty}}
-  .card{{margin-top:46px}}
+{scenario_css}  .card{{margin-top:46px}}
   .chead{{display:flex;justify-content:space-between;align-items:baseline;
          gap:12px}}
   .cnum{{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
@@ -1029,7 +1140,7 @@ PAGE = """<!DOCTYPE html>
   {meta}
   {stamp}
   {lead}
-  {workbook}
+  {workbook}{header_extra}
 </header>
 
 {cards}

@@ -1,0 +1,162 @@
+{
+  "slug": "jgb-forecast-main",
+  "unlisted": true,
+  "title": "JGB yield curve forecast — Main Forecast",
+  "series_label": "Yield curve forecast",
+  "date": "Forecast vintage August 2026 · monthly, July 2026 – July 2029",
+  "masthead_date": "3 August 2026",
+  "sort": "2026-08-03",
+  "standfirst": "The JMA yield-curve model's forecast under our central case for Bank of Japan policy: two 25 basis point increases, in October 2026 and March 2027, to a terminal rate of 1.50 per cent. Spot JGB yields at 5 to 40 years, monthly to July 2029, with a one-standard-deviation uncertainty band.",
+  "stamp": "Forecast vintage: August 2026, model origin July 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
+  "intro_html": "The JMA yield curve model splits each JGB yield into interest-rate expectations and a term premium, letting Japan’s long-run interest rate move with its fundamentals. This page carries the forecast under our <strong>Main</strong> scenario. The model itself — what it is, what goes into it, and the historical decomposition it produces — is set out on the <a href=\"../jgb-yield-curve-model/\">JGB yield curve model page</a>. The charts below are interactive. Hover for exact values, zoom, and download the data behind each chart.",
+  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. We will update our yield curve model estimates periodically, but in case the published estimate is more than 2 weeks old, paid subscribers can request an updated estimate and we should be able to reply within 2 business days.",
+
+  "_note": "Main Forecast page. Data cut by builder/make_scenario_data.py from runs\\fan-sigma-after-v307 (branch v30_7-changes). WATCH THE INVERSION: v30_7 is the newer branch AND the lower 1.50% terminal, and it is Main; v30_6 (1.75%) is Alternative. The cut script re-derives the hike months from Policy_Rate and refuses to run if they disagree with the declared scenario, so this page cannot be mislabelled silently. Scenario taxonomy settled by Takuji 2026-08-02 (vault: scenario-naming-main-alternative-2026-08-02.md); public names settled 2026-08-03. Slim-page structure is Takuji's 2026-08-03 choice: forecast + assumptions here, model exposition linked once to the frozen /jgb-yield-curve-model/ page rather than duplicated. Stamp closing sentence and bottom_banner are the S06-approved wording, reused verbatim. Assumptions text is DRAFT pending Takuji's approval (disclosure guard: anything drawn from the Warsh mechanism note needs his sign-off on the exact words).",
+
+  "assumptions": {
+    "heading": "What this forecast assumes",
+    "items": [
+      {
+        "head": "Bank of Japan policy.",
+        "text": "The policy rate is 1.00 per cent at the forecast origin. It rises by 25 basis points in October 2026 and by a further 25 basis points in March 2027, reaching a terminal rate of 1.50 per cent and staying there for the rest of the horizon."
+      },
+      {
+        "head": "The US term premium.",
+        "text": "The forecast carries an assumed rise in the US 10-year term premium — the extra compensation demanded for holding long-dated Treasuries — following the change of Federal Reserve chair at the end of May 2026. It builds from 67 basis points at end-May 2026 to a peak of 122 basis points at end-November 2026, then unwinds part-way, with half the rise retained at 95 basis points by the end of the horizon. In our model, about a quarter of a US term-premium move passes through into superlong JGB yields."
+      },
+      {
+        "head": "The shaded band.",
+        "text": "The band around each forecast path is a one-standard-deviation range built from the historical distribution of twelve-month moves in the US 10-year term premium. By 2029 it spans roughly plus or minus 17 basis points at 10 years and 20 basis points at 30 years. It is an uncertainty range around the US term-premium assumption alone, not a confidence interval around the whole forecast."
+      },
+      {
+        "head": "Origin and vintage.",
+        "text": "The forecast runs monthly from July 2026 to July 2029. It is cut from a July 2026 month-end origin, which is a later starting point than the 19 July 2026 vintage published on the model page, so the starting yields on the two pages differ slightly."
+      }
+    ]
+  },
+
+  "sibling": {
+    "href": "../jgb-forecast-alternative/",
+    "label": "Alternative Forecast: Faster and Further",
+    "text": "The same model with the Bank of Japan moving sooner and going higher — three increases to a 1.75 per cent terminal rate."
+  },
+
+  "charts": [
+    {
+      "n": 1,
+      "kind": "line",
+      "title": "10-year JGB yield: history and forecast",
+      "subtitle": "Fitted spot yield, with the one-standard-deviation forecast band",
+      "ylabel": "Per cent per annum",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = forecast.",
+      "csv": "data/curve-panel.csv",
+      "x": "YM",
+      "start": "2022-01",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "band": {"lo": "Fan_lo_10Y", "hi": "Fan_hi_10Y", "label": "±1 s.d. range"},
+      "series": [
+        {"col": "Yield_10Y", "label": "10Y spot yield", "color": "#2C2C2A"}
+      ],
+      "note": "The band widens over the first twelve months and then holds, because the assumption it prices is a one-standard-deviation twelve-month move in the US term premium rather than a compounding one."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "30-year JGB yield: history and forecast",
+      "subtitle": "Fitted spot yield, with the one-standard-deviation forecast band",
+      "ylabel": "Per cent per annum",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = forecast.",
+      "csv": "data/curve-panel.csv",
+      "x": "YM",
+      "start": "2022-01",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "band": {"lo": "Fan_lo_30Y", "hi": "Fan_hi_30Y", "label": "±1 s.d. range",
+               "fillcolor": "rgba(216,90,48,0.13)"},
+      "series": [
+        {"col": "Yield_30Y", "label": "30Y spot yield", "color": "#2C2C2A"}
+      ],
+      "note": "The superlong end carries the largest term premium, and so the largest response to the US term-premium assumption."
+    },
+    {
+      "n": 3,
+      "kind": "curve",
+      "title": "Spot yield curve: current estimate and forecast year-ends",
+      "subtitle": "Fitted spot yield by maturity",
+      "ylabel": "Spot yield, % per annum",
+      "xlabel": "Maturity",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage.",
+      "csv": "data/curve-panel.csv",
+      "x": "YM",
+      "decimals": 3,
+      "tenors": [2, 5, 10, 20, 30, 40],
+      "value_prefix": "Yield_",
+      "lines": [
+        {"ym": "2026-07", "label": "July 2026 (actual)", "color": "#2C2C2A", "width": 2.6},
+        {"ym": "2026-12", "label": "Dec 2026", "color": "#378ADD", "dash": "dot"},
+        {"ym": "2027-12", "label": "Dec 2027", "color": "#EF9F27", "dash": "dot"},
+        {"ym": "2028-12", "label": "Dec 2028", "color": "#D85A30", "dash": "dot"}
+      ],
+      "note": "The same numbers as the paths above, read across a row instead of down a column. The curve flattens as the policy rate reaches its terminal level and the assumed US term premium unwinds."
+    },
+    {
+      "n": 4,
+      "kind": "table",
+      "label": "Table",
+      "title": "Forecast table: spot yields to 2029",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage.",
+      "csv": "data/forecast-table.csv",
+      "columns": [
+        {"col": "label", "label": ""},
+        {"col": "5Y", "label": "5Y"},
+        {"col": "10Y", "label": "10Y"},
+        {"col": "20Y", "label": "20Y"},
+        {"col": "30Y", "label": "30Y"},
+        {"col": "40Y", "label": "40Y"}
+      ],
+      "rule_after_col": "kind",
+      "rule_after_value": "actual",
+      "note": "Year-end values plus the horizon end, spot (zero-coupon) basis, per cent per annum. Forecast rows are revised with each model vintage."
+    },
+    {
+      "n": 5,
+      "kind": "line",
+      "title": "Bank of Japan policy rate: history and assumed path",
+      "subtitle": "The policy assumption that defines this scenario",
+      "ylabel": "Per cent per annum",
+      "source": "Source: Bank of Japan; JMA assumption from August 2026. Dotted from August 2026 = assumed path.",
+      "csv": "data/curve-panel.csv",
+      "x": "YM",
+      "start": "2022-01",
+      "decimals": 3,
+      "split_col": "Type",
+      "solid_value": "actual",
+      "series": [
+        {"col": "Policy_Rate", "label": "BoJ policy rate", "color": "#2C2C2A"}
+      ],
+      "hlines": [{"y": 1.5, "label": "Terminal 1.50%"}],
+      "note": "Two 25 basis point increases, in October 2026 and March 2027. This is an assumption, not a model output: it is the input the rest of the forecast is conditioned on."
+    },
+    {
+      "n": 6,
+      "kind": "line",
+      "title": "US 10-year term premium: observed and assumed path",
+      "subtitle": "The shared assumption behind both scenarios",
+      "ylabel": "Term premium, basis points",
+      "source": "Source: Federal Reserve Bank of New York (ACM) for the observed series; JMA assumption from August 2026.",
+      "csv": "data/curve-panel.csv",
+      "x": "YM",
+      "start": "2015-01",
+      "decimals": 1,
+      "band": {"lo": "US_TP10_down_bp", "hi": "US_TP10_up_bp", "label": "±1 s.d. range"},
+      "series": [
+        {"col": "US_TP10_bp", "label": "Observed (ACM)", "color": "#2C2C2A"},
+        {"col": "US_TP10_base_bp", "label": "Assumed path", "color": "#378ADD", "dash": "dot"}
+      ],
+      "note": "The assumed path peaks at 122 basis points at end-November 2026 and retains half the rise thereafter. It is identical on both scenario pages: the two scenarios differ only in the Bank of Japan policy path, and the two assumptions enter the forecast independently."
+    }
+  ]
+}

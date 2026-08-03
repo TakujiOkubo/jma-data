@@ -511,9 +511,490 @@ def qa_fx_carry_unwind(root, manifest, page, figs) -> None:
          "public teaser: no paid-access banner on this page")
 
 
+# --------------------------------------------------- scenario forecast pages
+# The scenario table restated independently of make_scenario_data.py. Gating a
+# page against the script that cut it would only prove the script is
+# self-consistent; these figures come from the settled taxonomy (vault note
+# scenario-naming-main-alternative-2026-08-02.md) and from the forecast tables
+# printed in fan-sigma-12m-impact-2026-08-02.md.
+RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
+
+SCENARIO = {
+    "jgb-forecast-main": dict(
+        name="Main Forecast",
+        run="fan-sigma-after-v307",
+        sibling="jgb-forecast-alternative",
+        hikes=[("2026-10", 1.25), ("2027-03", 1.50)],
+        terminal=1.50,
+        # bp, from the note's V30.7 base forecast table
+        printed={"2026-12": dict(Y10=312.1, Y20=399.5, Y30=447.2, Y40=440.6),
+                 "2027-12": dict(Y10=328.2, Y20=380.2, Y30=402.4, Y40=408.4),
+                 "2028-12": dict(Y10=314.0, Y20=369.0, Y30=381.0, Y40=392.6),
+                 "2029-07": dict(Y10=312.6, Y20=367.4, Y30=379.5, Y40=391.2)},
+    ),
+    "jgb-forecast-alternative": dict(
+        name="Alternative Forecast: Faster and Further",
+        run="fan-sigma-after-v306",
+        sibling="jgb-forecast-main",
+        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
+        terminal=1.75,
+        # bp, from the note's V30.6 base forecast table
+        printed={"2026-12": dict(Y10=306.6, Y20=397.3, Y30=445.5, Y40=439.3),
+                 "2027-12": dict(Y10=344.6, Y20=391.0, Y30=410.6, Y40=415.0),
+                 "2028-12": dict(Y10=336.1, Y20=379.8, Y30=389.3, Y40=399.2),
+                 "2029-07": dict(Y10=327.2, Y20=378.1, Y30=387.8, Y40=397.8)},
+    ),
+}
+
+# Horizon-end fan half-widths in bp, and the sigma behind them, as published in
+# fan-sigma-12m-impact-2026-08-02.md. Identical on both scenarios by
+# construction: sigma depends on US data only, not the BoJ path.
+FAN_HALFWIDTH_2029 = {"10Y": 17.4, "20Y": 21.7, "30Y": 19.8, "40Y": 19.0}
+SIGMA10_BP = 77.5
+USTP_PEAK = ("2026-11", 122.2)
+USTP_TERMINAL = ("2029-07", 94.5)
+BAND = "±1 s.d. range"
+
+# The paid decomposition pages carry the same scenario, from the same runs, in a
+# different layout. Everything scenario-specific is shared with the slim pages
+# above; only the chart ids differ, so they are named rather than hard-coded.
+for _paid, _slim in (("jgb-yield-curve-main", "jgb-forecast-main"),
+                     ("jgb-yield-curve-alternative",
+                      "jgb-forecast-alternative")):
+    SCENARIO[_paid] = dict(SCENARIO[_slim])
+SCENARIO["jgb-yield-curve-main"]["sibling"] = "jgb-yield-curve-alternative"
+SCENARIO["jgb-yield-curve-alternative"]["sibling"] = "jgb-yield-curve-main"
+
+IDS = {
+    "jgb-forecast-main": dict(policy=5, curve=3, ustp=6, curve_spec=2,
+                              yband={"10Y": 1, "30Y": 2}, tpband={}),
+    "jgb-forecast-alternative": dict(policy=5, curve=3, ustp=6, curve_spec=2,
+                                     yband={"10Y": 1, "30Y": 2}, tpband={}),
+    # The paid pages carry no band (removed 2026-08-03), so they name no
+    # banded charts. Charts 7/8 and 10/11 are still there as 2022-onward
+    # close-ups of the yield and term-premium paths.
+    "jgb-yield-curve-main": dict(policy=12, curve=6, ustp=13, curve_spec=5,
+                                 yband={}, tpband={}),
+    "jgb-yield-curve-alternative": dict(policy=12, curve=6, ustp=13,
+                                        curve_spec=5, yband={}, tpband={}),
+}
+
+
+def _run_rows(spec, which):
+    stem = spec["run"]
+    name = {"curve": "consolidated_curve", "fcst": "stage3_forecast"}[which]
+    with open(RUNS / stem / f"{stem}_{name}.csv",
+              newline="", encoding="utf-8-sig") as f:
+        return list(csv.DictReader(f))
+
+
+def qa_scenario_forecast(root, manifest, page, figs) -> None:
+    """A scenario forecast page. The gates that matter here are (a) that the
+    page is labelled with the scenario it actually carries — the branch version
+    numbers invert the scenario rank, so a page mislabelled from a branch name
+    would look entirely plausible — and (b) that the delivered numbers
+    re-derive from the production run directory, not merely from the CSV this
+    repo cut from it."""
+    slug = manifest["slug"]
+    spec = SCENARIO[slug]
+    ids = IDS[slug]
+    panel = list(csv.DictReader(open(root / "data/curve-panel.csv",
+                                     newline="", encoding="utf-8-sig")))
+    by_ym = {r["YM"]: r for r in panel}
+
+    # ---- scenario identity: the inversion trap ----------------------------
+    print("\nScenario identity")
+    gate(spec["name"] in manifest["title"],
+         f"page is titled as the {spec['name']}")
+
+    src = {r["YM"].strip(): r for r in _run_rows(spec, "curve")}
+    steps, prev = [], None
+    pol = trace(figs[f"chart_{ids['policy']}"], "BoJ policy rate")
+    drawn = [t for t in figs[f"chart_{ids['policy']}"]["data"]
+             if t["name"] == "BoJ policy rate"]
+    merged = [a if a is not None else b
+              for a, b in zip(drawn[0]["y"], drawn[1]["y"])]
+    xs = [x[:7] for x in pol["x"]]
+    for ym, v in zip(xs, merged):
+        if v is not None and prev is not None and abs(v - prev) > 1e-4 \
+                and v > 1.0 + 1e-6:
+            steps.append((ym, round(v, 2)))
+        if v is not None:
+            prev = v
+    gate(steps == [(ym, r) for ym, r in spec["hikes"]],
+         "the DELIVERED policy path carries exactly the declared hikes",
+         str(steps))
+    gate(abs(merged[-1] - spec["terminal"]) < 1e-6,
+         f"terminal rate on the page is {spec['terminal']:.2f}%",
+         f"{merged[-1]:.4f}")
+    for ym, rate in spec["hikes"]:
+        gate(f"{ym[:4]}" in page, f"hike year {ym[:4]} appears in the page text")
+    month = {"01": "January", "02": "February", "03": "March", "04": "April",
+             "05": "May", "06": "June", "07": "July", "08": "August",
+             "09": "September", "10": "October", "11": "November",
+             "12": "December"}
+    for ym, _ in spec["hikes"]:
+        want = f"{month[ym[5:7]]} {ym[:4]}"
+        gate(want in page,
+             f"assumptions text names the {want} increase")
+    gate(f"{spec['terminal']:.2f} per cent" in page,
+         f"assumptions text states the {spec['terminal']:.2f}% terminal rate")
+
+    # ---- the delivered numbers re-derive from the production run ----------
+    print("\nAgainst the production run directory")
+    bad = 0
+    for ym, r in by_ym.items():
+        s = src.get(ym)
+        if not s:
+            bad += 1
+            continue
+        for t in ("2Y", "5Y", "10Y", "20Y", "30Y", "40Y"):
+            a, b = (r[f"Yield_{t}"] or "").strip(), (s[f"Yield_{t}"] or "").strip()
+            if a == "" and b == "":
+                continue
+            if a == "" or b == "" or abs(float(a) - float(b)) > 5e-5:
+                bad += 1
+    gate(not bad, f"every yield in the page CSV matches {spec['run']}",
+         f"{len(by_ym)} months x 6 maturities")
+
+    fc = _run_rows(spec, "fcst")
+    fan_src = {}
+    for r in fc:
+        fan_src.setdefault((r["YM"].strip(), r["Tenor"].strip()),
+                           {})[r["Scenario"].strip()] = float(r["Y_fcst"])
+    bad = 0
+    for (ym, t), legs in fan_src.items():
+        r = by_ym.get(ym)
+        if r is None:
+            bad += 1
+            continue
+        for side, colname in (("up", "Fan_hi"), ("down", "Fan_lo")):
+            v = (r[f"{colname}_{t}"] or "").strip()
+            if v == "" or abs(float(v) - legs[side]) > 5e-5:
+                bad += 1
+    gate(not bad, "every fan bound matches the run's stage-3 forecast",
+         f"{len(fan_src)} month-tenor pairs")
+
+    # ---- the fan ----------------------------------------------------------
+    # A page either draws the band everywhere it declares one, or nowhere at
+    # all. The paid pages had it removed (Takuji, 2026-08-03); the parked slim
+    # pages still carry it. Both states are gated, so neither can drift.
+    has_band = any(c.get("band") for c in manifest["charts"])
+
+    print("\nUncertainty band" if has_band else "\nUncertainty band removed")
+    if not has_band:
+        stray = [(cid, t.get("name")) for cid, f in figs.items()
+                 for t in f["data"]
+                 if t.get("name") == BAND or t.get("fill") == "tonexty"]
+        gate(not stray, "no band trace reaches any chart on this page",
+             f"{len(figs)} figures checked")
+        gate(BAND not in page and "uncertainty band" not in page.lower(),
+             "no band is referred to in the page text")
+        gate(not any("Fan_" in str(c.get("band", "")) for c in manifest["charts"]),
+             "no chart spec declares a band")
+
+    for tenor, cid in ids["yband"].items():
+        f = figs[f"chart_{cid}"]
+        edges = [t for t in f["data"] if t["name"] == BAND]
+        gate(len(edges) == 2, f"chart {cid}: band drawn as two edges")
+        hi, lo = edges
+        gate(lo.get("fill") == "tonexty" and hi.get("line", {}).get("width") == 0,
+             f"chart {cid}: lower edge fills up to the invisible upper edge")
+        xs = [x[:7] for x in hi["x"]]
+        idx = {x: i for i, x in enumerate(xs)}
+        got = (hi["y"][idx["2029-07"]] - lo["y"][idx["2029-07"]]) / 2 * 100
+        gate(abs(got - FAN_HALFWIDTH_2029[tenor]) < 0.1,
+             f"{tenor}: horizon-end half-width is "
+             f"±{FAN_HALFWIDTH_2029[tenor]}bp as published", f"±{got:.1f}bp")
+        # The band must not appear over history: an uncertainty range drawn on
+        # observations would be a straightforward misstatement.
+        hist = [i for i, x in enumerate(xs)
+                if by_ym[x]["Type"] == "actual" and x != "2026-07"]
+        gate(all(hi["y"][i] is None and lo["y"][i] is None for i in hist),
+             f"chart {cid}: no band over the observed period",
+             f"{len(hist)} observed months")
+        gate(hi["y"][idx["2026-07"]] == lo["y"][idx["2026-07"]],
+             f"chart {cid}: band opens from the last observation at zero width")
+        gate(all(t.get("hoverinfo") == "skip" for t in edges),
+             f"chart {cid}: band edges stay out of the hover readout")
+
+    # The band on the term-premium charts must be exactly as wide as the band
+    # on the yield charts. That is the claim the paid page makes in words —
+    # that the whole fan is term-premium uncertainty because the expected-rate
+    # path does not move between legs — so it is checked, not asserted.
+    for tenor, cid in ids["tpband"].items():
+        ye = [t for t in figs[f"chart_{ids['yband'][tenor]}"]["data"]
+              if t["name"] == BAND]
+        te = [t for t in figs[f"chart_{cid}"]["data"] if t["name"] == BAND]
+        yx = {x[:7]: i for i, x in enumerate(ye[0]["x"])}
+        tx = {x[:7]: i for i, x in enumerate(te[0]["x"])}
+        shared = [m for m in yx if m in tx
+                  and ye[0]["y"][yx[m]] is not None
+                  and te[0]["y"][tx[m]] is not None]
+        worst = max(abs((ye[0]["y"][yx[m]] - ye[1]["y"][yx[m]])
+                        - (te[0]["y"][tx[m]] - te[1]["y"][tx[m]]))
+                    for m in shared) * 100
+        gate(worst < 0.15 and len(shared) >= 36,
+             f"{tenor}: the TP band is the same width as the yield band",
+             f"{len(shared)} months, worst gap {worst:.2f}bp")
+
+    f6 = figs[f"chart_{ids['ustp']}"]
+    if has_band:
+        edges = [t for t in f6["data"] if t["name"] == BAND]
+        xs6 = [x[:7] for x in edges[0]["x"]]
+        i6 = {x: i for i, x in enumerate(xs6)}
+        hw = (edges[0]["y"][i6["2029-07"]] - edges[1]["y"][i6["2029-07"]]) / 2
+        gate(abs(hw - SIGMA10_BP) < 0.1,
+             f"US TP fan half-width is the published sigma, {SIGMA10_BP}bp",
+             f"{hw:.1f}bp")
+
+    print("\nThe US term-premium assumption (shared by both scenarios)")
+    assumed = trace(f6, "Assumed path")
+    ia = {x[:7]: i for i, x in enumerate(assumed["x"])}
+    for ym, want in (USTP_PEAK, USTP_TERMINAL):
+        gate(abs(assumed["y"][ia[ym]] - want) < 0.1,
+             f"assumed US TP at {ym} is {want}bp",
+             f"{assumed['y'][ia[ym]]:.1f}bp")
+    peak = max(v for v in assumed["y"] if v is not None)
+    gate(abs(peak - USTP_PEAK[1]) < 0.1
+         and assumed["x"][assumed["y"].index(peak)][:7] == USTP_PEAK[0],
+         "the assumed path peaks where the assumption says it does")
+    obs = trace(f6, "Observed (ACM)")
+    gate(all(v is None for v in obs["y"][ia["2026-08"]:]),
+         "the observed ACM series stops at the forecast origin")
+
+    # ---- the published forecast tables ------------------------------------
+    print("\nAgainst the printed forecast tables")
+    ft = list(csv.DictReader(open(root / "data/forecast-table.csv",
+                                  newline="", encoding="utf-8-sig")))
+    ftr = {r["ym"]: r for r in ft}
+    for ym, want in spec["printed"].items():
+        for key, v in want.items():
+            t = f"{key[1:]}Y"
+            drawn = float(by_ym[ym][f"Yield_{t}"]) * 100
+            gate(abs(drawn - v) < 0.06,
+                 f"{ym} {t}: {v}bp as printed in the reference tables",
+                 f"{drawn:.1f}bp")
+        if ym in ftr:
+            for key, v in want.items():
+                t = f"{key[1:]}Y"
+                gate(abs(float(ftr[ym][t]) * 100 - v) < 0.6,
+                     f"forecast table {ym} {t} rounds to the printed figure",
+                     f"{ftr[ym][t]}")
+    gate(page.count("<tr") == len(ft) + 1, "every table row rendered")
+    gate([r["kind"] for r in ft].count("actual") == 1,
+         "exactly one actual-origin row above the rule")
+
+    # ---- the curve chart ---------------------------------------------------
+    print("\nCurve chart")
+    f3 = figs[f"chart_{ids['curve']}"]
+    for ln in manifest["charts"][ids["curve_spec"]]["lines"]:
+        t = trace(f3, ln["label"])
+        want = [round(float(by_ym[ln["ym"]][f"Yield_{n}Y"]), 3)
+                for n in (2, 5, 10, 20, 30, 40)]
+        gate(t["y"] == want, f"curve {ln['label']}: matches the panel row")
+
+    # ---- relation to the model page and the sibling ------------------------
+    # The builder emits <div class="text about" id="about">, so match the id —
+    # a 'class="about"' test would never fire and would pass either way.
+    if manifest.get("about"):
+        print("\nSelf-contained paid page")
+        gate('id="about"' in page and "About the model" in page,
+             "the full About section is on the page, not linked away")
+        gate('href="../jgb-yield-curve-model/"' not in page,
+             "does not defer to the superseded model page")
+    else:
+        print("\nSlim-page structure")
+        gate('href="../jgb-yield-curve-model/"' in page,
+             "the model exposition is linked, not duplicated")
+        gate('id="about"' not in page,
+             "no About/methodology section duplicated on this page")
+        # Match a reference the list always carries, not a typo — the typo was
+        # corrected 2026-08-03 and a test for it would now pass on any page.
+        gate("Pricing the Term Structure with Linear Regressions" not in page
+             and 'class="refs"' not in page,
+             "the report's reference list is not restated here")
+
+    print("\nSibling and tier")
+    sib = manifest["sibling"]
+    gate(sib["href"] == f'../{spec["sibling"]}/'
+         and (REPO / spec["sibling"] / "index.html").exists(),
+         "sibling link points at the other scenario page, which exists")
+    gate(f'href="{sib["href"]}"' in page, "sibling link reaches the page")
+    gate(manifest.get("unlisted") is True
+         and f'href="{slug}/"' not in
+         (REPO / "index.html").read_text(encoding="utf-8"),
+         "unlisted: the page is not on the landing page")
+    gate("Only paid subscribers" in page,
+         "paid-access banner present (this is not a teaser page)")
+    gate('class="assump"' in page
+         and manifest["assumptions"]["heading"] in page,
+         "the assumptions block is on the page, above the charts")
+    gate(page.index('class="assump"') < page.index('class="card"'),
+         "assumptions are stated before any forecast number is shown")
+    if manifest["assumptions"].get("more"):
+        mo = manifest["assumptions"]["more"]
+        wording = mo["text"] if mo.get("url") else mo.get("text_pending",
+                                                          mo["text"])
+        # Compare the RENDERED sentence, not the raw string: once the report is
+        # published the anchor is wrapped in <a><em>, so the manifest text is
+        # no longer a literal substring of the page.
+        frag = re.search(r'<p class="assumpmore">(.*?)</p>', page, re.S)
+        shown = re.sub(r"<[^>]+>", "", frag.group(1)) if frag else ""
+        gate(shown.strip() == wording,
+             "the assumptions block points to the fuller write-up",
+             shown.strip()[:70] + "…")
+        gate(len(manifest["assumptions"]["items"]) == 2,
+             "the assumptions block is the trimmed two-bullet version",
+             f"{len(manifest['assumptions']['items'])} bullets")
+        # The report was unpublished when these pages were built, so the
+        # pointer is deliberately not a link yet. Whichever state it is in has
+        # to be internally consistent: a set url must reach the page as an
+        # anchor, an unset one must leave no half-built link behind.
+        if mo.get("url"):
+            gate(f'<a href="{mo["url"]}"><em>{mo["anchor"]}</em></a>' in page,
+                 "the report pointer is a working link")
+            gate("forthcoming" not in page,
+                 "the pending wording is gone now the report is published")
+        else:
+            gate('class="assumpmore"' in page
+                 and '<a href="">' not in page
+                 and 'href="None"' not in page,
+                 "report not yet published: the pointer renders as plain text, "
+                 "with no dead link")
+
+    # ---- the two pages differ where they should, and only there -----------
+    print("\nAgainst the sibling scenario")
+    other = SCENARIO[spec["sibling"]]
+    o_src = {r["YM"].strip(): r for r in _run_rows(other, "curve")}
+    diff = sum(1 for ym in by_ym
+               if ym in o_src and (src[ym]["Policy_Rate"] or "")
+               != (o_src[ym]["Policy_Rate"] or ""))
+    gate(diff > 0, "the two scenarios' policy paths genuinely differ",
+         f"{diff} months")
+    same = all(abs(float(src[ym]["US_TP10_base"]) -
+                   float(o_src[ym]["US_TP10_base"])) < 5e-5
+               for ym in by_ym
+               if (src[ym]["US_TP10_base"] or "").strip()
+               and (o_src[ym]["US_TP10_base"] or "").strip())
+    gate(same, "the US term-premium assumption is identical on both scenarios")
+
+
+def qa_scenario_model(root, manifest, page, figs) -> None:
+    """The paid decomposition page. Everything the slim page is checked for,
+    plus the things that make this page worth paying for: that the yield really
+    is the sum of the two components it is drawn as, at every maturity and over
+    the projection as well as the history, and that the methodology it carries
+    is the approved text rather than a paraphrase."""
+    qa_scenario_forecast(root, manifest, page, figs)
+
+    slug = manifest["slug"]
+    spec = SCENARIO[slug]
+    panel = list(csv.DictReader(open(root / "data/curve-panel.csv",
+                                     newline="", encoding="utf-8-sig")))
+    by_ym = {r["YM"]: r for r in panel}
+
+    print("\nDecomposition at each maturity, history and projection")
+    for cid, tenor in zip(range(1, 6), ["10Y", "5Y", "20Y", "30Y", "40Y"]):
+        f = figs[f"chart_{cid}"]
+        bars = [t for t in f["data"] if t["type"] == "bar"]
+        lines = [t for t in f["data"] if t["type"] == "scatter"]
+        total = [a if a is not None else b
+                 for a, b in zip(lines[0]["y"], lines[1]["y"])]
+        rn, tp = bars[0]["y"], bars[1]["y"]
+        pts = [i for i in range(len(total))
+               if None not in (total[i], rn[i], tp[i])]
+        breaks = sum(1 for i in pts if abs(total[i] - (rn[i] + tp[i])) > 2e-3)
+        gate(not breaks and f["layout"]["barmode"] == "relative",
+             f"{tenor}: yield = expectations + term premium, relative stack",
+             f"{len(pts)} points")
+        # the projection has to be decomposed too, not just the history
+        fc = [i for i in pts if by_ym[lines[0]["x"][i][:7]]["Type"] == "forecast"]
+        gate(len(fc) >= 36,
+             f"{tenor}: the decomposition runs through the projection",
+             f"{len(fc)} projected months")
+    t40 = [t for t in figs["chart_5"]["data"] if t["type"] == "bar"][1]
+    first = next(i for i, v in enumerate(t40["y"]) if v is not None)
+    gate(t40["x"][first][:7] == "2007-11" and
+         all(v is None for v in t40["y"][:first]),
+         "40Y decomposition starts Nov 2007, nulls before")
+    gate(min(by_ym) == "2002-07",
+         "the page carries the full history back to 2002, as the model page did",
+         f"first month {min(by_ym)}")
+
+    print("\nTerm premia and risk-neutral rates")
+    f9 = figs["chart_9"]
+    for lbl, want in TP_COLORS.items():
+        legs = [t for t in f9["data"] if t["name"] == lbl]
+        gate(bool(legs) and all(t["line"]["color"] == want for t in legs),
+             f"TP {lbl} drawn in {want}")
+    t5h, t5p = [t for t in f9["data"] if t["name"] == "5Y"]
+    tp5 = [a if a is not None else b for a, b in zip(t5h["y"], t5p["y"])]
+    bad = sum(1 for i, v in enumerate(tp5) if v is not None and abs(
+        v - (float(by_ym[t5h["x"][i][:7]]["Yield_5Y"])
+             - float(by_ym[t5h["x"][i][:7]]["RN_5Y"]))) > 2e-3)
+    gate(not bad, "TP chart: identity holds on every plotted 5Y point",
+         f"{sum(1 for v in tp5 if v is not None)} points")
+    gate(len({t["name"] for t in figs["chart_12"]["data"]}) == 3,
+         "policy chart carries its three series")
+
+    # RN identical across legs is what licenses the whole TP-band argument.
+    fc = _run_rows(spec, "fcst")
+    legs = {}
+    for r in fc:
+        legs.setdefault((r["YM"].strip(), r["Tenor"].strip()),
+                        {})[r["Scenario"].strip()] = float(r["RN_fcst"])
+    spread = max(max(v.values()) - min(v.values()) for v in legs.values())
+    gate(spread < 1e-9,
+         "risk-neutral path is identical in the upper, central and lower runs",
+         f"{len(legs)} pairs, max spread {spread:.2e}")
+
+    print("\nAbout section: approved text and embedded exhibits")
+    model = json.loads((REPO / "jgb-yield-curve-model" / "panel.json")
+                       .read_text(encoding="utf-8"))
+    gate(manifest["about"]["blocks"] == model["about"]["blocks"],
+         "the four methodology blocks are the approved text, verbatim")
+    gate(manifest["about"]["references_html"]
+         == model["about"]["references_html"],
+         "the reference list is the approved text, verbatim")
+    gate(manifest["about"]["lead"] == model["about"]["lead"],
+         "the About lead-in is the approved text, verbatim")
+
+    _, lc_figs = load_delivered(REPO / "2026-07-20-long-climb")
+    gate(manifest["charts"][14]["csv"]
+         == "../2026-07-20-long-climb/data/chart-4-natural-rate-anchor.csv",
+         "anchor chart: single-copy pattern, read by relative path")
+    for name in ("π* (10Y inflation expectations)", "r* (equilibrium real rate)",
+                 "i* = r* + π*"):
+        tm, tl = trace(figs["chart_14"], name), trace(lc_figs["chart_4"], name)
+        gate(list(tm["x"]) == list(tl["x"]) and list(tm["y"]) == list(tl["y"]),
+             f"{name}: numerically identical to the Long Climb copy")
+    for name in ("JMA model", "Standard ACM"):
+        tm, tl = trace(figs["chart_15"], name), trace(lc_figs["chart_5"], name)
+        gate(tm["x"] == tl["x"] and tm["y"] == tl["y"],
+             f"{name}: numerically identical to the Long Climb copy")
+    jma = trace(figs["chart_15"], "JMA model")
+    v = jma["y"][jma["x"].index("2026-07-01")] / 100
+    gate(0.6 <= v <= 0.7,
+         "About's 0.6%-0.7% claim brackets the delivered mid-July 10Y TP",
+         f"{v:.4f}%")
+    gate(page.index("last era of free JGB pricing")
+         < page.index(ANCHOR_TITLE)
+         < page.index("<strong>Why we do not use a standard model.</strong>"),
+         "anchor card sits between About blocks 1 and 2")
+    gate(page.index("The chart below shows the difference.") < page.index(ACM_TITLE),
+         "ACM card sits after the block that argues it")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
       "jgb-yield-curve-model": qa_yield_curve,
-      "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind}
+      "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind,
+      "jgb-forecast-main": qa_scenario_forecast,
+      "jgb-forecast-alternative": qa_scenario_forecast,
+      "jgb-yield-curve-main": qa_scenario_model,
+      "jgb-yield-curve-alternative": qa_scenario_model}
+
+BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 
 
 def main(slug: str) -> int:
