@@ -1270,102 +1270,133 @@ def qa_warsh_panel(root, manifest, page, figs) -> None:
 
 def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     """Standing reserves dataset. The gates check the drawn values against the
-    published sources the page claims to match, and against the figures its own
-    About text asserts — plus the deletions, which are editorial rulings and so
-    are gated on absence."""
+    published sources the page claims to match, against the figures its own
+    About text asserts, and against the deletions — which are editorial rulings
+    and so are gated on absence."""
     C = {c["n"]: c for c in manifest["charts"]}
+    CCY = {1: ("US dollar", 1980, 1995),
+           2: ("Euro", 2000, 1999),
+           3: ("Japanese yen", 1980, 1995)}
 
     print("\nTier")
     gate(manifest.get("tier") == "paid", "declared paid tier",
          manifest.get("tier", "MISSING"))
 
-    # ---- chart 1: observed shares ------------------------------------------
-    print("\nChart 1 — observed shares")
-    f1 = figs["chart_1"]
-    # The endpoint is the page's own falsifiable claim: these must BE published
-    # COFER, which a subscriber can check against the IMF in a minute.
-    for lab, want in (("US dollar", 56.4), ("Euro", 20.4), ("Japanese yen", 5.8)):
-        t = trace(f1, lab)
-        gate(abs(t["y"][-1] - want) < 1e-9,
-             f"{lab} 2025 = published COFER {want}", f"{t['y'][-1]}")
-    usd1 = dict(col(root, C[1]["csv"], "usd"))
-    gate(abs(usd1["1997-12-31"] - 66.8) < 1e-9,
-         "USD 1997 = 66.8, the figure the About block discloses",
-         f"{usd1['1997-12-31']}")
-    # The About says the gap to the printed Annual Report narrows to 0.6 by 1998.
-    gate(abs(round(usd1["1998-12-31"] - 65.7, 1) - 0.6) < 1e-9,
-         "USD 1998 sits 0.6 above the printed AR-2003 row (65.7)",
-         f"{usd1['1998-12-31']}")
-    eur1 = col(root, C[1]["csv"], "eur")
-    jpy1 = col(root, C[1]["csv"], "jpy")
-    gate(eur1[0][0] == "2000-12-31", "euro series starts 2000", eur1[0][0])
-    gate(list(usd1)[0] == "1980-12-31" and jpy1[0][0] == "1980-12-31",
-         "dollar and yen start 1980")
-    gate(eur1[-1][0] == "2025-12-31" and jpy1[-1][0] == "2025-12-31",
-         "every series stops at 2025")
-    gate(sum(1 for y in trace(f1, "Euro")["y"] if y is not None) == len(eur1),
-         "euro point count matches CSV", f"{len(eur1)} points")
+    # ---- charts 1-3: three measures per currency ---------------------------
+    # The page's central claim is that our series IS the published one wherever
+    # the IMF publishes on a comparable basis. Gate it year by year, not at a
+    # spot: a single matching endpoint would pass on a series that drifts.
+    for n, (name, ours_from, cofer_from) in CCY.items():
+        print("\nChart %d — %s" % (n, name))
+        f = figs["chart_%d" % n]
+        pub = dict(col(root, C[n]["csv"], "cofer"))
+        our = dict(col(root, C[n]["csv"], "ar_cofer"))
+        cer = dict(col(root, C[n]["csv"], "cer"))
+        gate(min(pub) == "%d-12-31" % cofer_from,
+             "published series starts %d" % cofer_from, min(pub))
+        gate(min(our) == "%d-12-31" % ours_from,
+             "JMA series starts %d" % ours_from, min(our))
+        gate(max(pub) == max(our) == max(cer) == "2025-12-31",
+             "all three measures stop at 2025")
+        # From 2000 our panel simply carries the published COFER numbers, stored
+        # to two decimals. A cell whose 2dp value sits on a rounding boundary can
+        # therefore land 0.1 away at the one decimal we publish — rounding, not
+        # disagreement. The gate holds that bound rather than exact equality,
+        # which would fail on four cells out of seventy-eight.
+        shared = [d for d in our if d in pub and int(d[:4]) >= 2000]
+        worst = max(abs(our[d] - pub[d]) for d in shared)
+        apart = sum(1 for d in shared if abs(our[d] - pub[d]) > 1e-9)
+        gate(worst <= 0.1 + 1e-9,
+             "from 2000 the JMA and published series are the same, to rounding "
+             "(%d years)" % len(shared),
+             "max diff %.1f, %d year(s) round apart" % (worst, apart))
+        gate(abs(cer["2025-12-31"] - our["2025-12-31"]) < 1e-9,
+             "base-year identity: constant-rate 2025 = observed 2025",
+             "%s" % cer["2025-12-31"])
+        # exclude the band's own edge traces, which are lines with a fill
+        drawn = [t for t in f["data"] if t.get("mode") == "lines"
+                 and not t.get("fill") and t.get("line", {}).get("width")]
+        gate(len(drawn) == 3, "three measures drawn", "%d lines" % len(drawn))
 
-    # ---- chart 2: constant end-2025 base ------------------------------------
-    print("\nChart 2 — constant end-2025 base")
-    f2 = figs["chart_2"]
-    for c, lab in (("usd", "US dollar"), ("eur", "Euro"), ("jpy", "Japanese yen")):
-        o = dict(col(root, C[1]["csv"], c))["2025-12-31"]
-        k = dict(col(root, C[2]["csv"], c))["2025-12-31"]
-        gate(abs(o - k) < 1e-9,
-             f"{lab}: base-year identity, CER 2025 = observed 2025", f"{k}")
-    for c, want in (("usd", 2.2), ("eur", 0.2), ("jpy", 0.3)):
-        a = dict(col(root, C[2]["csv"], c))
-        b = dict(col(root, C[2]["csv"], c + "_alt_rule"))
+    # the pre-2000 divergence the notes describe, in both directions
+    usd_pub = dict(col(root, C[1]["csv"], "cofer"))
+    usd_our = dict(col(root, C[1]["csv"], "ar_cofer"))
+    gate(usd_our["1995-12-31"] > usd_pub["1995-12-31"],
+         "1995: the ECU look-through puts the JMA dollar above the published one",
+         "%s vs %s" % (usd_our["1995-12-31"], usd_pub["1995-12-31"]))
+    gate(usd_pub["1998-12-31"] > usd_our["1998-12-31"],
+         "1998: the allocated-only denominator puts the published dollar above ours",
+         "%s vs %s" % (usd_pub["1998-12-31"], usd_our["1998-12-31"]))
+    gate(abs(usd_our["1997-12-31"] - 66.8) < 1e-9,
+         "USD 1997 = 66.8, the figure the About block discloses",
+         "%s" % usd_our["1997-12-31"])
+    gate(abs(round(usd_our["1998-12-31"] - 65.7, 1) - 0.6) < 1e-9,
+         "USD 1998 sits 0.6 above the printed AR-2003 row (65.7)",
+         "%s" % usd_our["1998-12-31"])
+    for n, want in ((1, 56.4), (2, 20.4), (3, 5.8)):
+        v = dict(col(root, C[n]["csv"], "ar_cofer"))["2025-12-31"]
+        gate(abs(v - want) < 1e-9,
+             "%s 2025 = published COFER %s" % (CCY[n][0], want), "%s" % v)
+
+    print("\nResidual-treatment range")
+    for n, want in ((1, 2.2), (2, 0.2), (3, 0.3)):
+        a = dict(col(root, C[n]["csv"], "cer"))
+        b = dict(col(root, C[n]["csv"], "cer_alt_rule"))
         spread = max(abs(a[d] - b[d]) for d in a)
         gate(abs(round(spread, 1) - want) < 1e-9,
-             f"{c.upper()} residual-rule range = {want}pp, as the About states",
-             f"{spread:.2f}")
-    gate(any(t.get("fill") == "tonexty" for t in f2["data"]),
+             "%s: range = %spp, as the About states" % (CCY[n][0], want),
+             "%.2f" % spread)
+    gate(any(t.get("fill") == "tonexty" for t in figs["chart_1"]["data"]),
          "dollar range drawn as a band")
-    gate(dict(col(root, C[2]["csv"], "eur"))
-         and col(root, C[2]["csv"], "eur")[0][0] == "2000-12-31",
-         "euro CER series starts 2000")
+    gate(not any(t.get("fill") == "tonexty" for t in figs["chart_3"]["data"]),
+         "no band on the yen, whose range is too narrow to draw")
 
-    # ---- charts 3 and 4: annual net accumulation ----------------------------
-    print("\nCharts 3 & 4 — annual net addition/shedding")
-    gate(C[3]["csv"] == C[4]["csv"],
+    # ---- charts 4 and 5: annual net accumulation ----------------------------
+    print("\nCharts 4 & 5 — annual net addition/shedding")
+    gate(C[4]["csv"] == C[5]["csv"],
          "both flow charts read one dataset, so they cannot disagree")
-    usd3 = dict(col(root, C[3]["csv"], "usd"))
-    gate(abs(usd3["1986-12-31"] - 5.9) < 1e-9,
+    usd4 = dict(col(root, C[4]["csv"], "usd"))
+    gate(abs(usd4["1986-12-31"] - 5.9) < 1e-9,
          "USD 1986 = +5.9, the figure the chart note quotes",
-         f"{usd3['1986-12-31']}")
-    eur3 = col(root, C[3]["csv"], "eur")
-    gate(eur3[0][0] == "2001-12-31",
-         "euro flow starts 2001, its first COFER-on-COFER link", eur3[0][0])
-    for n, ccy in ((3, "dollar"), (4, "yen")):
-        f = figs[f"chart_{n}"]
-        gate(len(f["data"]) == 2, f"{ccy}: added and shed drawn as two traces",
-             f"{len(f['data'])} traces")
+         "%s" % usd4["1986-12-31"])
+    eur4 = col(root, C[4]["csv"], "eur")
+    gate(eur4[0][0] == "2001-12-31",
+         "euro flow starts 2001, its first COFER-on-COFER link", eur4[0][0])
+    for n, ccy in ((4, "dollar"), (5, "yen")):
+        f = figs["chart_%d" % n]
+        gate(len(f["data"]) == 2, "%s: added and shed drawn as two traces" % ccy,
+             "%d traces" % len(f["data"]))
         gate("yaxis2" not in f["layout"],
-             f"{ccy}: no empty right-hand axis on a bars-only chart")
+             "%s: no empty right-hand axis on a bars-only chart" % ccy)
         gate(all(t.get("width") == 25246080000 for t in f["data"]),
-             f"{ccy}: bars are one year wide, not one quarter")
+             "%s: bars are one year wide, not one quarter" % ccy)
 
-    # ---- chart 5: the decomposition table -----------------------------------
-    print("\nTable 5 — 2000-2025 decomposition")
-    with open(root / C[5]["csv"], newline="", encoding="utf-8-sig") as fh:
-        rows5 = list(csv.DictReader(fh))
-    gate(len(rows5) == 3 and [r["currency"] for r in rows5]
-         == ["US dollar", "Euro", "Japanese yen"], "three rows, the three currencies")
-    for r in rows5:
-        chg, real, val = (float(r["change"]), float(r["real_reallocation"]),
-                          float(r["valuation"]))
+    # ---- chart 6: the decomposition table -----------------------------------
+    print("\nTable 6 — 2000-2025 decomposition")
+    with open(root / C[6]["csv"], newline="", encoding="utf-8-sig") as fh:
+        rows6 = list(csv.DictReader(fh))
+    gate(len(rows6) == 3 and [r["currency"] for r in rows6]
+         == ["US dollar", "Euro", "Japanese yen"],
+         "three rows, the three currencies")
+    for r in rows6:
+        chg = float(r["change"])
+        real = float(r["real_reallocation"])
+        val = float(r["valuation"])
         gate(abs(chg - (real + val)) < 1e-9,
-             f"{r['currency']}: change = real + valuation, as printed",
-             f"{chg} = {real} + {val}")
-    d5 = {r["currency"]: r for r in rows5}
-    gate(abs(float(d5["US dollar"]["change"]) + 13.32) < 1e-9,
+             "%s: change = real + valuation, as printed" % r["currency"],
+             "%s = %s + %s" % (chg, real, val))
+    d6 = {r["currency"]: r for r in rows6}
+    gate(abs(float(d6["US dollar"]["change"]) + 13.32) < 1e-9,
          "dollar 2000-25 change = -13.32, the note's 13.3-point fall")
-    gate(abs(float(d5["Euro"]["change"]) - 2.84) < 1e-9,
+    gate(abs(float(d6["Euro"]["change"]) - 2.84) < 1e-9,
          "euro 2000-25 change = +2.84, the note's 2.8-point rise")
-    gate(float(d5["Euro"]["real_reallocation"]) < 0,
+    gate(float(d6["Euro"]["real_reallocation"]) < 0,
          "euro's real reallocation is negative, as the note says")
+    # the table's 2000 column must be the same number the charts draw
+    for n, (name, _o, _c) in CCY.items():
+        v = dict(col(root, C[n]["csv"], "ar_cofer"))["2000-12-31"]
+        gate(abs(round(float(d6[name]["share_2000"]), 1) - v) < 1e-9,
+             "%s: table's 2000 share matches the chart" % name, "%s" % v)
 
     # ---- the deletions ------------------------------------------------------
     # Each is an editorial ruling, so each is gated on absence: a dropped column
@@ -1373,26 +1404,24 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     print("\nDeletions (gated on absence)")
     banned = ("gbp", "chf", "cad", "aud", "cny", "unspecified", "other",
               "dem", "frf", "nlg", "allocest")
-    for n in (1, 2, 3):
+    for n in (1, 2, 3, 4):
         with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
             names = [h.lower() for h in csv.DictReader(fh).fieldnames]
         gate(not any(b in h for h in names for b in banned),
-             f"chart {n}: carries no currency outside USD/EUR/JPY",
+             "chart %d: carries no currency outside USD/EUR/JPY" % n,
              ", ".join(names))
-    for n in (1, 2, 3):
         with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
             yrs = [int(r["date"][:4]) for r in csv.DictReader(fh)]
         gate(min(yrs) >= 1980 and max(yrs) == 2025,
-             f"chart {n}: no year before 1980, none after 2025",
-             f"{min(yrs)}-{max(yrs)}")
-    for n in (1, 2, 3):
+             "chart %d: no year before 1980, none after 2025" % n,
+             "%d-%d" % (min(yrs), max(yrs)))
         with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
-            bad = [v for r in csv.DictReader(fh)
-                   for k, v in r.items()
-                   if k != "date" and v and len(v.split(".")[-1]) > 1
-                   and "." in v]
-        gate(not bad, f"chart {n}: published to one decimal, the precision the "
-                      f"pre-2000 sources support", f"{len(bad)} over-precise")
+            bad = [v for r in csv.DictReader(fh) for k, v in r.items()
+                   if k != "date" and v and "." in v
+                   and len(v.split(".")[-1]) > 1]
+        gate(not bad, "chart %d: published to one decimal, the precision the "
+                      "pre-2000 sources support" % n,
+             "%d over-precise" % len(bad))
 
 
 FXJPY_FREE = "2026-08-04-fx-reserve-jpy"
