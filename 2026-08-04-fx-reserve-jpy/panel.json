@@ -61,6 +61,7 @@
         {"col": "eur_observed", "label": "Unadjusted", "color": "#378ADD"},
         {"col": "eur_cer", "label": "Constant exchange rates", "color": "#D85A30"}
       ],
+      "correction": "The constant-rate value for 2019 reads 20.93 here. The library master shipped 19.82 — that year's observed share, overwritten when this chart was split out of majors_share_cer on 2026-08-05 — and that is the figure drawn in the PNG published with the post on the same day. Corrected in the master on 2026-08-05 after the cer-v4 build (20.90), the parent chart (20.93) and the standing reserves dataset (20.9) all disagreed with it; the parent's figure was restored because the master follows the parent's vintage in all 45 other comparable years. No figure the post prints in prose depends on it, and the 18.91-20.56 band it quotes is the observed series. These pages therefore draw the euro's constant-rate line correctly and the published image does not.",
       "note": "The peak is 24.05% in 2009; over 2015-2025 the unadjusted share holds a 18.91-20.56% band. The single currency launched in January 1999, and the file starts in 1975 while the chart windows from 1980. Read the 1999 reading of 12.69% with care: the jump into 2000 is the IMF beginning to allocate its \"currency unknown\" bucket, not a market move, which is why the report's \"18% at its debut\" describes the early euro years rather than 1999 itself."
     },
     {
