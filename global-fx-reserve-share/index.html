@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shares of Global FX Reserves — the dollar, the euro and the yen — data | Japan Macro Advisors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  /* Web Report page identity — WEB_REPORT_GUIDE.md §Page style tokens.
+     The charts inside the frames keep the Plotly house theme untouched. */
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'PT Serif',Georgia,serif;background:#FCFBF8;color:#2a2a28;
+       line-height:1.7;padding:40px 20px 80px;max-width:880px;margin:0 auto}
+  a{color:#3b65a2;text-decoration:none}
+  a:hover{color:#2c4d7e;text-decoration:underline}
+  .text{max-width:680px;margin-left:auto;margin-right:auto}
+  .mrow{display:flex;justify-content:space-between;align-items:flex-end;
+        padding-bottom:12px;border-bottom:2px solid #1c1c1c}
+  .mrow img{height:24px;width:auto;display:block;flex:none}
+  .mdate{font:400 12px 'Public Sans',sans-serif;color:#737373}
+  .mrow2{display:flex;justify-content:space-between;align-items:baseline;
+         padding-top:6px}
+  .tagline{font:italic 400 12px 'PT Serif',serif;color:#8a8a82}
+  .slabel{font:600 10.5px 'Public Sans',sans-serif;letter-spacing:1.6px;
+          color:#a08a5f;text-transform:uppercase}
+  .banner{background:#f2f1ec;border:1px solid #e2e0d8;padding:11px 18px;
+          margin:22px auto 0;max-width:680px;
+          font:400 13px/1.55 'Public Sans',sans-serif;color:#54544e}
+  .banner.bottom{margin-top:48px;padding:18px 20px;font-size:13.5px}
+  .btn{display:inline-block;margin-top:12px;background:#3b65a2;color:#fff;
+       font:600 14px 'Public Sans',sans-serif;text-decoration:none;
+       padding:9px 16px;border-radius:4px}
+  .btn:hover{background:#2c4d7e;color:#fff;text-decoration:none}
+  header{margin-top:36px}
+  header h1{font:700 36px/1.2 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px;
+            text-wrap:balance}
+  header .meta{font:400 13px 'Public Sans',sans-serif;color:#737373;
+               margin-bottom:14px}
+  .stamp{background:#f2f1ec;border:1px solid #e2e0d8;padding:14px 18px;
+         margin:0 0 18px;font:400 15.5px/1.55 'PT Serif',serif;color:#2c2c2a}
+  .intro,.standfirst{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+                     margin:0 0 6px;text-wrap:pretty}
+  .card{margin-top:46px}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;
+         gap:12px}
+  .cnum{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
+        color:#737373;text-transform:uppercase}
+  .dl{font:600 13px 'Public Sans',sans-serif;white-space:nowrap;
+      border:1px solid #3b65a2;border-radius:3px;padding:4px 11px;
+      color:#3b65a2}
+  .dl:hover{background:#3b65a2;color:#fff;text-decoration:none}
+  .card h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:6px 0 4px}
+  .sub{font:400 13px 'Public Sans',sans-serif;color:#737373;margin-bottom:2px}
+  .fig{margin:14px 0 0}
+  .frame{border:1px solid #e4e2da;background:#E9E7E0}
+  figcaption,.figcap{max-width:680px;margin:8px auto 0;
+    font:400 12.5px/1.5 'Public Sans',sans-serif;color:#8a8a82}
+  .capnote{font-style:italic}
+  .section{margin:56px 0 0;border-top:2px solid #1c1c1c;padding-top:16px}
+  .section h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c}
+  .secnote{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373;
+           margin-top:8px}
+  .tablewrap{overflow-x:auto;margin-top:14px}
+  table.fc{border-collapse:collapse;min-width:460px;width:100%;
+           font:400 14px 'Public Sans',sans-serif}
+  table.fc th{text-align:right;font-weight:600;color:#737373;font-size:12px;
+              padding:7px 12px;border-bottom:1.5px solid #888780}
+  table.fc th:first-child{text-align:left}
+  table.fc td{text-align:right;padding:8px 12px;border-bottom:1px solid #EDEBE4}
+  table.fc td:first-child{text-align:left;font-weight:600}
+  table.fc tr.rule td{border-bottom:2px solid #1c1c1c}
+  .about{margin-top:60px}
+  .about h2{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px}
+  .about p,.about-cont p{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
+           margin:0 0 18px;text-wrap:pretty}
+  .about-cont{margin-top:34px}
+  .refs{border-top:1px solid #d8d6ce;padding-top:16px;margin-top:26px}
+  .refslabel{font:700 12px 'Public Sans',sans-serif;letter-spacing:1.4px;
+             color:#737373;text-transform:uppercase;margin-bottom:10px}
+  .refs p{font:400 13.5px/1.6 'PT Serif',serif;color:#54544e;margin:0 0 10px}
+  .endnote{font:400 13px/1.7 'Public Sans',sans-serif;color:#737373;
+           margin-top:44px}
+  .disclaimer{font:400 10.5px/1.55 'Public Sans',sans-serif;color:#9a9a92;
+              margin:14px auto 0;max-width:680px;text-wrap:pretty}
+  .nav{font:400 12px 'Public Sans',sans-serif;color:#9a9a92;margin:10px auto 0;
+       max-width:680px}
+  @media(max-width:640px){
+    body{padding:24px 12px 48px}
+    header h1{font-size:26px}
+    .card h2{font-size:19px}
+  }
+</style>
+</head>
+<body>
+<div class="text">
+  <div class="mrow">
+    <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
+    <span class="mdate">5 August 2026</span>
+  </div>
+  <div class="mrow2">
+    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="slabel">Chart data</span>
+  </div>
+</div>
+
+<div class="banner top">The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors.</div>
+
+<header class="text">
+  <h1>Shares of Global FX Reserves — the dollar, the euro and the yen</h1>
+  
+  <div class="stamp">Data vintage: IMF COFER annual through 2025. The constant-rate series is valued at end-2025 exchange rates.</div>
+  <p class="intro">The IMF publishes the currency composition of world reserves in COFER, but only from 1995. These pages carry our own series, which extends the record back to 1980, alongside the published one.</p>
+  
+</header>
+
+<section class="card" id="c1">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 1</span>
+      <a class="dl" href="data/chart-1-usd-three-measures.csv" download>Download CSV</a>
+    </div>
+    <h2>US dollar: three measures of its share of world reserves</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_1" style="height:470px;width:100%"></div></div><figcaption>Sources: IMF, BIS, JMA estimates.<br><span class="capnote">The published series begins in 1995 and is the same as ours from 2000. The shaded band spans two treatments of the portion the IMF does not attribute to a named currency.</span></figcaption></figure>
+</section>
+<section class="card" id="c2">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 2</span>
+      <a class="dl" href="data/chart-2-eur-three-measures.csv" download>Download CSV</a>
+    </div>
+    <h2>Euro: two measures of its share of world reserves</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_2" style="height:470px;width:100%"></div></div><figcaption>Sources: IMF, BIS, JMA estimates.<br><span class="capnote">The euro exists only from 1999, so the series begins there rather than in 1980. Our own estimate is identical to the published series over that span, so only the published one is drawn.</span></figcaption></figure>
+</section>
+<section class="card" id="c3">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 3</span>
+      <a class="dl" href="data/chart-3-jpy-three-measures.csv" download>Download CSV</a>
+    </div>
+    <h2>Japanese yen: three measures of its share of world reserves</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_3" style="height:470px;width:100%"></div></div><figcaption>Sources: IMF, BIS, JMA estimates.<br><span class="capnote">The published series begins in 1995 and is the same as ours from 2000.</span></figcaption></figure>
+</section>
+<section class="card" id="c4">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 4</span>
+      <a class="dl" href="data/chart-4-net-accumulation-annual.csv" download>Download CSV</a>
+    </div>
+    <h2>Net Change of USD Share in Global FX Reserves, excluding valuation effects</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_4" style="height:460px;width:100%"></div></div><figcaption>Sources: IMF, BIS, JMA estimates.<br><span class="capnote">The annual change in the dollar&#x27;s share, net of exchange-rate valuation. The download carries the yen and the euro on the same basis.</span></figcaption></figure>
+</section>
+<section class="card" id="c5">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Chart 5</span>
+      <a class="dl" href="data/chart-4-net-accumulation-annual.csv" download>Download CSV</a>
+    </div>
+    <h2>Net Change of JPY Share in Global FX Reserves, excluding valuation effects</h2>
+    
+  </div>
+  <figure class="fig"><div class="frame"><div class="plot" id="chart_5" style="height:460px;width:100%"></div></div><figcaption>Sources: IMF, BIS, JMA estimates.<br><span class="capnote">The same measure for the yen, drawn from the same file.</span></figcaption></figure>
+</section>
+<section class="card" id="c6">
+  <div class="text">
+    <div class="chead">
+      <span class="cnum">Table 6</span>
+      <a class="dl" href="data/chart-6-decomposition-2000-2025.csv" download>Download CSV</a>
+    </div>
+    <h2>Where each currency went, 2000 to 2025</h2>
+    
+  </div>
+  <div class="text"><div class="tablewrap"><table class="fc"><thead><tr><th></th><th>Share 2000, %</th><th>Share 2025, %</th><th>Change, pp</th><th>of which real, pp</th><th>of which valuation, pp</th></tr></thead><tbody><tr><td>US dollar</td><td>69.74</td><td>56.42</td><td>-13.32</td><td>-11.71</td><td>-1.61</td></tr><tr><td>Euro</td><td>17.54</td><td>20.38</td><td>2.84</td><td>-2.34</td><td>5.18</td></tr><tr><td>Japanese yen</td><td>6.56</td><td>5.84</td><td>-0.72</td><td>1.09</td><td>-1.81</td></tr></tbody></table></div><p class="figcap">Sources: IMF, BIS, JMA estimates.<br><span class="capnote">Both endpoints sit inside COFER, so the split needs no adjustment for the change of source before 2000.</span></p></div>
+</section>
+
+<div class="text about" id="about"><h2>Our estimation method</h2><p>This is the methodology note on how we extended the COFER statistics back toward 1980.</p><p><strong></strong> Our statistics are based on Currency Composition of Official Foreign Exchange Reserves (COFER), published by the IMF and starting in 1995. The IMF publishes its estimates of the currency composition of FX reserves, but its estimate only applies to 2000-2025. Between 1995 and 1999, a significant part of FX reserves is “unallocated”. Our series extends the statistics back, drawing on the currency-composition tables in successive editions of the IMF&#x27;s Annual Reports, supplemented by BIS statistics and national central-bank disclosures.</p><p><strong></strong> Our statistics differ from IMF COFER in the following key aspects.</p><p><strong>1) Reattributing ECUs as USD.</strong> Before the arrival of the euro, European central banks held ECUs, claims backed by gold and US dollars, as part of FX reserves. We reattribute the dollar-backed part of the ECU as USD and drop the gold-backed ECUs off our statistics as gold is not foreign exchange.</p><p><strong>2) Computation of Constant Exchange Rate (CER) based shares.</strong> Change in valuation of currencies affects shares of each currency in FX reserves. When the yen falls against the dollar, the yen&#x27;s share in global FX reserves drops even when FX reserve managers make no active decision in their portfolio. In order to remove this valuation effect, we re-compute shares with cross-currency exchange rates fixed at end-2025 exchange rates. The ECB publishes the euro&#x27;s share of global FX reserves in the same manner in its annual report, The International Role of the Euro (ECB, 2026).</p><p><strong>3) Net change in shares excluding valuation effects.</strong> We compute how the valuation change in each currency would move its share in the global FX reserves, and read the difference from the actual change as what reserve managers added or shed from their FX reserves. In 2022, for example, the dollar&#x27;s appreciation alone would have raised its share by 1.8 points, but the share fell 0.5 points, implying managers shed about 2.2% of global FX reserves worth of USD that year. These estimates strip out exchange-rate effects only; reinvested interest income stays inside them. Our year-by-year decomposition follows the approach of Arslanalp, Eichengreen and Simpson-Bell (2022).</p><div class="refs"><div class="refslabel">References</div><p>ECB, <em>The International Role of the Euro</em>, 2026.</p><p>S. Arslanalp, B. Eichengreen &amp; C. Simpson-Bell, “The Stealth Erosion of Dollar Dominance”, <em>IMF Working Paper</em> 22/58, 2022.</p></div></div>
+
+
+
+<div class="banner bottom">
+  <p>The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. The series are updated once a year, when the IMF closes its COFER year.</p>
+  <a class="btn" href="https://takujiokubo.substack.com/subscribe">Subscribe</a>
+</div>
+
+<p class="disclaimer">This report is provided for information purposes only. It does not constitute investment advice or an offer or solicitation to buy or sell any security. While the information herein is believed to be reliable, Japan Macro Advisors makes no representation as to its accuracy or completeness. &copy; 2026 Japan Macro Advisors. All rights reserved.</p>
+<p class="nav"><a href="../">All data packs</a> ·
+  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>
+
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<script>
+  var FIGS = [{"id":"chart_1","fig":{"data":[{"type":"scatter","mode":"lines","name":"Constant-rate: range across residual-treatment rules","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[63.1,64.2,62.0,61.2,57.5,57.2,63.5,67.6,63.5,60.0,60.8,61.8,65.3,64.5,66.0,66.3,67.6,66.7,67.3,67.5,67.8,67.2,64.2,66.5,67.7,66.3,67.1,67.8,66.7,66.6,65.4,65.6,65.9,65.9,64.5,64.1,63.7,64.2,62.6,61.9,61.7,60.2,58.0,58.5,56.6,56.4],"line":{"width":0,"color":"rgba(0,0,0,0)"},"showlegend":false,"hoverinfo":"skip","connectgaps":false},{"type":"scatter","mode":"lines","name":"Constant-rate: range across residual-treatment rules","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[62.6,63.2,60.5,59.3,55.3,56.0,63.1,67.8,63.4,59.9,61.3,62.2,65.6,64.6,66.6,67.4,68.2,66.7,67.7,67.4,67.6,67.0,64.2,66.7,68.1,66.5,67.5,68.5,67.2,67.3,66.1,66.3,66.4,66.4,64.7,64.1,63.7,64.3,62.7,62.0,61.9,60.2,57.9,58.4,56.3,56.4],"line":{"width":0,"color":"rgba(0,0,0,0)"},"fill":"tonexty","fillcolor":"rgba(216,90,48,0.16)","showlegend":true,"hoverinfo":"skip","connectgaps":false},{"type":"scatter","mode":"lines","name":"JMA estimates","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[67.3,70.4,69.6,70.4,69.5,64.9,66.5,66.2,63.8,60.5,58.9,59.5,64.4,64.0,63.4,63.2,65.7,66.8,66.3,67.7,69.7,70.8,64.9,63.5,63.3,64.9,63.7,62.6,62.9,62.2,61.9,62.5,61.9,61.7,62.7,64.2,64.7,62.7,62.1,61.3,59.5,59.4,59.0,59.0,58.4,56.4],"line":{"color":"#378ADD","width":2.4},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>JMA estimates</extra>"},{"type":"scatter","mode":"lines","name":"At constant end-2025 rates","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[63.1,64.2,62.0,61.2,57.5,57.2,63.5,67.6,63.5,60.0,60.8,61.8,65.3,64.5,66.0,66.3,67.6,66.7,67.3,67.5,67.8,67.2,64.2,66.5,67.7,66.3,67.1,67.8,66.7,66.6,65.4,65.6,65.9,65.9,64.5,64.1,63.7,64.2,62.6,61.9,61.7,60.2,58.0,58.5,56.6,56.4],"line":{"color":"#D85A30","width":2.2},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>At constant end-2025 rates</extra>"},{"type":"scatter","mode":"lines","name":"IMF COFER, as published","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,59.0,62.0,65.1,69.3,71.0,69.7,70.8,64.9,63.5,63.3,64.9,63.7,62.6,62.9,62.2,61.9,62.5,61.8,61.7,62.7,64.2,64.7,62.7,62.1,61.3,59.5,59.4,59.0,59.0,58.4,56.4],"line":{"color":"#888780","width":2.4,"dash":"dot"},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>IMF COFER, as published</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"}},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"% of world FX reserves","font":{"size":18,"color":"#888780"}},"range":[50,80]},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":92},"showlegend":true,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"}}}},{"id":"chart_2","fig":{"data":[{"type":"scatter","mode":"lines","name":"At constant end-2025 rates","x":["1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[null,null,21.5,23.3,25.4,22.5,21.3,22.3,21.3,20.2,21.0,21.0,21.3,20.7,20.4,19.5,20.4,20.9,20.8,19.9,20.7,20.9,20.4,20.8,21.4,20.2,20.7,20.4],"line":{"color":"#D85A30","width":2.2},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>At constant end-2025 rates</extra>"},{"type":"scatter","mode":"lines","name":"IMF COFER, as published","x":["1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[null,17.9,17.5,18.4,22.9,23.1,23.1,21.9,22.6,23.3,23.4,24.0,22.9,21.7,21.4,21.5,20.5,19.4,18.9,19.8,20.0,19.8,20.6,19.8,19.7,19.2,18.9,20.4],"line":{"color":"#888780","width":2.4,"dash":"dot"},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>IMF COFER, as published</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"}},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"% of world FX reserves","font":{"size":18,"color":"#888780"}},"range":[10,30]},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":92},"showlegend":true,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"}}}},{"id":"chart_3","fig":{"data":[{"type":"scatter","mode":"lines","name":"JMA estimates","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[4.6,4.3,4.7,5.0,5.7,7.9,7.8,7.7,8.0,7.8,8.1,8.7,7.8,7.9,8.1,6.7,5.8,5.2,5.3,5.4,6.6,5.4,5.6,6.1,5.7,4.8,4.5,4.2,4.3,3.4,4.1,4.1,4.3,4.1,4.1,3.9,4.0,4.8,5.1,5.8,6.0,5.5,5.4,5.4,5.6,5.8],"line":{"color":"#378ADD","width":2.4},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>JMA estimates</extra>"},{"type":"scatter","mode":"lines","name":"At constant end-2025 rates","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[5.5,5.5,6.3,6.4,7.6,8.9,7.6,6.1,6.3,7.1,7.3,7.2,6.3,5.7,5.3,4.6,4.5,4.3,3.9,3.5,4.7,4.3,4.2,4.4,4.0,3.7,3.6,3.2,2.6,2.1,2.2,2.1,2.5,2.9,3.2,3.0,2.9,3.5,3.6,4.1,4.1,4.1,4.5,4.9,5.5,5.8],"line":{"color":"#D85A30","width":2.2},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>At constant end-2025 rates</extra>"},{"type":"scatter","mode":"lines","name":"IMF COFER, as published","x":["1980-12-31","1981-12-31","1982-12-31","1983-12-31","1984-12-31","1985-12-31","1986-12-31","1987-12-31","1988-12-31","1989-12-31","1990-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2000-12-31","2001-12-31","2002-12-31","2003-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2010-12-31","2011-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,6.8,6.7,5.8,6.2,6.4,6.6,5.4,5.6,6.1,5.7,4.8,4.5,4.2,4.3,3.3,4.1,4.1,4.3,4.1,4.1,3.9,4.0,4.8,5.1,5.8,6.0,5.5,5.4,5.4,5.6,5.8],"line":{"color":"#888780","width":2.4,"dash":"dot"},"connectgaps":false,"hovertemplate":"%{y:.1f}<extra>IMF COFER, as published</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"}},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"% of world FX reserves","font":{"size":18,"color":"#888780"}},"range":[2,10]},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":92},"showlegend":true,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"}}}},{"id":"chart_4","fig":{"data":[{"type":"bar","name":"Added to dollar reserves","x":["1981-12-31","1986-12-31","1987-12-31","1990-12-31","1991-12-31","1992-12-31","1994-12-31","1995-12-31","1996-12-31","1998-12-31","1999-12-31","2003-12-31","2004-12-31","2006-12-31","2007-12-31","2009-12-31","2011-12-31","2017-12-31","2023-12-31"],"y":[0.7,5.9,4.3,0.8,0.8,3.6,1.4,0.6,1.3,0.6,1.7,2.1,1.3,0.8,0.8,0.1,0.2,0.3,0.4],"marker":{"color":"#378ADD"},"width":25246080000,"hovertemplate":"%{y:.1f}<extra>Added to dollar reserves</extra>"},{"type":"bar","name":"Shed from dollar reserves","x":["1982-12-31","1983-12-31","1984-12-31","1985-12-31","1988-12-31","1989-12-31","1993-12-31","1997-12-31","2000-12-31","2001-12-31","2002-12-31","2005-12-31","2008-12-31","2010-12-31","2012-12-31","2013-12-31","2014-12-31","2015-12-31","2016-12-31","2018-12-31","2019-12-31","2020-12-31","2021-12-31","2022-12-31","2024-12-31","2025-12-31"],"y":[-2.2,-0.8,-3.2,-0.3,-4.0,-3.7,-0.6,-0.8,-1.6,-0.3,-2.8,-1.3,-0.9,-1.2,-0.5,-0.2,-1.4,-0.4,-0.4,-1.6,-0.8,-0.2,-1.6,-2.2,-1.9,-0.1],"marker":{"color":"#D85A30"},"width":25246080000,"hovertemplate":"%{y:.1f}<extra>Shed from dollar reserves</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"hoverformat":"%Y"},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"percentage points of world FX reserves per year","font":{"size":18,"color":"#888780"}},"range":[-5,7]},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":92},"showlegend":true,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"},"barmode":"overlay","shapes":[{"type":"line","xref":"paper","x0":0,"x1":1,"yref":"y","y0":0,"y1":0,"line":{"color":"#888780","width":1.1},"layer":"below"}]}}},{"id":"chart_5","fig":{"data":[{"type":"bar","name":"Added to yen reserves","x":["1982-12-31","1983-12-31","1984-12-31","1985-12-31","1988-12-31","1989-12-31","1990-12-31","2000-12-31","2003-12-31","2010-12-31","2012-12-31","2013-12-31","2014-12-31","2017-12-31","2018-12-31","2019-12-31","2020-12-31","2022-12-31","2023-12-31","2024-12-31","2025-12-31"],"y":[0.6,0.1,1.0,1.1,0.3,0.8,0.2,0.3,0.3,0.2,0.6,0.6,0.4,0.8,0.1,0.7,0.1,0.5,0.4,0.6,0.4],"marker":{"color":"#378ADD"},"width":25246080000,"hovertemplate":"%{y:.1f}<extra>Added to yen reserves</extra>"},{"type":"bar","name":"Shed from yen reserves","x":["1986-12-31","1987-12-31","1991-12-31","1992-12-31","1993-12-31","1994-12-31","1995-12-31","1996-12-31","1997-12-31","1998-12-31","1999-12-31","2001-12-31","2002-12-31","2004-12-31","2005-12-31","2006-12-31","2007-12-31","2008-12-31","2009-12-31","2011-12-31","2015-12-31","2016-12-31"],"y":[-1.4,-1.9,-0.1,-1.2,-0.8,-0.5,-1.0,-0.2,-0.2,-0.5,-0.4,-0.5,-0.1,-0.6,-0.3,-0.1,-0.5,-1.0,-0.8,-0.2,-0.3,-0.1],"marker":{"color":"#D85A30"},"width":25246080000,"hovertemplate":"%{y:.1f}<extra>Shed from yen reserves</extra>"}],"layout":{"paper_bgcolor":"#E9E7E0","plot_bgcolor":"#E9E7E0","colorway":["#378ADD","#D85A30","#EF9F27","#888780"],"font":{"family":"DejaVu Sans, Segoe UI, system-ui, sans-serif","color":"#2C2C2A","size":13},"xaxis":{"showgrid":false,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"hoverformat":"%Y"},"yaxis":{"showgrid":true,"gridcolor":"#FFFFFF","gridwidth":1.4,"zeroline":false,"showline":false,"ticks":"","tickfont":{"size":18,"color":"#888780"},"title":{"text":"percentage points of world FX reserves per year","font":{"size":18,"color":"#888780"}},"range":[-2.5,2]},"hovermode":"x unified","hoverlabel":{"bgcolor":"#FFFFFF","font_size":12,"font_color":"#2C2C2A","font_family":"DejaVu Sans, Segoe UI, system-ui, sans-serif"},"margin":{"l":84,"r":60,"t":16,"b":92},"showlegend":true,"legend":{"orientation":"h","yanchor":"top","y":-0.14,"xanchor":"center","x":0.5,"font":{"size":12,"color":"#888780"},"bgcolor":"rgba(0,0,0,0)","bordercolor":"rgba(0,0,0,0)"},"barmode":"overlay","shapes":[{"type":"line","xref":"paper","x0":0,"x1":1,"yref":"y","y0":0,"y1":0,"line":{"color":"#888780","width":1.1},"layer":"below"}]}}}];
+  var CFG = {responsive:true, displaylogo:false,
+              modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d']};
+  // A figure may carry a "narrow" block: a relayout patch for phone width and
+  // its inverse, applied on load and on resize. Only the two-panel ranked-bars
+  // chart uses one — side by side, its panels do not survive a 375px frame.
+  function fitNarrow(f){
+    var n = f.fig.narrow; if(!n) return;
+    var el = document.getElementById(f.id);
+    var want = el.clientWidth <= n.maxwidth;
+    if(el.dataset.narrow === String(want)) return;
+    el.dataset.narrow = String(want);
+    el.style.height = (want ? n.height : n.wide_height) + 'px';
+    Plotly.relayout(el, want ? n.layout : n.wide);
+    Plotly.restyle(el, want ? n.style : n.wide_style);
+  }
+  window.addEventListener('resize', function(){ FIGS.forEach(fitNarrow); });
+
+  FIGS.forEach(function(f){
+    Plotly.newPlot(f.id, f.fig.data, f.fig.layout, CFG).then(function(){
+      fitNarrow(f);
+      // A window resize is not the only way the frame changes width (an
+      // orientation change on a phone, a container reflow after the webfont
+      // lands). Observe the element itself as well.
+      if(f.fig.narrow && window.ResizeObserver)
+        new ResizeObserver(function(){ fitNarrow(f); })
+          .observe(document.getElementById(f.id));
+    });
+  });
+</script>
+</body>
+</html>
