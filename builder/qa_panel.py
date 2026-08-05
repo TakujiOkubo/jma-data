@@ -137,7 +137,7 @@ FXJPY_PAID_BOTTOM_BANNER = (
     "priority in my replies.")
 
 BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
-                  "global-fx-reserve-shares": RESERVES_BOTTOM_BANNER,
+                  "global-fx-reserve-share": RESERVES_BOTTOM_BANNER,
                   "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER}
 
 
@@ -1645,7 +1645,7 @@ QA = {"2026-07-20-long-climb": qa_long_climb,
       "jgb-yield-curve-main": qa_scenario_model,
       "jgb-yield-curve-alternative": qa_scenario_model,
       "2026-08-03-jgb-warsh": qa_warsh_panel,
-      "global-fx-reserve-shares": qa_global_fx_reserve_shares}
+      "global-fx-reserve-share": qa_global_fx_reserve_shares}
 
 BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 
