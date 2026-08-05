@@ -1479,6 +1479,22 @@ def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
          f"{min(band)}-{max(band)}")
     gate(all(x[:4] >= "1980" for x, _ in obs3),
          "the chart windows from 1980 though the file starts in 1975")
+    # The 2019 constant-rate cell shipped as 19.82 -- that year's OBSERVED share,
+    # overwritten when this chart was split out of majors_share_cer on
+    # 2026-08-05, and drawn in the PNG published with the post. Corrected to the
+    # parent chart's 20.93. Gated in both directions: the value must be right,
+    # and it must not equal the observed share, which is the shape the error had.
+    cer19, obs19 = at(f3, "Constant exchange rates", 2019), at(f3, "Unadjusted", 2019)
+    gate(abs(cer19 - 20.93) < 5e-3,
+         "EUR 2019 constant-rate reads 20.93, the corrected value", f"{cer19}")
+    gate(abs(cer19 - obs19) > 1.0,
+         "the 2019 constant-rate value is not a copy of that year's observed share",
+         f"cer {cer19} vs observed {obs19}")
+    coincide = [x[:4] for x, y in obs3
+                if abs(y - dict(drawn(f3, "Constant exchange rates"))[x]) < 1e-9]
+    gate(coincide == ["2025"],
+         "the two euro lines coincide only at 2025, the constant-rate base year",
+         str(coincide))
 
     print("\nChart 4 - diversification, and the RMB turning")
     f4 = figs["chart_4"]
