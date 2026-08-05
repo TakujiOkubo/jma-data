@@ -544,10 +544,17 @@ def fig_signed_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
     dec = spec.get("decimals", 2)
     ycol = spec["value"]["col"]
     flag_col = spec.get("flag_col")
+    xcol = spec.get("x")
 
     def qdate(r):
         """Quarter → the ISO date of its first day, so the axis is a real time
-        axis: 143 quarters as categories would render as an unreadable comb."""
+        axis: 143 quarters as categories would render as an unreadable comb.
+
+        An annual series declares `x` instead, and its dates are used as they
+        stand. `year_col`/`q_col` stay the default, so a quarterly page built
+        before this option existed draws exactly as it did."""
+        if xcol:
+            return r[xcol]
         y, q = int(r[spec.get("year_col", "year")]), int(r[spec.get("q_col", "q")])
         return f"{y}-{(q - 1) * 3 + 1:02d}-01"
 
@@ -574,7 +581,10 @@ def fig_signed_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
             type="bar", name=label,
             x=[qdate(r) for r in sel],
             y=[round(to_float(r.get(ycol)), 4) for r in sel],
-            marker=marker, width=6_946_560_000,     # 0.22 of a year, in ms
+            # 0.22 of a year in ms — the quarterly default. An annual series
+            # overrides it: a quarter-wide bar on a 45-year axis reads as a
+            # spike rather than as one year's flow.
+            marker=marker, width=spec.get("bar_width_ms", 6_946_560_000),
             hovertemplate=f"%{{y:.{dec}f}}<extra>{html.escape(label)}</extra>",
         ))
 
@@ -592,19 +602,23 @@ def fig_signed_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
 
     layout = base_layout(spec, T, legend=True)
     layout["barmode"] = "overlay"
-    layout["xaxis"]["hoverformat"] = "%b %Y"
+    layout["xaxis"]["hoverformat"] = spec.get("hoverformat", "%b %Y")
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
     if spec.get("ytick"):
         layout["yaxis"]["tickmode"] = "array"
         layout["yaxis"]["tickvals"] = spec["ytick"]
-    layout["yaxis2"] = dict(
-        overlaying="y", side="right", showgrid=False, zeroline=False,
-        showline=False, ticks="", tickfont=dict(size=18, color=T["GREY"]),
-    )
-    if spec.get("y2range"):
+    # The second axis exists to carry the overlay line. A bars-only chart has
+    # nothing to put on it, and an empty right-hand axis would print a stray
+    # 0-to-1 tick set beside the data.
+    if spec.get("line") or spec.get("hlines2"):
+        layout["yaxis2"] = dict(
+            overlaying="y", side="right", showgrid=False, zeroline=False,
+            showline=False, ticks="", tickfont=dict(size=18, color=T["GREY"]),
+        )
+    if spec.get("y2range") and "yaxis2" in layout:
         layout["yaxis2"]["range"] = spec["y2range"]
-    if spec.get("y2tick"):
+    if spec.get("y2tick") and "yaxis2" in layout:
         layout["yaxis2"]["tickmode"] = "array"
         layout["yaxis2"]["tickvals"] = spec["y2tick"]
 
