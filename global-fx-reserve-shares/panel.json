@@ -12,28 +12,28 @@
   "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. The series are updated once a year, when the IMF closes its COFER year.",
   "_note": "Standing dataset, not an article panel. Every value is cut from the accepted research artifacts — reserve-share-unadjusted-1975-2025-v10.csv (the observed panel), cer-v4/ (the constant-exchange-rate build) and cofer-annual-full-2026-07-27.csv (COFER as published) — never re-derived from a pipeline run. Chart form ruled by Takuji 2026-08-05: one chart per currency carrying all three measures, rather than one chart per measure carrying all three currencies. Levels and flows are published to one decimal, the precision the pre-2000 printed sources support; exhibit 6 draws only on COFER-era data and is shown to two. Rounding is half away from zero, the convention published statistics use — Python's default is half-to-even, which printed 1998 as 66.2 and made the About block's stated 0.6 gap to the Annual Report read as 0.5. A QA gate now holds that figure. The euro begins in 2000 (2001 for the flow) by Takuji's ruling of 2026-08-05: before the single currency, euro-area reserves were held in the mark, franc and guilder, and combining them involves conventions this page keeps out; the COFER line on that chart begins in 1999, its own first euro year. Deliberately absent: years before 1980, every currency outside the three, the unattributed residual as its own series, and the allocation-estimate research.",
   "about": {
-    "heading": "About these statistics",
-    "lead": "This is the methodology note from the accompanying report, reproduced here.",
+    "heading": "Our estimation method",
+    "lead": "This is the methodology note on how we extended the COFER statistics back toward 1980.",
     "blocks": [
       {
-        "head": "The three lines on each chart.",
-        "text": "IMF COFER, as published, is the official series, which begins in 1995. JMA, Annual Reports plus COFER is our own series, carried back to 1980 and identical to the published one from 2000. At constant end-2025 rates is that same series with exchange-rate movements stripped out."
+        "head": "",
+        "text": "Our statistics are based on Currency Composition of Official Foreign Exchange Reserves (COFER), published by the IMF and starting in 1995. The IMF publishes its estimates of the currency composition of FX reserves, but its estimate only applies to 2000-2025. Between 1995 and 1999, a significant part of FX reserves is “unallocated”. Our series extends the statistics back, drawing on the currency-composition tables in successive editions of the IMF's Annual Reports, supplemented by BIS statistics and national central-bank disclosures."
       },
       {
-        "head": "Where the numbers come from.",
-        "text": "The IMF publishes a detailed statistic on FX reserves, Currency Composition of Official Foreign Exchange Reserves (COFER), with an estimate of the currency composition of the global FX reserve total. But COFER only starts in 1995, and it has a “currency unknown” part of FX reserves in 1995-1999 that the IMF only starts to allocate into currencies from 2000. Our series extends the statistics back, drawing mainly on the currency-composition tables in successive editions of the IMF's Annual Reports, supplemented by BIS statistics and national central-bank disclosures, which we used to test our reading of the “currency unknown” portion."
+        "head": "",
+        "text": "Our statistics differ from IMF COFER in the following key aspects."
       },
       {
-        "head": "Two adjustments.",
-        "text": "First, before the euro, European central banks held ECUs, claims backed by gold and US dollars. We count the dollar-backed part of the ECU as USD and drop the gold-backed part, as gold is not foreign exchange. Second, exchange rates distort shares. When the yen falls against the dollar, the yen's share in global FX reserves shrinks even if nobody sells a single yen off reserves. We therefore also compute shares with every year's holdings valued at end-2025 exchange rates, using BIS year-end rates. The ECB publishes the euro's share of global FX reserves in the same manner in its annual report, The International Role of the Euro (ECB, 2026). On this constant-exchange-rate (CER) basis, movements reflect changes in the amounts held, not in their valuation."
+        "head": "1) Reattributing ECUs as USD.",
+        "text": "Before the arrival of the euro, European central banks held ECUs, claims backed by gold and US dollars, as part of FX reserves. We reattribute the dollar-backed part of the ECU as USD and drop the gold-backed ECUs off our statistics as gold is not foreign exchange."
       },
       {
-        "head": "Year by year.",
-        "text": "The same logic works year by year. For each year we estimate how the change in exchange rates would move the share, and read the difference from the actual change as what reserve managers added or shed. In 2022, for example, the dollar's appreciation alone would have raised its share by 1.8 points, but the share fell 0.5 points, implying managers shed about 2.2% of global FX reserves worth of USD that year. These estimates strip out exchange-rate effects only; reinvested interest income stays inside them. Our year-by-year decomposition follows the approach of Arslanalp, Eichengreen and Simpson-Bell (2022)."
+        "head": "2) Computation of Constant Exchange Rate (CER) based shares.",
+        "text": "Change in valuation of currencies affects shares of each currency in FX reserves. When the yen falls against the dollar, the yen's share in global FX reserves drops even when FX reserve managers make no active decision in their portfolio. In order to remove this valuation effect, we re-compute shares with cross-currency exchange rates fixed at end-2025 exchange rates. The ECB publishes the euro's share of global FX reserves in the same manner in its annual report, The International Role of the Euro (ECB, 2026)."
       },
       {
-        "head": "Basis.",
-        "text": "All shares are shares of total global FX reserves, including the “currency unknown” portion. Full details, sources, and limitations will follow in a separate methodology report."
+        "head": "3) Net change in shares excluding valuation effects.",
+        "text": "We compute how the valuation change in each currency would move its share in the global FX reserves, and read the difference from the actual change as what reserve managers added or shed from their FX reserves. In 2022, for example, the dollar's appreciation alone would have raised its share by 1.8 points, but the share fell 0.5 points, implying managers shed about 2.2% of global FX reserves worth of USD that year. These estimates strip out exchange-rate effects only; reinvested interest income stays inside them. Our year-by-year decomposition follows the approach of Arslanalp, Eichengreen and Simpson-Bell (2022)."
       }
     ],
     "references_html": [
