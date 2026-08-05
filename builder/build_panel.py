@@ -42,6 +42,9 @@ rendered as HTML rather than inside the figure, which matches the house PNG
 
 MANIFEST (panel.json)
     slug, title, date, post_url, standfirst, workbook (optional filename)
+    tier    "free" | "paid" — required on every page built from 2026-08-05.
+            "free" suppresses every data download and states the paid offer
+            instead; "paid" keeps them. Omitted only on pre-rule pages.
     charts: [ {n, kind, title, subtitle, ylabel, source, csv, ...} ]
 
     kind "line"     x, start, end, series[{col,label,color,dash}],
@@ -94,6 +97,23 @@ BOTTOM_BANNER = ("The charts and data on this page are free to use and "
                  "on my research and receive priority in my replies in "
                  "either English or Japanese.")
 SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
+
+# TIER RULE (Takuji, 2026-08-05). A manifest may declare "tier".
+#   "free" — the page is the report's charts, and exists to show the research.
+#            It offers NO data download: no per-card CSV link, no workbook
+#            button. In their place it names what a paid subscription buys.
+#            The tidy CSVs stay in the page's data/ folder as build inputs and
+#            as the workbook's provenance; the page simply does not offer them,
+#            and the numbers are in the figure JSON either way.
+#   "paid" — the model and the estimates, where the data IS the perk. Keeps
+#            every download it has.
+#   absent — a page built before this rule. Behaviour is exactly as it was, so
+#            the pages already live rebuild byte-identical. The rule was taken
+#            forward-only by decision; do not retrofit "tier" onto them.
+PERK_HTML = (
+    '<p class="perk">Paid subscribers receive the data behind every chart as '
+    "an Excel workbook, plus access to our JGB yield-curve model pages.</p>\n"
+    f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>')
 DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
                    "does not constitute investment advice or an offer or "
                    "solicitation to buy or sell any security. While the "
@@ -803,6 +823,19 @@ def build(slug: str) -> Path:
     manifest = json.loads((root / "panel.json").read_text(encoding="utf-8"))
     T = load_house_tokens()
 
+    # See TIER RULE above. A missing "tier" is a pre-rule page, not a mistake to
+    # be defaulted away — but say so once, because every new page must declare it.
+    tier = manifest.get("tier")
+    if tier is None:
+        # ASCII only: this console is cp932 and will not encode an em-dash.
+        print(f'  note: {slug}/panel.json declares no "tier". Building with '
+              "pre-2026-08-05 behaviour (downloads on). New pages must set "
+              '"tier": "free" or "paid".')
+    elif tier not in ("free", "paid"):
+        raise SystemExit(f'panel.json: "tier" must be "free" or "paid", '
+                         f"got {tier!r}")
+    free_tier = tier == "free"
+
     cards, figs = [], []
     about_cards: dict[int, str] = {}   # exhibits embedded in the About section
     for spec in manifest["charts"]:
@@ -851,11 +884,15 @@ def build(slug: str) -> Path:
                if spec.get("subtitle") else "")
         label = spec.get("label") or f"Chart {n}"
 
+        # A free page shows the chart head with no download offer beside it.
+        dl = ("" if free_tier else
+              f'\n      <a class="dl" href="{html.escape(spec["csv"])}" '
+              "download>Download CSV</a>")
+
         card = f"""<section class="card" id="c{n}">
   <div class="text">
     <div class="chead">
-      <span class="cnum">{html.escape(label)}</span>
-      <a class="dl" href="{html.escape(spec['csv'])}" download>Download CSV</a>
+      <span class="cnum">{html.escape(label)}</span>{dl}
     </div>
     <h2>{html.escape(spec["title"])}</h2>
     {sub}
@@ -875,8 +912,16 @@ def build(slug: str) -> Path:
         [{"id": i, "fig": f} for i, f in figs], separators=(",", ":"))
 
     m = manifest
+    # The header slot that used to carry the workbook button. On a free page it
+    # carries the offer instead — the workbook is the thing a subscription buys,
+    # so the removal is stated as what a reader gets rather than left blank.
     workbook = ""
-    if m.get("workbook"):
+    if free_tier:
+        if m.get("workbook"):
+            raise SystemExit('panel.json: a "free" tier page cannot declare a '
+                             '"workbook" download')
+        workbook = PERK_HTML
+    elif m.get("workbook"):
         workbook = (f'<a class="btn" href="{html.escape(m["workbook"])}" download>'
                     f'Download the full workbook (Excel)</a>')
 
@@ -986,9 +1031,12 @@ def build(slug: str) -> Path:
                         if m.get("post_url") else "")
     endnote = ""
     if footer_note:
+        # The closing sentence advertises the per-card CSV link, so it goes when
+        # the link does — otherwise the page points at something that isn't there.
+        csv_line = "" if free_tier else " Each card links its own CSV."
         endnote = (f'<p class="endnote text">{html.escape(footer_note)} '
                    "Hover to read values, drag to zoom, double-click to "
-                   "reset. Each card links its own CSV.</p>")
+                   f"reset.{csv_line}</p>")
 
     page = PAGE.format(
         title=html.escape(m["title"]),
@@ -1000,6 +1048,9 @@ def build(slug: str) -> Path:
         # default for article panels.
         bottom_banner=html.escape(m.get("bottom_banner", BOTTOM_BANNER)),
         subscribe_url=SUBSCRIBE_URL,
+        # Same reason as scenario_css: an unused rule would change bytes on
+        # pages that are meant to rebuild identically.
+        perk_css=PERK_CSS if free_tier else "",
         disclaimer=DISCLAIMER_HTML,
         meta=meta,
         stamp=stamp,
@@ -1041,6 +1092,12 @@ SCENARIO_CSS = """  .assump{margin:24px 0 0;border-left:3px solid #3b65a2;backgr
   .sib span{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373}
 """
 
+# The free page's subscription line, sitting where the workbook button would.
+# Injected only on a free page, for the same byte-identity reason as above.
+PERK_CSS = """  .perk{margin:18px 0 0;font:400 14.5px/1.6 'Public Sans',sans-serif;
+        color:#54544e}
+"""
+
 PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1076,7 +1133,7 @@ PAGE = """<!DOCTYPE html>
        font:600 14px 'Public Sans',sans-serif;text-decoration:none;
        padding:9px 16px;border-radius:4px}}
   .btn:hover{{background:#2c4d7e;color:#fff;text-decoration:none}}
-  header{{margin-top:36px}}
+{perk_css}  header{{margin-top:36px}}
   header h1{{font:700 36px/1.2 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px;
             text-wrap:balance}}
   header .meta{{font:400 13px 'Public Sans',sans-serif;color:#737373;

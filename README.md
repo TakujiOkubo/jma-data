@@ -50,7 +50,8 @@ to a vendored copy of the same values and says so.
 1. Make `<slug>/data/` and copy in each chart's `*_data.csv` from the chart
    library, named `chart-<n>-<what-it-is>.csv` in article order.
 2. Write `<slug>/panel.json`. Take `title`, `source` and `ylabel` verbatim from
-   each chart script's `TITLE` / `SOURCE` / `YLABEL` constants.
+   each chart script's `TITLE` / `SOURCE` / `YLABEL` constants. **Set `tier`** —
+   see below; the builder prints a note if you forget.
 3. Read the chart script's plotting code for the things the CSV cannot carry —
    the view window, the chart form, which columns are series and which are flags,
    what the legend should call them. Getting this wrong produces a plausible
@@ -58,6 +59,25 @@ to a vendored copy of the same values and says so.
 4. Build, QA, then extend `qa_panel.py` with gates for the new article's
    published figures. The gates exist to catch a panel that disagrees with the
    article, which is the only failure that actually matters here.
+
+### Tiers
+
+Every page built from 2026-08-05 declares `"tier"` in its manifest.
+
+| tier | what the page is | data download |
+|------|------------------|---------------|
+| `free` | the report's charts — it exists to show the research | **none.** No per-card CSV link, no workbook button. In their place the header states what a paid subscription buys, above the Subscribe button. |
+| `paid` | the model and the estimates, where the data *is* the perk | keeps every download it has |
+
+The tidy CSVs still live in `<slug>/data/` on a free page — they are the
+builder's input and the workbook's provenance. The page just doesn't offer them.
+The chart values are inline in `index.html` as figure JSON either way, so this
+governs what is *offered*, not what is reachable.
+
+`qa_panel.py` gates the tier in both directions, so a free page and a paid one
+cannot drift into each other's state. Pages built before the rule carry no
+`tier` key and are unchanged by it — the decision was forward-only, and they
+rebuild byte-identical. Do not retrofit.
 
 ### Manifest kinds
 

@@ -56,8 +56,28 @@ def qa_structure(manifest, page, figs) -> None:
     n_plot = sum(1 for c in manifest["charts"] if c["kind"] != "table")
     gate(len(figs) == n_plot, "every non-table chart reached the page",
          f"{len(figs)} figures for {n_plot} specs")
-    for c in manifest["charts"]:
-        gate(f'href="{c["csv"]}"' in page, f"chart {c['n']} CSV link present")
+
+    # The tier rule (Takuji, 2026-08-05) is gated in BOTH directions, so a free
+    # page and a paid one cannot drift into each other's state. A page with no
+    # "tier" predates the rule and is gated as it always was.
+    tier = manifest.get("tier")
+    if tier == "free":
+        for c in manifest["charts"]:
+            gate(f'href="{c["csv"]}"' not in page,
+                 f"chart {c['n']} offers no CSV download (free tier)")
+        gate('class="dl"' not in page and "Download CSV" not in page,
+             "no download control anywhere on the page")
+        gate("Download the full workbook" not in page,
+             "no workbook download on a free page")
+        gate("Each card links its own CSV" not in page,
+             "closing line does not advertise a link that is not there")
+        gate('class="perk"' in page
+             and "Paid subscribers receive the data behind every chart" in page,
+             "free page states what a paid subscription buys")
+    else:
+        for c in manifest["charts"]:
+            gate(f'href="{c["csv"]}"' in page, f"chart {c['n']} CSV link present")
+
     gate("cdn.plot.ly" in page, "Plotly source declared")
     gate(page.count('class="card"') == len(manifest["charts"]),
          "one card per exhibit")
