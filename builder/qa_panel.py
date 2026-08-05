@@ -12,6 +12,7 @@ gate computed on anything other than the object that ships is not a gate.
 from __future__ import annotations
 
 import csv
+import html
 import json
 import re
 import sys
@@ -116,7 +117,28 @@ MODEL_BOTTOM_BANNER = (
     "old, paid subscribers can request an updated estimate and we should be "
     "able to reply within 2 business days.")
 
-BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER}
+# The reserves dataset carries its own approved wording: paid access, and an
+# annual rather than on-request update cadence, because it moves once a year
+# when the IMF closes its COFER year.
+RESERVES_BOTTOM_BANNER = (
+    "The charts and data on this page are free to use and reproduce with "
+    "attribution to Japan Macro Advisors. Only paid subscribers have access "
+    "to this page. The series are updated once a year, when the IMF closes "
+    "its COFER year.")
+
+# The paid tier of an article panel is a third case: it is a report's charts,
+# not a standing dataset, so it keeps the per-card downloads but must not
+# advertise the paid tier to a reader who is already inside it.
+FXJPY_PAID_BOTTOM_BANNER = (
+    "The charts and data on this page are free to use and reproduce with "
+    "attribution to Japan Macro Advisors. Only paid subscribers have access "
+    "to this page. Each card links the tidy CSV behind its chart. Paid "
+    "subscribers are encouraged to send questions on my research and receive "
+    "priority in my replies.")
+
+BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
+                  "global-fx-reserve-shares": RESERVES_BOTTOM_BANNER,
+                  "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER}
 
 
 def qa_skin(page, bottom_banner) -> None:
@@ -1246,14 +1268,314 @@ def qa_warsh_panel(root, manifest, page, figs) -> None:
              f"{d:+.1f}bp")
 
 
+def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
+    """Standing reserves dataset. The gates check the drawn values against the
+    published sources the page claims to match, and against the figures its own
+    About text asserts — plus the deletions, which are editorial rulings and so
+    are gated on absence."""
+    C = {c["n"]: c for c in manifest["charts"]}
+
+    print("\nTier")
+    gate(manifest.get("tier") == "paid", "declared paid tier",
+         manifest.get("tier", "MISSING"))
+
+    # ---- chart 1: observed shares ------------------------------------------
+    print("\nChart 1 — observed shares")
+    f1 = figs["chart_1"]
+    # The endpoint is the page's own falsifiable claim: these must BE published
+    # COFER, which a subscriber can check against the IMF in a minute.
+    for lab, want in (("US dollar", 56.4), ("Euro", 20.4), ("Japanese yen", 5.8)):
+        t = trace(f1, lab)
+        gate(abs(t["y"][-1] - want) < 1e-9,
+             f"{lab} 2025 = published COFER {want}", f"{t['y'][-1]}")
+    usd1 = dict(col(root, C[1]["csv"], "usd"))
+    gate(abs(usd1["1997-12-31"] - 66.8) < 1e-9,
+         "USD 1997 = 66.8, the figure the About block discloses",
+         f"{usd1['1997-12-31']}")
+    # The About says the gap to the printed Annual Report narrows to 0.6 by 1998.
+    gate(abs(round(usd1["1998-12-31"] - 65.7, 1) - 0.6) < 1e-9,
+         "USD 1998 sits 0.6 above the printed AR-2003 row (65.7)",
+         f"{usd1['1998-12-31']}")
+    eur1 = col(root, C[1]["csv"], "eur")
+    jpy1 = col(root, C[1]["csv"], "jpy")
+    gate(eur1[0][0] == "2000-12-31", "euro series starts 2000", eur1[0][0])
+    gate(list(usd1)[0] == "1980-12-31" and jpy1[0][0] == "1980-12-31",
+         "dollar and yen start 1980")
+    gate(eur1[-1][0] == "2025-12-31" and jpy1[-1][0] == "2025-12-31",
+         "every series stops at 2025")
+    gate(sum(1 for y in trace(f1, "Euro")["y"] if y is not None) == len(eur1),
+         "euro point count matches CSV", f"{len(eur1)} points")
+
+    # ---- chart 2: constant end-2025 base ------------------------------------
+    print("\nChart 2 — constant end-2025 base")
+    f2 = figs["chart_2"]
+    for c, lab in (("usd", "US dollar"), ("eur", "Euro"), ("jpy", "Japanese yen")):
+        o = dict(col(root, C[1]["csv"], c))["2025-12-31"]
+        k = dict(col(root, C[2]["csv"], c))["2025-12-31"]
+        gate(abs(o - k) < 1e-9,
+             f"{lab}: base-year identity, CER 2025 = observed 2025", f"{k}")
+    for c, want in (("usd", 2.2), ("eur", 0.2), ("jpy", 0.3)):
+        a = dict(col(root, C[2]["csv"], c))
+        b = dict(col(root, C[2]["csv"], c + "_alt_rule"))
+        spread = max(abs(a[d] - b[d]) for d in a)
+        gate(abs(round(spread, 1) - want) < 1e-9,
+             f"{c.upper()} residual-rule range = {want}pp, as the About states",
+             f"{spread:.2f}")
+    gate(any(t.get("fill") == "tonexty" for t in f2["data"]),
+         "dollar range drawn as a band")
+    gate(dict(col(root, C[2]["csv"], "eur"))
+         and col(root, C[2]["csv"], "eur")[0][0] == "2000-12-31",
+         "euro CER series starts 2000")
+
+    # ---- charts 3 and 4: annual net accumulation ----------------------------
+    print("\nCharts 3 & 4 — annual net addition/shedding")
+    gate(C[3]["csv"] == C[4]["csv"],
+         "both flow charts read one dataset, so they cannot disagree")
+    usd3 = dict(col(root, C[3]["csv"], "usd"))
+    gate(abs(usd3["1986-12-31"] - 5.9) < 1e-9,
+         "USD 1986 = +5.9, the figure the chart note quotes",
+         f"{usd3['1986-12-31']}")
+    eur3 = col(root, C[3]["csv"], "eur")
+    gate(eur3[0][0] == "2001-12-31",
+         "euro flow starts 2001, its first COFER-on-COFER link", eur3[0][0])
+    for n, ccy in ((3, "dollar"), (4, "yen")):
+        f = figs[f"chart_{n}"]
+        gate(len(f["data"]) == 2, f"{ccy}: added and shed drawn as two traces",
+             f"{len(f['data'])} traces")
+        gate("yaxis2" not in f["layout"],
+             f"{ccy}: no empty right-hand axis on a bars-only chart")
+        gate(all(t.get("width") == 25246080000 for t in f["data"]),
+             f"{ccy}: bars are one year wide, not one quarter")
+
+    # ---- chart 5: the decomposition table -----------------------------------
+    print("\nTable 5 — 2000-2025 decomposition")
+    with open(root / C[5]["csv"], newline="", encoding="utf-8-sig") as fh:
+        rows5 = list(csv.DictReader(fh))
+    gate(len(rows5) == 3 and [r["currency"] for r in rows5]
+         == ["US dollar", "Euro", "Japanese yen"], "three rows, the three currencies")
+    for r in rows5:
+        chg, real, val = (float(r["change"]), float(r["real_reallocation"]),
+                          float(r["valuation"]))
+        gate(abs(chg - (real + val)) < 1e-9,
+             f"{r['currency']}: change = real + valuation, as printed",
+             f"{chg} = {real} + {val}")
+    d5 = {r["currency"]: r for r in rows5}
+    gate(abs(float(d5["US dollar"]["change"]) + 13.32) < 1e-9,
+         "dollar 2000-25 change = -13.32, the note's 13.3-point fall")
+    gate(abs(float(d5["Euro"]["change"]) - 2.84) < 1e-9,
+         "euro 2000-25 change = +2.84, the note's 2.8-point rise")
+    gate(float(d5["Euro"]["real_reallocation"]) < 0,
+         "euro's real reallocation is negative, as the note says")
+
+    # ---- the deletions ------------------------------------------------------
+    # Each is an editorial ruling, so each is gated on absence: a dropped column
+    # with no gate gets restored by the next person to touch the page.
+    print("\nDeletions (gated on absence)")
+    banned = ("gbp", "chf", "cad", "aud", "cny", "unspecified", "other",
+              "dem", "frf", "nlg", "allocest")
+    for n in (1, 2, 3):
+        with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
+            names = [h.lower() for h in csv.DictReader(fh).fieldnames]
+        gate(not any(b in h for h in names for b in banned),
+             f"chart {n}: carries no currency outside USD/EUR/JPY",
+             ", ".join(names))
+    for n in (1, 2, 3):
+        with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
+            yrs = [int(r["date"][:4]) for r in csv.DictReader(fh)]
+        gate(min(yrs) >= 1980 and max(yrs) == 2025,
+             f"chart {n}: no year before 1980, none after 2025",
+             f"{min(yrs)}-{max(yrs)}")
+    for n in (1, 2, 3):
+        with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
+            bad = [v for r in csv.DictReader(fh)
+                   for k, v in r.items()
+                   if k != "date" and v and len(v.split(".")[-1]) > 1
+                   and "." in v]
+        gate(not bad, f"chart {n}: published to one decimal, the precision the "
+                      f"pre-2000 sources support", f"{len(bad)} over-precise")
+
+
+FXJPY_FREE = "2026-08-04-fx-reserve-jpy"
+FXJPY_PAID = "2026-08-04-fx-reserve-jpy-paid"
+
+FXJPY_TITLES = [
+    "The yen is making a comeback as a global currency",
+    "USD's slide from dominance through depreciation and quantity",
+    "The euro's rise stalled after the euro crisis",
+    "Yen leads the diversification away from USD",
+    "Reserve managers consistently sold USD since 2010",
+]
+
+
+def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
+    """Both tiers of "Good-bye USD Dominance, Hello Again JPY".
+
+    One report, two pages that differ only in whether they offer the data. One
+    gate function therefore serves both: the value gates below are the failure
+    the tier split introduces, because each page passes its own structural
+    gates while quietly disagreeing with the other about a number. Every value
+    is lifted from the report's figure check, which already reconciled the post
+    against the JMA v10 unadjusted panel and the cer-v4 constant-rate build --
+    it is not re-derived here.
+    """
+    def at(fig, name, year):
+        """The drawn value at a year-end, from the delivered figure JSON."""
+        t = trace(fig, name)
+        for x, y in zip(t["x"], t["y"]):
+            if x[:4] == str(year) and y is not None:
+                return y
+        return None
+
+    def drawn(fig, name):
+        return [(x, y) for x, y in zip(trace(fig, name)["x"],
+                                       trace(fig, name)["y"]) if y is not None]
+
+    print("\nTitles, order and provenance")
+    h2s = re.findall(r"<h2>(.*?)</h2>", page)
+    gate([html.unescape(t) for t in h2s[:5]] == FXJPY_TITLES,
+         "the five exhibits run in the published order",
+         str([t[:18] for t in h2s[:5]]))
+    gate(f'href="{manifest["post_url"]}"' in page, "links back to the article")
+    gate(manifest["post_url"].endswith("/p/good-bye-usd-dominance-hello-again"),
+         "post_url is the URL opened on 2026-08-05, not a guessed slugification")
+
+    print("\nChart 1 - the yen's comeback")
+    f1 = figs["chart_1"]
+    for year, want in ((1980, 4.55), (1991, 8.73), (2009, 3.35), (2025, 5.84)):
+        got = at(f1, "JPY share", year)
+        gate(got is not None and abs(got - want) < 5e-3,
+             f"JPY {year} reads {want}, as the post prints", f"{got}")
+    ys = [y for _, y in drawn(f1, "JPY share")]
+    xs = [x for x, _ in drawn(f1, "JPY share")]
+    peak = max(range(len(ys)), key=lambda i: ys[i])
+    gate(xs[peak][:4] == "1991", "1991 is the peak of the whole series, not just a high",
+         f"max {ys[peak]} at {xs[peak][:4]}")
+    seg = [(x, y) for x, y in zip(xs, ys) if "1991" <= x[:4] <= "2009"]
+    gate(min(seg, key=lambda p: p[1])[0][:4] == "2009",
+         "2009 is the trough of the 1991-2009 slide the post describes")
+
+    print("\nChart 2 - the dollar's slide")
+    f2 = figs["chart_2"]
+    for year, want in ((1975, 79.36), (2015, 64.16), (2016, 64.67), (2025, 56.42)):
+        got = at(f2, "Unadjusted", year)
+        gate(got is not None and abs(got - want) < 5e-3,
+             f"USD {year} reads {want}, as the post prints", f"{got}")
+    post2010 = [(x, y) for x, y in drawn(f2, "Unadjusted") if x[:4] >= "2010"]
+    gate(max(post2010, key=lambda p: p[1])[0][:4] == "2016",
+         "2016 is the 2010-2025 peak, which is what makes it the post's start point")
+    gate(abs(at(f2, "Unadjusted", 2025) - at(f2, "Constant exchange rates", 2025)) < 5e-3,
+         "the two lines converge at 2025, the constant-rate base year")
+
+    print("\nChart 3 - the euro stalls")
+    f3 = figs["chart_3"]
+    obs3 = drawn(f3, "Unadjusted")
+    gate(abs(at(f3, "Unadjusted", 2009) - 24.05) < 5e-3,
+         "EUR 2009 peak reads 24.05", f"{at(f3, 'Unadjusted', 2009)}")
+    gate(max(obs3, key=lambda p: p[1])[0][:4] == "2009",
+         "2009 is the peak of the drawn window, not merely a local high")
+    band = [y for x, y in obs3 if "2015" <= x[:4] <= "2025"]
+    gate(abs(min(band) - 18.91) < 5e-3 and abs(max(band) - 20.56) < 5e-3,
+         "the 2015-2025 band is 18.91-20.56, the range behind 'hovering around 20%'",
+         f"{min(band)}-{max(band)}")
+    gate(all(x[:4] >= "1980" for x, _ in obs3),
+         "the chart windows from 1980 though the file starts in 1975")
+
+    print("\nChart 4 - diversification, and the RMB turning")
+    f4 = figs["chart_4"]
+    rmb = drawn(f4, "RMB")
+    gate(abs(at(f4, "RMB", 2021) - 2.85) < 5e-3
+         and abs(at(f4, "RMB", 2025) - 1.95) < 5e-3,
+         "RMB 2.85 in 2021 falling to 1.95 in 2025", f"{at(f4, 'RMB', 2025)}")
+    gate(max(rmb, key=lambda p: p[1])[0][:4] == "2021",
+         "2021 is the RMB peak, so the fall is from the peak and not from a plateau")
+    gate(abs(at(f4, "CAD", 2025) - 2.50) < 5e-3
+         and abs(at(f4, "AUD", 2025) - 2.02) < 5e-3,
+         "CAD 2.50 and AUD 2.02 in 2025")
+    gate(at(f4, "RMB", 2025) < at(f4, "AUD", 2025) < at(f4, "CAD", 2025),
+         "the RMB sits below both the Australian and the Canadian dollar in 2025")
+    gate(at(f4, "JPY", 2025) == max(at(f4, c, 2025) for c in ("JPY", "CAD", "AUD", "RMB")),
+         "the yen is the largest of the four in 2025, which is the chart's headline")
+
+    print("\nChart 5 - what reserve managers did, year by year")
+    f5 = figs["chart_5"]
+    flows = dict(drawn(f5, "Added to USD") + drawn(f5, "Shed from USD"))
+    y22 = next(v for x, v in flows.items() if x[:4] == "2022")
+    gate(abs(y22 - (-2.214)) < 5e-4,
+         "2022 shedding reads -2.214pp, the post's 'about 2.2%'", f"{y22}")
+    since = {x[:4]: v for x, v in flows.items() if x[:4] >= "2010"}
+    neg = sum(1 for v in since.values() if v < 0)
+    gate(neg >= 13 and neg / len(since) > 0.75,
+         "'consistently sold since 2010': most years since 2010 are negative",
+         f"{neg} of {len(since)}")
+    gate(min(flows) [:4] == "1981",
+         "the series starts in 1981, the 1980 estimate being excluded by ruling")
+    gate("pp of global FX reserves per year" in str(f5["layout"]["yaxis"]),
+         "exhibit 5 is labelled as a flow in pp per year, not as a share")
+
+    print("\nEditorial deletions - gated on absence")
+    with open(root / manifest["charts"][0]["csv"], encoding="utf-8-sig") as fh:
+        hdr1 = fh.readline().strip().split(",")
+    gate(hdr1 == ["date", "jpy_observed"],
+         "chart 1 ships without jpy_cer, the column the published chart never drew",
+         str(hdr1))
+    gate(all("cer" not in t["name"].lower() for t in f1["data"])
+         and len(f1["data"]) == 1,
+         "chart 1 draws one line, as published")
+    with open(root / manifest["charts"][4]["csv"], encoding="utf-8-sig") as fh:
+        hdr5 = fh.readline().strip().split(",")
+    gate(hdr5 == ["date", "usd_netaccum"],
+         "chart 5 ships one net-accumulation column, with no r2 residual variant",
+         str(hdr5))
+
+    print("\nTier")
+    tier = manifest["tier"]
+    if tier == "free":
+        gate("Download CSV" not in page and 'class="dl"' not in page,
+             "free page offers no per-chart download")
+        gate("Download the full workbook" not in page,
+             "free page offers no workbook")
+        gate("Paid subscribers receive the data behind every chart" in page,
+             "free page states what a paid subscription buys instead")
+    else:
+        gate(page.count("Download CSV") == len(manifest["charts"]),
+             "paid page offers one CSV download per exhibit",
+             f"{page.count('Download CSV')}")
+        gate("workbook" not in manifest,
+             "the paid page declares no workbook download: the .xlsx is Takuji's "
+             "to send and jma-data is public")
+        gate("Only paid subscribers have access to this page" in page,
+             "paid page says so")
+
+    print("\nCross-tier equality")
+    sibling = REPO / (FXJPY_PAID if tier == "free" else FXJPY_FREE)
+    if not (sibling / "index.html").exists():
+        gate(False, "the sibling tier is built, so the two can be compared",
+             f"{sibling.name} has no index.html")
+        return
+    _, sfigs = load_delivered(sibling)
+    same = True
+    for c in manifest["charts"]:
+        cid = f"chart_{c['n']}"
+        mine = {t["name"]: t["y"] for t in figs[cid]["data"]}
+        theirs = {t["name"]: t["y"] for t in sfigs[cid]["data"]}
+        if mine != theirs:
+            same = False
+            gate(False, f"chart {c['n']} draws the same values on both tiers")
+    gate(same, "every exhibit draws identical values on the free and paid pages",
+         f"5 exhibits vs {sibling.name}")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
       "jgb-yield-curve-model": qa_yield_curve,
+      FXJPY_FREE: qa_fx_reserve_jpy,
+      FXJPY_PAID: qa_fx_reserve_jpy,
       "2026-07-31-fx-carry-unwind": qa_fx_carry_unwind,
       "jgb-forecast-main": qa_scenario_forecast,
       "jgb-forecast-alternative": qa_scenario_forecast,
       "jgb-yield-curve-main": qa_scenario_model,
       "jgb-yield-curve-alternative": qa_scenario_model,
-      "2026-08-03-jgb-warsh": qa_warsh_panel}
+      "2026-08-03-jgb-warsh": qa_warsh_panel,
+      "global-fx-reserve-shares": qa_global_fx_reserve_shares}
 
 BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 

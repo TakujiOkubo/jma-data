@@ -1,0 +1,152 @@
+{
+  "slug": "global-fx-reserve-shares",
+  "title": "Shares of Global FX Reserves — the dollar, the euro and the yen",
+  "date": "Data vintage: IMF COFER annual through 2025 · annual, 1980–2025",
+  "masthead_date": "5 August 2026",
+  "sort": "2026-08-05",
+  "tier": "paid",
+  "unlisted": true,
+  "standfirst": "Japan Macro Advisors' reconstruction of the currency composition of world foreign exchange reserves, extended back to 1980 — two decades before the IMF's own composition statistics begin. Three series: the shares as recorded at market exchange rates, the same holdings valued at a fixed end-2025 exchange rate, and the amount reserve managers added to or shed from each currency year by year.",
+  "stamp": "Data vintage: IMF COFER annual through 2025. The constant-rate series sits on a fixed end-2025 base: adding a year does not restate history, and any future rebasing will be published as a new edition rather than a silent revision.",
+  "intro_html": "The IMF publishes the currency composition of world reserves in COFER, but only from 1995, and it leaves part of the 1995–1999 total unattributed until its own imputation begins in 2000. These series extend the record back to 1980 using the currency-composition tables in successive editions of the IMF's Annual Reports, and set beside the observed shares two derived measures that separate what reserve managers <em>did</em> from what exchange rates <em>did to them</em>.",
+  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. The series are updated once a year, when the IMF closes its COFER year.",
+  "_note": "Standing dataset, not an article panel. Every value is cut from the accepted research artifacts — reserve-share-unadjusted-1975-2025-v10.csv (the observed panel) and cer-v4/ (the constant-exchange-rate build) — never re-derived from a pipeline run. Levels and flows are published to one decimal, the precision the pre-2000 printed sources support; exhibit 5 draws only on COFER-era data and is shown to two. Rounding is half away from zero, the convention published statistics use — Python's default is half-to-even, which printed 1998 as 66.2 and made the About block's stated 0.6 gap to the Annual Report read as 0.5. A QA gate now holds that figure. The euro begins in 2000 (2001 for the flow) by Takuji's ruling of 2026-08-05: before the single currency, euro-area reserves were held in the mark, franc and guilder, and combining them involves conventions this page keeps out. Deliberately absent: years before 1980, every currency outside the three, the unattributed residual as its own series, and the allocation-estimate research.",
+  "about": {
+    "heading": "About these statistics",
+    "lead": "Three series, three different questions. The difference between them is the point: a currency's share can move because reserve managers bought it, or because it appreciated, and only the second and third series can tell those apart.",
+    "blocks": [
+      {
+        "head": "What the three series are.",
+        "text": "The observed share is the composition as recorded at each year's prevailing exchange rates. It is the headline number and the one the IMF publishes. The constant-rate share values every year's holdings at a single set of exchange rates, those of end-2025, so a movement in it reflects a change in the amounts held rather than in their price. The annual net addition or shedding asks, for each year, how the shares would have moved had only exchange rates moved, and reads the difference from what actually happened as what reserve managers did. It strips out exchange-rate effects only — interest earned and reinvested stays inside it — so it is broader than purchases in the narrow sense."
+      },
+      {
+        "head": "Where the numbers come from.",
+        "text": "From 2000 the source is the IMF's COFER, on its post-2025Q3 basis, in which the Fund imputes the holdings of countries that do not report. Before 2000 the source is the currency-composition tables of the IMF's Annual Reports, read across successive editions with overlapping years, supplemented by BIS statistics and national central-bank disclosures used to test our reading of the portion the Fund leaves unattributed. All revaluation uses BIS year-end exchange rates."
+      },
+      {
+        "head": "Why our dollar differs from the IMF's printed table.",
+        "text": "For 1997 our dollar share reads 66.8% against the 62.2% printed in the Annual Report for the same year. Both are right, and the gap is two adjustments we make and name. First, before the euro, European central banks held ECUs — claims backed by gold and US dollars — and we count the dollar-backed part of the ECU as dollars and drop the gold-backed part, since gold is not foreign exchange. Second, we express every year as a share of all official holdings rather than only those of countries that reported to the Fund. By 1998 the gap narrows to 0.6 points, because the ECU had almost gone."
+      },
+      {
+        "head": "The end-2025 base.",
+        "text": "The constant-rate series values all history at end-2025 exchange rates, which has two consequences worth knowing. Its final point equals the observed 2025 share exactly, so the series can be checked against published COFER at its own endpoint. And the base is fixed rather than rolling: next year's observation will be priced at end-2025 rates too, so no published number changes as the series extends. If we ever move the base, it will be announced as a new edition. The choice of base matters more than it looks — moving it back a single year shifts the dollar's history by about 1.9 points on average, and the euro's by about the same, though the yen's by only 0.1."
+      },
+      {
+        "head": "The range on the dollar.",
+        "text": "The portion of reserves the Fund does not attribute to a named currency has no exchange rate of its own, and two defensible treatments bracket it: leaving it unrevalued, or revaluing it at the average of the named currencies. We publish both, and the shaded band on the second chart is the range between them. It matters for the dollar, where the two treatments differ by up to 2.2 points on the level, and barely at all for the euro (0.2) or the yen (0.3). Headline figures should quote the range, not one rule."
+      },
+      {
+        "head": "Precision, coverage, and what is not here.",
+        "text": "Levels and flows are published to one decimal, the precision the pre-2000 printed sources support; the 2000–2025 decomposition draws only on COFER-era data and is shown to two. The series stop at end-2025. They cover three currencies only, start in 1980, and carry no separate line for the unattributed residual. Our wider research on how that residual might be allocated is deliberately not published here: it is a modelled estimate, and these pages carry measurement."
+      }
+    ],
+    "references_html": [
+      "European Central Bank, <em>The International Role of the Euro</em>, 2026 — the ECB publishes the euro's share on the same constant-exchange-rate principle used here.",
+      "S. Arslanalp, B. Eichengreen &amp; C. Simpson-Bell, “The Stealth Erosion of Dollar Dominance,” <em>IMF Working Paper</em> 22/58, 2022 — the approach our year-by-year decomposition follows.",
+      "International Monetary Fund, <em>Currency Composition of Official Foreign Exchange Reserves</em> (COFER), and the currency-composition tables of the IMF <em>Annual Report</em>, various editions."
+    ]
+  },
+  "charts": [
+    {
+      "n": 1,
+      "kind": "line",
+      "title": "Currency shares of world FX reserves, at market exchange rates",
+      "ylabel": "% of world FX reserves",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-1-observed-shares.csv",
+      "x": "date",
+      "decimals": 1,
+      "yrange": [0, 75],
+      "series": [
+        {"col": "usd", "label": "US dollar", "color": "#378ADD", "width": 2.2},
+        {"col": "eur", "label": "Euro", "color": "#D85A30", "width": 2.2},
+        {"col": "jpy", "label": "Japanese yen", "color": "#EF9F27", "width": 2.2}
+      ],
+      "note": "Shares of total world FX reserves, including the portion the IMF does not attribute to a named currency, so the three lines do not sum to 100. The euro line begins in 2000; before the single currency, euro-area reserves were held in the mark, the franc and the guilder. The 2025 values equal published COFER exactly."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "The same holdings, valued at constant end-2025 exchange rates",
+      "ylabel": "% of world FX reserves, at end-2025 exchange rates",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-2-cer-2025-base.csv",
+      "x": "date",
+      "decimals": 1,
+      "yrange": [0, 75],
+      "band": {
+        "hi": "usd",
+        "lo": "usd_alt_rule",
+        "label": "US dollar: range across residual-treatment rules",
+        "fillcolor": "rgba(55,138,221,0.18)"
+      },
+      "series": [
+        {"col": "usd", "label": "US dollar", "color": "#378ADD", "width": 2.2},
+        {"col": "eur", "label": "Euro", "color": "#D85A30", "width": 2.2},
+        {"col": "jpy", "label": "Japanese yen", "color": "#EF9F27", "width": 2.2}
+      ],
+      "note": "Every year's holdings priced at end-2025 exchange rates, so a movement reflects the amounts held rather than their price. The shaded band spans the two treatments of the unattributed residual; the euro's and the yen's are too narrow to draw. By construction the 2025 point equals the observed 2025 share."
+    },
+    {
+      "n": 3,
+      "kind": "signed_bar_line",
+      "title": "US dollar: added to or shed from reserves each year",
+      "ylabel": "percentage points of world FX reserves per year",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-3-net-accumulation-annual.csv",
+      "x": "date",
+      "decimals": 1,
+      "hoverformat": "%Y",
+      "bar_width_ms": 25246080000,
+      "height": 460,
+      "value": {
+        "col": "usd",
+        "pos_label": "Added to dollar reserves",
+        "neg_label": "Shed from dollar reserves",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "yrange": [-5, 7],
+      "note": "The annual change in the dollar's share net of exchange-rate valuation. Reserve managers were substantial buyers through the mid-1980s, adding 5.9 points in 1986 alone as the dollar fell after the Plaza Accord, and have been persistent net sellers since 2010. The download carries the yen and the euro on the same basis, and both treatments of the residual."
+    },
+    {
+      "n": 4,
+      "kind": "signed_bar_line",
+      "title": "Japanese yen: added to or shed from reserves each year",
+      "ylabel": "percentage points of world FX reserves per year",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-3-net-accumulation-annual.csv",
+      "x": "date",
+      "decimals": 1,
+      "hoverformat": "%Y",
+      "bar_width_ms": 25246080000,
+      "height": 460,
+      "value": {
+        "col": "jpy",
+        "pos_label": "Added to yen reserves",
+        "neg_label": "Shed from yen reserves",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "yrange": [-2.5, 2],
+      "note": "The same measure for the yen, drawn from the same file. The selling of the 1990s and the steady buying since the mid-2010s are both visible — the latter achieved while the yen itself was falling, which is why the observed share rose so much less than the amounts bought."
+    },
+    {
+      "n": 5,
+      "kind": "table",
+      "label": "Table 5",
+      "title": "Where each currency went, 2000 to 2025",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-5-decomposition-2000-2025.csv",
+      "columns": [
+        {"col": "currency", "label": ""},
+        {"col": "share_2000", "label": "Share 2000, %"},
+        {"col": "share_2025", "label": "Share 2025, %"},
+        {"col": "change", "label": "Change, pp"},
+        {"col": "real_reallocation", "label": "of which real, pp"},
+        {"col": "valuation", "label": "of which valuation, pp"}
+      ],
+      "note": "The window is 2000 to 2025 because both endpoints sit inside COFER, so the split needs no adjustment for the change of source before it. Read across: the dollar's 13.3-point fall is almost all real reallocation, the euro's 2.8-point rise is entirely valuation and conceals net selling, and the yen's small observed decline masks real buying offset by a weaker currency. Over the longer 1975–2025 window the dollar's decline is a smaller share real, around two-thirds to seventy per cent, because the 1980s were dominated by valuation swings."
+    }
+  ]
+}
