@@ -5,7 +5,7 @@
   "masthead_date": "5 August 2026",
   "sort": "2026-08-05",
   "tier": "paid",
-  "unlisted": true,
+  "unlisted": false,
   "standfirst": "Japan Macro Advisors' reconstruction of the currency composition of world foreign exchange reserves, extended back to 1980 — two decades before the IMF's own composition statistics begin. Each currency is shown three ways: as the IMF publishes it, as we extend it, and with exchange-rate movements stripped out.",
   "stamp": "Data vintage: IMF COFER annual through 2025. The constant-rate series sits on a fixed end-2025 base: adding a year does not restate history, and any future rebasing will be published as a new edition rather than a silent revision.",
   "intro_html": "The IMF publishes the currency composition of world reserves in COFER, but only from 1995, and until its own imputation begins in 2000 it publishes those shares against the allocated part of reserves rather than the whole. These pages extend the record back to 1980 using the currency-composition tables in successive editions of the IMF's Annual Reports, and set beside it a third measure that separates what reserve managers <em>did</em> from what exchange rates <em>did to them</em>. On each of the first three charts the published series and ours are drawn together, so where they agree and where they differ is visible rather than asserted.",
@@ -250,5 +250,6 @@
       ],
       "note": "The window is 2000 to 2025 because both endpoints sit inside COFER, so the split needs no adjustment for the change of source before it. Read across: the dollar's 13.3-point fall is almost all real reallocation, the euro's 2.8-point rise is entirely valuation and conceals net selling, and the yen's small observed decline masks real buying offset by a weaker currency. Over the longer 1975–2025 window the dollar's decline is a smaller share real, around two-thirds to seventy per cent, because the 1980s were dominated by valuation swings."
     }
-  ]
+  ],
+  "_listing": "Listed on the jma-data landing page (Takuji, 2026-08-05), matching the yield-curve model page. The repo is public, so unlisted never restricted access — it only hid the page from prospective subscribers. Access terms are stated in the bottom banner."
 }
