@@ -64,7 +64,7 @@
       "series": [
         {
           "col": "ar_cofer",
-          "label": "JMA: Annual Reports + COFER",
+          "label": "JMA estimates",
           "color": "#378ADD",
           "width": 2.4
         },
@@ -88,7 +88,7 @@
     {
       "n": 2,
       "kind": "line",
-      "title": "Euro: three measures of its share of world reserves",
+      "title": "Euro: two measures of its share of world reserves",
       "ylabel": "% of world FX reserves",
       "source": "Sources: IMF, BIS, JMA estimates.",
       "csv": "data/chart-2-eur-three-measures.csv",
@@ -99,12 +99,6 @@
         30
       ],
       "series": [
-        {
-          "col": "ar_cofer",
-          "label": "JMA: Annual Reports + COFER",
-          "color": "#378ADD",
-          "width": 2.4
-        },
         {
           "col": "cer",
           "label": "At constant end-2025 rates",
@@ -119,8 +113,8 @@
           "dash": "dot"
         }
       ],
-      "note": "The euro exists only from 1999, so the series begins there rather than in 1980.",
-      "_series_order": "The published series is listed LAST so it draws on top. From 2000 it and the JMA series are the same numbers, and in manifest order it was hidden beneath them — which read as the official series ending in 2000. Drawn last and dotted, it tracks visibly over ours, which is the point. Do not reorder to match the legend.",
+      "note": "The euro exists only from 1999, so the series begins there rather than in 1980. Our own estimate is identical to the published series over that span, so only the published one is drawn.",
+      "_series_order": "The published series is listed LAST so it draws on top of the constant-rate line where they cross. Do not reorder to match the legend.",
       "start": "1998-12-31"
     },
     {
@@ -139,7 +133,7 @@
       "series": [
         {
           "col": "ar_cofer",
-          "label": "JMA: Annual Reports + COFER",
+          "label": "JMA estimates",
           "color": "#378ADD",
           "width": 2.4
         },
@@ -163,7 +157,7 @@
     {
       "n": 4,
       "kind": "signed_bar_line",
-      "title": "US dollar: added to or shed from reserves each year",
+      "title": "Net Change of USD Share in Global FX Reserves, excluding valuation effects",
       "ylabel": "percentage points of world FX reserves per year",
       "source": "Sources: IMF, BIS, JMA estimates.",
       "csv": "data/chart-4-net-accumulation-annual.csv",
@@ -188,7 +182,7 @@
     {
       "n": 5,
       "kind": "signed_bar_line",
-      "title": "Japanese yen: added to or shed from reserves each year",
+      "title": "Net Change of JPY Share in Global FX Reserves, excluding valuation effects",
       "ylabel": "percentage points of world FX reserves per year",
       "source": "Sources: IMF, BIS, JMA estimates.",
       "csv": "data/chart-4-net-accumulation-annual.csv",

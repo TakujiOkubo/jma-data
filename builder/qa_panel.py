@@ -1274,9 +1274,13 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     About text asserts, and against the deletions — which are editorial rulings
     and so are gated on absence."""
     C = {c["n"]: c for c in manifest["charts"]}
-    CCY = {1: ("US dollar", 1980, 1995),
-           2: ("Euro", 2000, 1999),
-           3: ("Japanese yen", 1980, 1995)}
+    # n -> (name, first year of our own series, first year of the published one)
+    # The euro chart draws the published series only: ours is identical to it
+    # over the whole span, so drawing both would be drawing one series twice
+    # (Takuji, 2026-08-05). n_lines records what each chart should carry.
+    CCY = {1: ("US dollar", 1980, 1995, 3),
+           2: ("Euro", None, 1999, 2),
+           3: ("Japanese yen", 1980, 1995, 3)}
 
     print("\nTier")
     gate(manifest.get("tier") == "paid", "declared paid tier",
@@ -1286,37 +1290,55 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     # The page's central claim is that our series IS the published one wherever
     # the IMF publishes on a comparable basis. Gate it year by year, not at a
     # spot: a single matching endpoint would pass on a series that drifts.
-    for n, (name, ours_from, cofer_from) in CCY.items():
+    for n, (name, ours_from, cofer_from, n_lines) in CCY.items():
         print("\nChart %d — %s" % (n, name))
         f = figs["chart_%d" % n]
         pub = dict(col(root, C[n]["csv"], "cofer"))
-        our = dict(col(root, C[n]["csv"], "ar_cofer"))
         cer = dict(col(root, C[n]["csv"], "cer"))
         gate(min(pub) == "%d-12-31" % cofer_from,
              "published series starts %d" % cofer_from, min(pub))
-        gate(min(our) == "%d-12-31" % ours_from,
-             "JMA series starts %d" % ours_from, min(our))
-        gate(max(pub) == max(our) == max(cer) == "2025-12-31",
-             "all three measures stop at 2025")
-        # From 2000 our panel simply carries the published COFER numbers, stored
-        # to two decimals. A cell whose 2dp value sits on a rounding boundary can
-        # therefore land 0.1 away at the one decimal we publish — rounding, not
-        # disagreement. The gate holds that bound rather than exact equality,
-        # which would fail on four cells out of seventy-eight.
-        shared = [d for d in our if d in pub and int(d[:4]) >= 2000]
-        worst = max(abs(our[d] - pub[d]) for d in shared)
-        apart = sum(1 for d in shared if abs(our[d] - pub[d]) > 1e-9)
-        gate(worst <= 0.1 + 1e-9,
-             "from 2000 the JMA and published series are the same, to rounding "
-             "(%d years)" % len(shared),
-             "max diff %.1f, %d year(s) round apart" % (worst, apart))
-        gate(abs(cer["2025-12-31"] - our["2025-12-31"]) < 1e-9,
-             "base-year identity: constant-rate 2025 = observed 2025",
-             "%s" % cer["2025-12-31"])
+        gate(max(pub) == max(cer) == "2025-12-31",
+             "every drawn measure stops at 2025")
+
+        if ours_from is None:
+            # Euro: our series is not drawn, so the endpoint anchor is the
+            # published series itself.
+            gate(min(cer) == "2000-12-31",
+                 "constant-rate series starts 2000", min(cer))
+            gate(abs(cer["2025-12-31"] - pub["2025-12-31"]) < 1e-9,
+                 "base-year identity: constant-rate 2025 = published 2025",
+                 "%s" % cer["2025-12-31"])
+            gate("ar_cofer" not in
+                 open(root / C[n]["csv"], encoding="utf-8-sig").readline(),
+                 "the duplicate JMA column is gone from the file too")
+        else:
+            our = dict(col(root, C[n]["csv"], "ar_cofer"))
+            gate(min(our) == "%d-12-31" % ours_from,
+                 "JMA series starts %d" % ours_from, min(our))
+            # From 2000 our panel simply carries the published COFER numbers,
+            # stored to two decimals. A cell whose 2dp value sits on a rounding
+            # boundary can land 0.1 away at the one decimal we publish —
+            # rounding, not disagreement. The gate holds that bound rather than
+            # exact equality, which fails on four cells out of seventy-eight.
+            shared = [d for d in our if d in pub and int(d[:4]) >= 2000]
+            worst = max(abs(our[d] - pub[d]) for d in shared)
+            apart = sum(1 for d in shared if abs(our[d] - pub[d]) > 1e-9)
+            gate(worst <= 0.1 + 1e-9,
+                 "from 2000 the JMA and published series are the same, to "
+                 "rounding (%d years)" % len(shared),
+                 "max diff %.1f, %d year(s) round apart" % (worst, apart))
+            gate(abs(cer["2025-12-31"] - our["2025-12-31"]) < 1e-9,
+                 "base-year identity: constant-rate 2025 = observed 2025",
+                 "%s" % cer["2025-12-31"])
+
         # exclude the band's own edge traces, which are lines with a fill
         drawn = [t for t in f["data"] if t.get("mode") == "lines"
                  and not t.get("fill") and t.get("line", {}).get("width")]
-        gate(len(drawn) == 3, "three measures drawn", "%d lines" % len(drawn))
+        gate(len(drawn) == n_lines, "%d measures drawn" % n_lines,
+             "%d lines" % len(drawn))
+        labels = {t.get("name") for t in drawn}
+        gate("JMA: Annual Reports + COFER" not in labels,
+             "our series is labelled JMA estimates, not by its sources")
 
     # the pre-2000 divergence the notes describe, in both directions
     usd_pub = dict(col(root, C[1]["csv"], "cofer"))
@@ -1334,7 +1356,9 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
          "USD 1998 sits 0.6 above the printed AR-2003 row (65.7)",
          "%s" % usd_our["1998-12-31"])
     for n, want in ((1, 56.4), (2, 20.4), (3, 5.8)):
-        v = dict(col(root, C[n]["csv"], "ar_cofer"))["2025-12-31"]
+        # the euro chart draws the published series only, so that is its anchor
+        src = "cofer" if CCY[n][1] is None else "ar_cofer"
+        v = dict(col(root, C[n]["csv"], src))["2025-12-31"]
         gate(abs(v - want) < 1e-9,
              "%s 2025 = published COFER %s" % (CCY[n][0], want), "%s" % v)
 
@@ -1393,8 +1417,9 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     gate(float(d6["Euro"]["real_reallocation"]) < 0,
          "euro's real reallocation over 2000-25 is negative")
     # the table's 2000 column must be the same number the charts draw
-    for n, (name, _o, _c) in CCY.items():
-        v = dict(col(root, C[n]["csv"], "ar_cofer"))["2000-12-31"]
+    for n, (name, _o, _c, _l) in CCY.items():
+        src = "cofer" if CCY[n][1] is None else "ar_cofer"
+        v = dict(col(root, C[n]["csv"], src))["2000-12-31"]
         gate(abs(round(float(d6[name]["share_2000"]), 1) - v) < 1e-9,
              "%s: table's 2000 share matches the chart" % name, "%s" % v)
 
