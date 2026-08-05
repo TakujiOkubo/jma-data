@@ -1328,7 +1328,7 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
          "1998: the allocated-only denominator puts the published dollar above ours",
          "%s vs %s" % (usd_pub["1998-12-31"], usd_our["1998-12-31"]))
     gate(abs(usd_our["1997-12-31"] - 66.8) < 1e-9,
-         "USD 1997 = 66.8, the figure the About block discloses",
+         "USD 1997 = 66.8 (differs from the printed AR by the two adjustments)",
          "%s" % usd_our["1997-12-31"])
     gate(abs(round(usd_our["1998-12-31"] - 65.7, 1) - 0.6) < 1e-9,
          "USD 1998 sits 0.6 above the printed AR-2003 row (65.7)",
@@ -1344,7 +1344,7 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
         b = dict(col(root, C[n]["csv"], "cer_alt_rule"))
         spread = max(abs(a[d] - b[d]) for d in a)
         gate(abs(round(spread, 1) - want) < 1e-9,
-             "%s: range = %spp, as the About states" % (CCY[n][0], want),
+             "%s: residual-rule range = %spp" % (CCY[n][0], want),
              "%.2f" % spread)
     gate(any(t.get("fill") == "tonexty" for t in figs["chart_1"]["data"]),
          "dollar range drawn as a band")
@@ -1357,7 +1357,7 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
          "both flow charts read one dataset, so they cannot disagree")
     usd4 = dict(col(root, C[4]["csv"], "usd"))
     gate(abs(usd4["1986-12-31"] - 5.9) < 1e-9,
-         "USD 1986 = +5.9, the figure the chart note quotes",
+         "USD 1986 = +5.9 (the largest single year of dollar buying)",
          "%s" % usd4["1986-12-31"])
     eur4 = col(root, C[4]["csv"], "eur")
     gate(eur4[0][0] == "2001-12-31",
@@ -1387,11 +1387,11 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
              "%s = %s + %s" % (chg, real, val))
     d6 = {r["currency"]: r for r in rows6}
     gate(abs(float(d6["US dollar"]["change"]) + 13.32) < 1e-9,
-         "dollar 2000-25 change = -13.32, the note's 13.3-point fall")
+         "dollar 2000-25 change = -13.32")
     gate(abs(float(d6["Euro"]["change"]) - 2.84) < 1e-9,
-         "euro 2000-25 change = +2.84, the note's 2.8-point rise")
+         "euro 2000-25 change = +2.84")
     gate(float(d6["Euro"]["real_reallocation"]) < 0,
-         "euro's real reallocation is negative, as the note says")
+         "euro's real reallocation over 2000-25 is negative")
     # the table's 2000 column must be the same number the charts draw
     for n, (name, _o, _c) in CCY.items():
         v = dict(col(root, C[n]["csv"], "ar_cofer"))["2000-12-31"]
