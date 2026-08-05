@@ -1,0 +1,106 @@
+{
+  "slug": "2026-08-04-fx-reserve-jpy",
+  "title": "Good-bye USD Dominance, Hello Again JPY",
+  "date": "5 August 2026",
+  "masthead_date": "5 August 2026",
+  "post_url": "https://takujiokubo.substack.com/p/good-bye-usd-dominance-hello-again",
+  "tier": "free",
+  "unlisted": true,
+  "standfirst": "The yen has been making a quiet comeback as a global currency. As a share of global FX reserves, its share rose from 3.4% in 2009 to 5.8% in 2025, despite the headwind of yen depreciation.",
+
+  "_paid_sibling": "2026-08-04-fx-reserve-jpy-paid is generated from THIS file by builder/derive_fx_reserve_jpy_paid.py and differs only in slug, tier and bottom_banner. Edit this manifest and re-derive; hand-editing the paid one is how the two tiers come to disagree about a number while each still passes its own gates. The tidy CSVs under data/ are written into both pages by builder/cut_fx_reserve_jpy_csvs.py and are byte-identical across the tiers.",
+
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. View windows, chart form, series colours and legend labels are read off the same scripts' SERIES / START / YLIM constants — the data CSV cannot carry them. The standfirst is the live post's subtitle, verified against takujiokubo.substack.com on 2026-08-05, not the archive's copy. Charts 3 and 4 were authored 2026-08-05 in the split of the retired majors_share_cer exhibit.",
+
+  "_deletions": "Chart 1's master CSV carries a second column, jpy_cer, which the published chart does not draw: its script's SERIES list plots jpy_observed alone (Takuji's reader-facing simplification of 2026-08-05, recorded in the chart registry). It is dropped from this page, from the paid page and from the workbook, and qa_panel gates its absence. The sibling USD and EUR exhibits do carry both lines, which is why the deletion is stated rather than assumed.",
+
+  "_events_not_drawn": "The published PNGs for Charts 2 and 3 carry a vertical event rule — Plaza Accord (Sept 1985) and the euro launch (Jan 1999). The builder has no vertical-rule primitive and adding one to shared code is out of this job's scope, so both facts are carried in the charts' source and note text instead. Neither rule holds a value; each marks a date.",
+
+  "charts": [
+    {
+      "n": 1,
+      "kind": "line",
+      "title": "The yen is making a comeback as a global currency",
+      "ylabel": "JPY share of world FX reserves, %",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-1-jpy-share.csv",
+      "x": "date",
+      "decimals": 2,
+      "series": [
+        {"col": "jpy_observed", "label": "JPY share", "color": "#378ADD"}
+      ],
+      "note": "Annual, year-end, at market exchange rates. 4.55% in 1980, a peak of 8.73% in 1991, then an almost uninterrupted slide to the 3.35% trough of 2009, and 5.84% in 2025. The recovery ran against the yen: it happened while the currency fell from about 120 to about 160 per dollar, which is why the report reads it as reserve managers buying rather than as a valuation effect."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "USD's slide from dominance through depreciation and quantity",
+      "ylabel": "USD share of world FX reserves, %",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-2-usd-share.csv",
+      "x": "date",
+      "decimals": 2,
+      "series": [
+        {"col": "usd_observed", "label": "Unadjusted", "color": "#378ADD"},
+        {"col": "usd_cer", "label": "Constant exchange rates", "color": "#D85A30"}
+      ],
+      "note": "79.36% in 1975 to 56.42% in 2025. The two lines separate depreciation from reallocation and converge at 2025 by construction, since the constant-rate series is valued at end-2025 rates. The published chart marks the Plaza Accord of September 1985, after which the dollar lost about 35% against the yen in twelve months; the recent leg runs from the 64.67% of 2016, the highest reading of 2010-2025, to 56.42%."
+    },
+    {
+      "n": 3,
+      "kind": "line",
+      "title": "The euro's rise stalled after the euro crisis",
+      "ylabel": "EUR share of world FX reserves, %",
+      "source": "Sources: IMF, BIS, JMA estimates. Pre-1999 the euro line is the DEM+FRF+NLG composite at own rates.",
+      "csv": "data/chart-3-eur-share.csv",
+      "x": "date",
+      "start": "1980-01-01",
+      "decimals": 2,
+      "yrange": [10, 27],
+      "series": [
+        {"col": "eur_observed", "label": "Unadjusted", "color": "#378ADD"},
+        {"col": "eur_cer", "label": "Constant exchange rates", "color": "#D85A30"}
+      ],
+      "note": "The peak is 24.05% in 2009; over 2015-2025 the unadjusted share holds a 18.91-20.56% band. The single currency launched in January 1999, and the file starts in 1975 while the chart windows from 1980. Read the 1999 reading of 12.69% with care: the jump into 2000 is the IMF beginning to allocate its \"currency unknown\" bucket, not a market move, which is why the report's \"18% at its debut\" describes the early euro years rather than 1999 itself."
+    },
+    {
+      "n": 4,
+      "kind": "line",
+      "title": "Yen leads the diversification away from USD",
+      "ylabel": "Share of world FX reserves, %",
+      "source": "Sources: IMF, BIS, JMA estimates. CAD and AUD identified by the IMF from 2012, RMB from 2016.",
+      "csv": "data/chart-4-jpy-cad-aud-rmb-shares.csv",
+      "x": "date",
+      "start": "1980-01-01",
+      "decimals": 2,
+      "yrange": [0, 10],
+      "series": [
+        {"col": "jpy_unadj", "label": "JPY", "color": "#EF9F27"},
+        {"col": "cad_unadj", "label": "CAD", "color": "#378ADD"},
+        {"col": "aud_unadj", "label": "AUD", "color": "#888780"},
+        {"col": "cny_unadj", "label": "RMB", "color": "#D85A30"}
+      ],
+      "note": "At market exchange rates. Three of the four series begin where the IMF first identifies them separately, and the gaps before those dates are left empty rather than filled. The RMB is the one line that has turned: 2.85% at its 2021 peak, 1.95% in 2025, now below both the Canadian dollar at 2.50% and the Australian at 2.02%. The yen at 5.84% is the largest of the four."
+    },
+    {
+      "n": 5,
+      "kind": "signed_bar_line",
+      "title": "Reserve managers consistently sold USD since 2010",
+      "ylabel": "pp of global FX reserves per year",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-5-usd-net-accumulation.csv",
+      "x": "date",
+      "decimals": 2,
+      "hoverformat": "%Y",
+      "bar_width_ms": 25056000000,
+      "value": {
+        "col": "usd_netaccum",
+        "pos_label": "Added to USD",
+        "neg_label": "Shed from USD",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "note": "A flow, not a share: each bar is what reserve managers added to or shed from the dollar that year, in percentage points of global FX reserves, after the effect of exchange-rate moves is taken out. Thirteen of the sixteen years from 2010 are negative. 2022 is the clearest case — the dollar's appreciation alone would have lifted its share by 1.8 points, the share instead fell 0.5, and the difference of about 2.2 points is read as selling. The series starts in 1981 by ruling: the 1980 estimate spans an IMF Annual Report edition switch. Interest earned and reinvested stays inside these figures."
+    }
+  ]
+}
