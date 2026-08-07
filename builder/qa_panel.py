@@ -1297,6 +1297,25 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     gate(manifest.get("tier") == "paid", "declared paid tier",
          manifest.get("tier", "MISSING"))
 
+    # ---- the rotated y-axis titles fit inside their plots --------------------
+    # The y-axis title is drawn rotated, so a long one runs out of PLOT HEIGHT,
+    # not width, and Plotly does not shrink or wrap it — it simply overflows the
+    # figure and is clipped. That is how the flow charts shipped on 2026-08-05
+    # reading "...reserves per ye". Measured in Chrome at this page's 18px axis
+    # font: 47 characters rendered 435px, so 9.3px per character, and the plot
+    # area is the figure height less its own top and bottom margins.
+    print("\nAxis titles fit their plots")
+    PX_PER_CHAR = 9.3
+    for c in manifest["charts"]:
+        if c["kind"] == "table":
+            continue
+        lay = figs["chart_%d" % c["n"]]["layout"]
+        avail = (c.get("height", 470) - lay["margin"]["t"] - lay["margin"]["b"])
+        need = len(lay["yaxis"]["title"]["text"]) * PX_PER_CHAR
+        gate(need <= avail,
+             "chart %d: the rotated y-axis title fits its plot" % c["n"],
+             "needs ~%dpx of %dpx" % (need, avail))
+
     # ---- charts 1-3: three measures per currency ---------------------------
     # The page's central claim is that our series IS the published one wherever
     # the IMF publishes on a comparable basis. Gate it year by year, not at a
