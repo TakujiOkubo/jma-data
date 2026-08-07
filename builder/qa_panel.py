@@ -1280,7 +1280,16 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     # (Takuji, 2026-08-05). n_lines records what each chart should carry.
     CCY = {1: ("US dollar", 1980, 1995, 3),
            2: ("Euro", None, 1999, 2),
-           3: ("Japanese yen", 1980, 1995, 3)}
+           3: ("Japanese yen", 1980, 1995, 3),
+           4: ("Pound sterling", 1980, 1995, 3),
+           5: ("Swiss franc", 1980, 1995, 3)}
+    # Exhibit numbering: 1-5 are the per-currency charts, 6 and 7 the two flow
+    # charts (one dataset), 8 the decomposition table. Every number below is a
+    # manifest `n`, and the CSV filenames carry the same number — sterling and
+    # the franc were inserted at 4 and 5 on 2026-08-07, pushing the flows and
+    # the table down. If a chart number moves again, it moves here too.
+    FLOW_N = (6, 7)
+    TABLE_N = 8
 
     print("\nTier")
     gate(manifest.get("tier") == "paid", "declared paid tier",
@@ -1355,15 +1364,38 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     gate(abs(round(usd_our["1998-12-31"] - 65.7, 1) - 0.6) < 1e-9,
          "USD 1998 sits 0.6 above the printed AR-2003 row (65.7)",
          "%s" % usd_our["1998-12-31"])
-    for n, want in ((1, 56.4), (2, 20.4), (3, 5.8)):
+    for n, want in ((1, 56.4), (2, 20.4), (3, 5.8), (4, 4.4), (5, 0.2)):
         # the euro chart draws the published series only, so that is its anchor
         src = "cofer" if CCY[n][1] is None else "ar_cofer"
         v = dict(col(root, C[n]["csv"], src))["2025-12-31"]
         gate(abs(v - want) < 1e-9,
              "%s 2025 = published COFER %s" % (CCY[n][0], want), "%s" % v)
 
+    # Sterling and the franc diverge sharply from their own constant-rate line
+    # in the early years, in opposite directions, and that divergence IS the
+    # measure — the franc appreciated hugely against the dollar over the 45
+    # years that followed, sterling did not. Gated so that a future "fix"
+    # flattening either line fails loudly, and so that the CHF chart's y-axis
+    # is never trimmed below the constant-rate peak it has to hold.
+    for n, ccy, above in ((4, "Pound sterling", False), (5, "Swiss franc", True)):
+        cer80 = dict(col(root, C[n]["csv"], "cer"))["1980-12-31"]
+        our80 = dict(col(root, C[n]["csv"], "ar_cofer"))["1980-12-31"]
+        gate((cer80 > our80) == above,
+             "%s 1980: constant-rate sits %s the observed share"
+             % (ccy, "above" if above else "below"),
+             "%s vs %s" % (cer80, our80))
+        hi = max(v for _d, v in col(root, C[n]["csv"], "cer"))
+        gate(C[n]["yrange"][0] <= 0 + 1e-9 and C[n]["yrange"][1] >= hi,
+             "%s: y-axis holds the constant-rate peak" % ccy,
+             "peak %s, yrange %s" % (hi, C[n]["yrange"]))
+    gate(abs(dict(col(root, C[5]["csv"], "cer"))["1980-12-31"] - 7.2) < 1e-9,
+         "CHF 1980 constant-rate = 7.2 (not the 3.5 observed share)")
+
     print("\nResidual-treatment range")
-    for n, want in ((1, 2.2), (2, 0.2), (3, 0.3)):
+    # Measured on the published one-decimal file, not on the source, so a spread
+    # can print 0.1 wider than the source's: the franc's widest source year is
+    # 1984, 5.65 against 5.44 — 0.21pp, which rounds apart to 5.7 and 5.4.
+    for n, want in ((1, 2.2), (2, 0.2), (3, 0.3), (4, 0.1), (5, 0.3)):
         a = dict(col(root, C[n]["csv"], "cer"))
         b = dict(col(root, C[n]["csv"], "cer_alt_rule"))
         spread = max(abs(a[d] - b[d]) for d in a)
@@ -1372,21 +1404,39 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
              "%.2f" % spread)
     gate(any(t.get("fill") == "tonexty" for t in figs["chart_1"]["data"]),
          "dollar range drawn as a band")
-    gate(not any(t.get("fill") == "tonexty" for t in figs["chart_3"]["data"]),
-         "no band on the yen, whose range is too narrow to draw")
+    for n, ccy in ((3, "yen"), (4, "sterling"), (5, "franc")):
+        gate(not any(t.get("fill") == "tonexty" for t in figs["chart_%d" % n]["data"]),
+             "no band on the %s, whose range is too narrow to draw" % ccy)
 
-    # ---- charts 4 and 5: annual net accumulation ----------------------------
-    print("\nCharts 4 & 5 — annual net addition/shedding")
-    gate(C[4]["csv"] == C[5]["csv"],
+    # ---- charts 6 and 7: annual net accumulation ----------------------------
+    # Sterling and the franc are in this dataset as columns but get no chart of
+    # their own (Takuji, 2026-08-05): the dollar and the yen have flow charts
+    # because they are the accompanying report's subjects. Gated on absence, so
+    # the ruling is not quietly undone.
+    print("\nCharts 6 & 7 — annual net addition/shedding")
+    n4, n5 = FLOW_N
+    gate(C[n4]["csv"] == C[n5]["csv"],
          "both flow charts read one dataset, so they cannot disagree")
-    usd4 = dict(col(root, C[4]["csv"], "usd"))
+    gate(sum(1 for c in manifest["charts"]
+             if c["kind"] == "signed_bar_line") == 2,
+         "two flow charts only — the dollar and the yen")
+    gate({C[n]["value"]["col"] for n in FLOW_N} == {"usd", "jpy"},
+         "the flow charts draw the dollar and the yen, nothing else")
+    usd4 = dict(col(root, C[n4]["csv"], "usd"))
     gate(abs(usd4["1986-12-31"] - 5.9) < 1e-9,
          "USD 1986 = +5.9 (the largest single year of dollar buying)",
          "%s" % usd4["1986-12-31"])
-    eur4 = col(root, C[4]["csv"], "eur")
+    eur4 = col(root, C[n4]["csv"], "eur")
     gate(eur4[0][0] == "2001-12-31",
          "euro flow starts 2001, its first COFER-on-COFER link", eur4[0][0])
-    for n, ccy in ((4, "dollar"), (5, "yen")):
+    # the download's own promise: sterling and the franc run the full span
+    for c in ("gbp", "chf"):
+        got = col(root, C[n4]["csv"], c)
+        gate(got[0][0] == "1981-12-31" and got[-1][0] == "2025-12-31"
+             and len(got) == 45,
+             "%s flow column runs 1981-2025 in the download" % c.upper(),
+             "%s to %s, %d rows" % (got[0][0], got[-1][0], len(got)))
+    for n, ccy in ((n4, "dollar"), (n5, "yen")):
         f = figs["chart_%d" % n]
         gate(len(f["data"]) == 2, "%s: added and shed drawn as two traces" % ccy,
              "%d traces" % len(f["data"]))
@@ -1395,13 +1445,18 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
         gate(all(t.get("width") == 25246080000 for t in f["data"]),
              "%s: bars are one year wide, not one quarter" % ccy)
 
-    # ---- chart 6: the decomposition table -----------------------------------
-    print("\nTable 6 — 2000-2025 decomposition")
-    with open(root / C[6]["csv"], newline="", encoding="utf-8-sig") as fh:
+    # ---- chart 8: the decomposition table -----------------------------------
+    print("\nTable 8 — 2000-2025 decomposition")
+    with open(root / C[TABLE_N]["csv"], newline="", encoding="utf-8-sig") as fh:
         rows6 = list(csv.DictReader(fh))
-    gate(len(rows6) == 3 and [r["currency"] for r in rows6]
-         == ["US dollar", "Euro", "Japanese yen"],
-         "three rows, the three currencies")
+    gate([r["currency"] for r in rows6]
+         == ["US dollar", "Euro", "Japanese yen", "Pound sterling",
+             "Swiss franc"],
+         "five rows, in the page's currency order",
+         ", ".join(r["currency"] for r in rows6))
+    gate(C[TABLE_N]["label"] == "Table %d" % TABLE_N,
+         "the table's printed label is its manifest number",
+         C[TABLE_N].get("label", "MISSING"))
     for r in rows6:
         chg = float(r["change"])
         real = float(r["real_reallocation"])
@@ -1416,6 +1471,10 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
          "euro 2000-25 change = +2.84")
     gate(float(d6["Euro"]["real_reallocation"]) < 0,
          "euro's real reallocation over 2000-25 is negative")
+    gate(abs(float(d6["Pound sterling"]["change"]) - 1.00) < 1e-9,
+         "sterling 2000-25 change = +1.00")
+    gate(abs(float(d6["Swiss franc"]["change"]) + 0.07) < 1e-9,
+         "franc 2000-25 change = -0.07")
     # the table's 2000 column must be the same number the charts draw
     for n, (name, _o, _c, _l) in CCY.items():
         src = "cofer" if CCY[n][1] is None else "ar_cofer"
@@ -1427,13 +1486,16 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     # Each is an editorial ruling, so each is gated on absence: a dropped column
     # with no gate gets restored by the next person to touch the page.
     print("\nDeletions (gated on absence)")
-    banned = ("gbp", "chf", "cad", "aud", "cny", "unspecified", "other",
+    # Sterling and the franc left this list on 2026-08-07, when they became
+    # part of the page. Everything still on it is a currency the page does not
+    # carry in any form, chart or download.
+    banned = ("cad", "aud", "cny", "unspecified", "other",
               "dem", "frf", "nlg", "allocest")
-    for n in (1, 2, 3, 4):
+    for n in (1, 2, 3, 4, 5) + FLOW_N[:1]:
         with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
             names = [h.lower() for h in csv.DictReader(fh).fieldnames]
         gate(not any(b in h for h in names for b in banned),
-             "chart %d: carries no currency outside USD/EUR/JPY" % n,
+             "chart %d: carries no currency outside the page's set" % n,
              ", ".join(names))
         with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
             yrs = [int(r["date"][:4]) for r in csv.DictReader(fh)]
