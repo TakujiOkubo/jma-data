@@ -10,7 +10,7 @@
   "stamp": "Data vintage: IMF COFER annual through 2025. The constant-rate series is valued at end-2025 exchange rates.",
   "intro_html": "The IMF publishes the currency composition of world reserves in COFER, but only from 1995. These pages carry our own series, which extends the record back to 1980, alongside the published one.",
   "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. The series are updated once a year, when the IMF closes its COFER year.",
-  "_note": "Standing dataset, not an article panel. Every value is cut from the accepted research artifacts — reserve-share-unadjusted-1975-2025-v10.csv (the observed panel), cer-v4/ (the constant-exchange-rate build) and cofer-annual-full-2026-07-27.csv (COFER as published) — never re-derived from a pipeline run. Chart form ruled by Takuji 2026-08-05: one chart per currency carrying all three measures, rather than one chart per measure carrying all three currencies. Levels and flows are published to one decimal, the precision the pre-2000 printed sources support; exhibit 8 draws only on COFER-era data and is shown to two. Rounding is half away from zero, the convention published statistics use — Python's default is half-to-even, which printed 1998 as 66.2 and made the About block's stated 0.6 gap to the Annual Report read as 0.5. A QA gate now holds that figure. The euro begins in 2000 (2001 for the flow) by Takuji's ruling of 2026-08-05: before the single currency, euro-area reserves were held in the mark, franc and guilder, and combining them involves conventions this page keeps out; the COFER line on that chart begins in 1999, its own first euro year. Deliberately absent: years before 1980, every currency outside the five, the unattributed residual as its own series, and the allocation-estimate research. Sterling and the Swiss franc were added 2026-08-07 on Takuji's ruling of 2026-08-05, both from 1980 and given the same treatment as the dollar and the yen; they get no flow charts of their own — the download carries their flow columns — because the dollar and the yen have them as the accompanying report's subjects.",
+  "_note": "Standing dataset, not an article panel. Every value is cut from the accepted research artifacts — reserve-share-unadjusted-1975-2025-v10.csv (the observed panel), cer-v4/ (the constant-exchange-rate build) and cofer-annual-full-2026-07-27.csv (COFER as published) — never re-derived from a pipeline run. Chart form ruled by Takuji 2026-08-05: one chart per currency carrying all three measures, rather than one chart per measure carrying all three currencies. Levels and flows are published to one decimal, the precision the pre-2000 printed sources support; exhibit 10 draws only on COFER-era data and is shown to two. Rounding is half away from zero, the convention published statistics use — Python's default is half-to-even, which printed 1998 as 66.2 and made the About block's stated 0.6 gap to the Annual Report read as 0.5. A QA gate now holds that figure. The euro begins in 2000 (2001 for the flow) by Takuji's ruling of 2026-08-05: before the single currency, euro-area reserves were held in the mark, franc and guilder, and combining them involves conventions this page keeps out; the COFER line on that chart begins in 1999, its own first euro year. Deliberately absent: years before 1980, every currency outside the five, the unattributed residual as its own series, and the allocation-estimate research. Sterling and the Swiss franc were added 2026-08-07 on Takuji's ruling of 2026-08-05, both from 1980 and given the same treatment as the dollar and the yen; their flow charts were added the same day on Takuji's ruling, reversing the work order's instruction to publish their flow columns in the download alone. Every currency the page charts now has a flow chart except the euro, whose flow begins only in 2001.",
   "about": {
     "heading": "Our estimation method",
     "lead": "This is the methodology note on how we extended the COFER statistics back toward 1980.",
@@ -251,7 +251,7 @@
         -5,
         7
       ],
-      "note": "The annual change in the dollar's share, net of exchange-rate valuation. The download carries the other currencies on the same basis."
+      "note": "The annual change in the dollar's share, net of exchange-rate valuation. The download carries the euro on the same basis."
     },
     {
       "n": 7,
@@ -280,11 +280,61 @@
     },
     {
       "n": 8,
+      "kind": "signed_bar_line",
+      "title": "Net Change of GBP Share in Global FX Reserves, excluding valuation effects",
+      "ylabel": "percentage points of world FX reserves per year",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-6-net-accumulation-annual.csv",
+      "x": "date",
+      "decimals": 1,
+      "hoverformat": "%Y",
+      "bar_width_ms": 25246080000,
+      "height": 460,
+      "value": {
+        "col": "gbp",
+        "pos_label": "Added to sterling reserves",
+        "neg_label": "Shed from sterling reserves",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "yrange": [
+        -1,
+        1.2
+      ],
+      "note": "The same measure for sterling, drawn from the same file."
+    },
+    {
+      "n": 9,
+      "kind": "signed_bar_line",
+      "title": "Net Change of CHF Share in Global FX Reserves, excluding valuation effects",
+      "ylabel": "percentage points of world FX reserves per year",
+      "source": "Sources: IMF, BIS, JMA estimates.",
+      "csv": "data/chart-6-net-accumulation-annual.csv",
+      "x": "date",
+      "decimals": 1,
+      "hoverformat": "%Y",
+      "bar_width_ms": 25246080000,
+      "height": 460,
+      "value": {
+        "col": "chf",
+        "pos_label": "Added to Swiss franc reserves",
+        "neg_label": "Shed from Swiss franc reserves",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "yrange": [
+        -1,
+        0.5
+      ],
+      "note": "The same measure for the Swiss franc, drawn from the same file."
+    },
+    {
+      "n": 10,
       "kind": "table",
-      "label": "Table 8",
+      "label": "Table 10",
       "title": "Where each currency went, 2000 to 2025",
       "source": "Sources: IMF, BIS, JMA estimates.",
-      "csv": "data/chart-8-decomposition-2000-2025.csv",
+      "csv": "data/chart-10-decomposition-2000-2025.csv",
       "columns": [
         {
           "col": "currency",

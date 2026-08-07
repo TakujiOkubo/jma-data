@@ -1283,13 +1283,15 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
            3: ("Japanese yen", 1980, 1995, 3),
            4: ("Pound sterling", 1980, 1995, 3),
            5: ("Swiss franc", 1980, 1995, 3)}
-    # Exhibit numbering: 1-5 are the per-currency charts, 6 and 7 the two flow
-    # charts (one dataset), 8 the decomposition table. Every number below is a
-    # manifest `n`, and the CSV filenames carry the same number — sterling and
-    # the franc were inserted at 4 and 5 on 2026-08-07, pushing the flows and
-    # the table down. If a chart number moves again, it moves here too.
-    FLOW_N = (6, 7)
-    TABLE_N = 8
+    # Exhibit numbering: 1-5 are the per-currency charts, 6-9 the flow charts
+    # (all four read one dataset), 10 the decomposition table. Every number
+    # below is a manifest `n`, and the CSV filenames carry the same number —
+    # sterling and the franc were inserted at 4 and 5 on 2026-08-07, and their
+    # flow charts at 8 and 9 the same day, pushing the table down twice. If a
+    # chart number moves again, it moves here too.
+    FLOW_N = (6, 7, 8, 9)
+    FLOW_CSV_N = 6           # the one dataset all the flow charts read
+    TABLE_N = 10
 
     print("\nTier")
     gate(manifest.get("tier") == "paid", "declared paid tier",
@@ -1408,45 +1410,58 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
         gate(not any(t.get("fill") == "tonexty" for t in figs["chart_%d" % n]["data"]),
              "no band on the %s, whose range is too narrow to draw" % ccy)
 
-    # ---- charts 6 and 7: annual net accumulation ----------------------------
-    # Sterling and the franc are in this dataset as columns but get no chart of
-    # their own (Takuji, 2026-08-05): the dollar and the yen have flow charts
-    # because they are the accompanying report's subjects. Gated on absence, so
-    # the ruling is not quietly undone.
-    print("\nCharts 6 & 7 — annual net addition/shedding")
-    n4, n5 = FLOW_N
-    gate(C[n4]["csv"] == C[n5]["csv"],
-         "both flow charts read one dataset, so they cannot disagree")
+    # ---- charts 6-9: annual net accumulation --------------------------------
+    # Sterling and the franc got flow charts on 2026-08-07 (Takuji), reversing
+    # the work order's ruling that their flow belonged in the download only.
+    # The euro is the one charted currency with no flow chart: its flow starts
+    # in 2001, not 1981, so it is the odd one out and gated as such.
+    FLOW_CCY = {6: ("dollar", "usd"), 7: ("yen", "jpy"),
+                8: ("sterling", "gbp"), 9: ("franc", "chf")}
+    print("\nCharts 6-9 — annual net addition/shedding")
+    src = C[FLOW_CSV_N]["csv"]
+    gate(all(C[n]["csv"] == src for n in FLOW_N),
+         "all %d flow charts read one dataset, so they cannot disagree"
+         % len(FLOW_N))
     gate(sum(1 for c in manifest["charts"]
-             if c["kind"] == "signed_bar_line") == 2,
-         "two flow charts only — the dollar and the yen")
-    gate({C[n]["value"]["col"] for n in FLOW_N} == {"usd", "jpy"},
-         "the flow charts draw the dollar and the yen, nothing else")
-    usd4 = dict(col(root, C[n4]["csv"], "usd"))
+             if c["kind"] == "signed_bar_line") == len(FLOW_N),
+         "%d flow charts, no more" % len(FLOW_N))
+    gate({C[n]["value"]["col"] for n in FLOW_N}
+         == {c for _n, c in FLOW_CCY.values()},
+         "the flow charts draw the dollar, the yen, sterling and the franc")
+    gate("eur" not in {C[n]["value"]["col"] for n in FLOW_N},
+         "no euro flow chart: its flow starts 2001, not 1981")
+    usd4 = dict(col(root, src, "usd"))
     gate(abs(usd4["1986-12-31"] - 5.9) < 1e-9,
          "USD 1986 = +5.9 (the largest single year of dollar buying)",
          "%s" % usd4["1986-12-31"])
-    eur4 = col(root, C[n4]["csv"], "eur")
+    eur4 = col(root, src, "eur")
     gate(eur4[0][0] == "2001-12-31",
          "euro flow starts 2001, its first COFER-on-COFER link", eur4[0][0])
-    # the download's own promise: sterling and the franc run the full span
-    for c in ("gbp", "chf"):
-        got = col(root, C[n4]["csv"], c)
+    for n in FLOW_N:
+        ccy, c = FLOW_CCY[n]
+        f = figs["chart_%d" % n]
+        got = col(root, src, c)
         gate(got[0][0] == "1981-12-31" and got[-1][0] == "2025-12-31"
              and len(got) == 45,
-             "%s flow column runs 1981-2025 in the download" % c.upper(),
+             "%s: the drawn column runs 1981-2025" % ccy,
              "%s to %s, %d rows" % (got[0][0], got[-1][0], len(got)))
-    for n, ccy in ((n4, "dollar"), (n5, "yen")):
-        f = figs["chart_%d" % n]
         gate(len(f["data"]) == 2, "%s: added and shed drawn as two traces" % ccy,
              "%d traces" % len(f["data"]))
         gate("yaxis2" not in f["layout"],
              "%s: no empty right-hand axis on a bars-only chart" % ccy)
         gate(all(t.get("width") == 25246080000 for t in f["data"]),
              "%s: bars are one year wide, not one quarter" % ccy)
+        # A flow axis clipped at the data's own edge hides the year it matters
+        # most. Every flow chart must hold its column with room to spare.
+        lo, hi = C[n]["yrange"]
+        vals = [v for _d, v in got]
+        gate(lo < min(vals) and hi > max(vals),
+             "%s: y-axis holds the whole column, clipping nothing" % ccy,
+             "data %.1f to %.1f, yrange %s" % (min(vals), max(vals),
+                                               C[n]["yrange"]))
 
-    # ---- chart 8: the decomposition table -----------------------------------
-    print("\nTable 8 — 2000-2025 decomposition")
+    # ---- chart 10: the decomposition table ----------------------------------
+    print("\nTable 10 — 2000-2025 decomposition")
     with open(root / C[TABLE_N]["csv"], newline="", encoding="utf-8-sig") as fh:
         rows6 = list(csv.DictReader(fh))
     gate([r["currency"] for r in rows6]
@@ -1491,7 +1506,7 @@ def qa_global_fx_reserve_shares(root, manifest, page, figs) -> None:
     # carry in any form, chart or download.
     banned = ("cad", "aud", "cny", "unspecified", "other",
               "dem", "frf", "nlg", "allocest")
-    for n in (1, 2, 3, 4, 5) + FLOW_N[:1]:
+    for n in (1, 2, 3, 4, 5, FLOW_CSV_N):
         with open(root / C[n]["csv"], newline="", encoding="utf-8-sig") as fh:
             names = [h.lower() for h in csv.DictReader(fh).fieldnames]
         gate(not any(b in h for h in names for b in banned),
