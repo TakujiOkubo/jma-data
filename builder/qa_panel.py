@@ -58,26 +58,43 @@ def qa_structure(manifest, page, figs) -> None:
     gate(len(figs) == n_plot, "every non-table chart reached the page",
          f"{len(figs)} figures for {n_plot} specs")
 
-    # The tier rule (Takuji, 2026-08-05) is gated in BOTH directions, so a free
-    # page and a paid one cannot drift into each other's state. A page with no
-    # "tier" predates the rule and is gated as it always was.
+    # What the page offers is gated in BOTH directions, so a page that offers
+    # downloads and one that does not cannot drift into each other's state.
+    #
+    # The two keys are resolved here from the manifest rather than imported from
+    # build_panel.py, deliberately: importing the rule would gate the builder
+    # against itself. This restatement must be kept in step with the
+    # "WHAT A PAGE OFFERS" block there.
     tier = manifest.get("tier")
-    if tier == "free":
+    if "downloads" in manifest:
+        downloads = manifest["downloads"]
+    else:
+        downloads = tier != "free"          # pre-2026-08-12 behaviour
+    show_perk = tier == "free" and not downloads
+
+    if not downloads:
         for c in manifest["charts"]:
             gate(f'href="{c["csv"]}"' not in page,
-                 f"chart {c['n']} offers no CSV download (free tier)")
+                 f"chart {c['n']} offers no CSV download")
         gate('class="dl"' not in page and "Download CSV" not in page,
              "no download control anywhere on the page")
         gate("Download the full workbook" not in page,
-             "no workbook download on a free page")
+             "no workbook download on a page that offers none")
         gate("Each card links its own CSV" not in page,
              "closing line does not advertise a link that is not there")
-        gate('class="perk"' in page
-             and "Paid subscribers receive the data behind every chart" in page,
-             "free page states what a paid subscription buys")
     else:
         for c in manifest["charts"]:
             gate(f'href="{c["csv"]}"' in page, f"chart {c['n']} CSV link present")
+
+    # Gated both ways. A page that hands out its data must not also advertise
+    # that data as the thing a subscription buys -- which is the state a free
+    # page with downloads would otherwise ship in.
+    perk_present = ('class="perk"' in page
+                    and "Paid subscribers receive the data behind every chart"
+                    in page)
+    gate(perk_present == show_perk,
+         "perk block present exactly when the page offers no downloads and "
+         f"declares tier free (expected {show_perk}, found {perk_present})")
 
     gate("cdn.plot.ly" in page, "Plotly source declared")
     gate(page.count('class="card"') == len(manifest["charts"]),
@@ -1693,19 +1710,27 @@ def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
          "chart 5 ships one net-accumulation column, with no r2 residual variant",
          str(hdr5))
 
-    print("\nTier")
+    print("\nWhat this page offers")
+    # Resolved from the manifest the same way build_panel.py resolves it, and
+    # restated rather than imported so the gate cannot agree with the builder by
+    # construction. Which of the two variants this is comes off the slug, not off
+    # the tier: the two are independent, and reading one from the other is the
+    # conflation this key was split to remove.
     tier = manifest["tier"]
-    if tier == "free":
-        gate("Download CSV" not in page and 'class="dl"' not in page,
-             "free page offers no per-chart download")
-        gate("Download the full workbook" not in page,
-             "free page offers no workbook")
-        gate("Paid subscribers receive the data behind every chart" in page,
-             "free page states what a paid subscription buys instead")
-    else:
+    downloads = manifest["downloads"] if "downloads" in manifest else tier != "free"
+    is_paid_variant = manifest["slug"] == FXJPY_PAID
+
+    if downloads:
         gate(page.count("Download CSV") == len(manifest["charts"]),
-             "paid page offers one CSV download per exhibit",
+             "one CSV download per exhibit",
              f"{page.count('Download CSV')}")
+    else:
+        gate("Download CSV" not in page and 'class="dl"' not in page,
+             "no per-chart download offered")
+        gate("Download the full workbook" not in page,
+             "no workbook download offered")
+
+    if is_paid_variant:
         gate("workbook" not in manifest,
              "the paid page declares no workbook download: the .xlsx is Takuji's "
              "to send and jma-data is public")
@@ -1713,7 +1738,7 @@ def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
              "paid page says so")
 
     print("\nCross-tier equality")
-    sibling = REPO / (FXJPY_PAID if tier == "free" else FXJPY_FREE)
+    sibling = REPO / (FXJPY_FREE if is_paid_variant else FXJPY_PAID)
     if not (sibling / "index.html").exists():
         gate(False, "the sibling tier is built, so the two can be compared",
              f"{sibling.name} has no index.html")
