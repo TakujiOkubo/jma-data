@@ -703,7 +703,28 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
             hovertemplate=f"%{{y:.{dec}f}}<extra>{c['label']}</extra>",
         ))
 
-    tot = spec["total"]
+    # The total line is optional since 2026-08-12: the BoJ redemption wall is a
+    # published stack with no total. Absent key -> no line; every page that
+    # declares one is unchanged.
+    tot = spec.get("total")
+    if not tot:
+        layout = base_layout(spec, T, legend=True)
+        layout["barmode"] = "relative"
+        layout["bargap"] = spec.get("bargap", 0)
+        layout["shapes"] = [dict(type="line", xref="paper", x0=0, x1=1, yref="y",
+                                 y0=0, y1=0, line=dict(color=T["INK"], width=1.1))]
+        if boundary is not None and boundary + 1 < len(xs):
+            layout["shapes"].append(dict(
+                type="line", xref="x", x0=xs[boundary], x1=xs[boundary],
+                yref="paper", y0=0, y1=1,
+                line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
+            layout["annotations"] = [dict(
+                xref="x", x=xs[boundary], yref="paper", y=1.0, yanchor="bottom",
+                text="forecast →", showarrow=False, xanchor="left", xshift=4,
+                font=dict(size=11, color=T["GREY"]))]
+        if spec.get("yrange"):
+            layout["yaxis"]["range"] = spec["yrange"]
+        return dict(data=traces, layout=layout)
     tys = [to_float(r.get(tot["col"])) for r in kept]
     tys = [None if v is None else round(v, dec) for v in tys]
     colour = tot.get("color", T["INK"])

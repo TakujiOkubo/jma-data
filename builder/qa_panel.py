@@ -1765,6 +1765,10 @@ BOJ_EB_TITLES = [
     "10-year JGB yield scenarios",
     "BoJ portfolio P/L: losses as the policy rate rises to 2.0%",
     "Reserves to decline by 50% by FY2028",
+]
+# Struck 2026-08-12 (Takuji: a report page shows the report's charts only) —
+# these three were built for the report but not published, and must NOT appear:
+BOJ_EB_STRUCK = [
     "30-year JGB yield scenarios",
     "Remittance to public coffer drops to zero as rates rise",
     "A fiscal crisis pushes the BoJ into sustained loss",
@@ -1774,11 +1778,12 @@ BOJ_EB_TITLES = [
 def qa_boj_equity_bet(root, manifest, page, figs) -> None:
     """The free panel to "The BoJ's Equity Bet Is Paying for QE Exit".
 
-    Eight published exhibits in post order, then three built-for-the-report
-    charts behind a section header. Every figure the report prints is
-    re-derived from the delivered files; the balance-sheet exhibits are tables
-    (no plotly figure), so their gates run on the delivered CSVs and the page
-    HTML. Engine figures are the distribution-growth basis of 2026-08-11.
+    The eight published exhibits in post order, and nothing else — the three
+    built-for-the-report extras were struck at review (Takuji, 2026-08-12).
+    Every figure the report prints is re-derived from the delivered files; the
+    balance-sheet exhibits are tables (no plotly figure), so their gates run on
+    the delivered CSVs and the page HTML. Engine figures are the
+    distribution-growth basis of 2026-08-11.
     """
     def csv_rows(name):
         with open(root / "data" / name, newline="", encoding="utf-8-sig") as f:
@@ -1795,13 +1800,17 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
                         out[x] = y
         return out
 
-    print("\nTitles, order, section")
+    print("\nTitles, order, and the struck extras stay struck")
     h2s = re.findall(r"<h2>(.*?)</h2>", page.replace("&#x27;", "'"))
     ex = [t for t in h2s if t in BOJ_EB_TITLES]
-    gate(len(ex) == 11 and ex == BOJ_EB_TITLES,
-         "the eleven exhibits run in ledger order", str(len(ex)))
-    gate(page.count("Built for the report, held out of the post") == 1,
-         "the held-out section header appears exactly once")
+    gate(len(ex) == 8 and ex == BOJ_EB_TITLES,
+         "the eight published exhibits run in post order", str(len(ex)))
+    # Replaced gates, never dropped: the extras section existed at the first
+    # review and was struck; these assert the strike held.
+    struck = [t for t in BOJ_EB_STRUCK if t in page]
+    gate(not struck, "none of the three struck chart titles appears", str(struck))
+    gate("Built for the report" not in page,
+         "the held-out section header is gone")
     gate(f'href="{manifest["post_url"]}"' in page, "links back to the post")
 
     print("\nExhibits 1-2 — the balance sheet (tables; gates on delivered CSVs)")
@@ -1845,14 +1854,18 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
     grand = sum(sum(v) for v in bands.values())
     gate(abs(grand - 519.4) < 0.5, "the stack totals the ¥519.4trn book",
          f"{grand:.1f}")
+    # Replaced gate (2026-08-12): the first build drew a total-maturing line the
+    # published chart does not have; it was removed with the bargap fix.
+    scatters = [t for t in f4["data"] if t.get("type") == "scatter"]
+    gate(not scatters, "no total line — bars only, as published", str(len(scatters)))
+    gate(f4["layout"].get("bargap") == 0.25,
+         "the bars are separated, as published", str(f4["layout"].get("bargap")))
 
-    print("\nExhibits 5, 6, 9 — the scenario paths")
+    print("\nExhibits 5, 6 — the scenario paths")
     ends = {"chart_5": ("Base case", 1.50, "2.0% case", 2.00,
                         "Accelerated 2.5%", 2.50),
             "chart_6": ("Base case", 3.13, "2.0% case", 3.61,
-                        "Accelerated 2.5%", 4.06),
-            "chart_9": ("Base case", 3.80, "2.0% case", 4.31,
-                        "Accelerated 2.5%", 4.81)}
+                        "Accelerated 2.5%", 4.06)}
     for cid, (n1, v1, n2, v2, n3, v3) in ends.items():
         for name, want in ((n1, v1), (n2, v2), (n3, v3)):
             pairs = series_pairs(figs[cid], name)
@@ -1896,31 +1909,9 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
     faded = t8["marker"]["opacity"].count(0.55)
     gate(faded == 4, "exactly the four estimate bars render faded", str(faded))
 
-    print("\nExhibit 10 — the remittance")
-    b10 = {t["name"]: t["y"] for t in figs["chart_10"]["data"]}
-    for name, want in (("Base case", 2.74), ("2.0% case", 0.80),
-                       ("Accelerated 2.5%", 0.38)):
-        got = sum(b10[name])
-        gate(abs(got - want) < 0.011, f"{name} three-year total {want:.2f}",
-             f"{got:.2f}")
-    zeros = [b10["2.0% case"][1], b10["Accelerated 2.5%"][1],
-             b10["Accelerated 2.5%"][2]]
-    gate(all(abs(z) < 0.005 for z in zeros),
-         "the three zero-payment years are drawn at zero", str(zeros))
-
-    print("\nExhibit 11 — the stagflation")
-    b11 = {t["name"]: t["y"] for t in figs["chart_11"]["data"]}
-    gate([round(v, 2) for v in b11["Stagflation crisis"][1:]] ==
-         [-3.21, -2.80, -1.48],
-         "stagflation loses 3.21 / 2.80 / 1.48 across FY2027-29",
-         str(b11["Stagflation crisis"][1:]))
-    gate(abs(b11["Base case"][0] - 0.69) < 0.005
-         and abs(b11["Stagflation crisis"][0] - 0.51) < 0.005,
-         "FY2026 is +0.69 base against +0.51 stagflation")
-
     print("\nWhat the free page must not offer")
     gate(page.count("Download CSV") == 0,
-         "no per-chart download link on any of the eleven exhibits")
+         "no per-chart download link on any of the eight exhibits")
     gate("Download the full workbook" not in page,
          "no workbook button")
     gate("workbook" not in manifest, "and no workbook declared")

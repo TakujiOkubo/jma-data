@@ -7,11 +7,8 @@
   "unlisted": true,
   "tier": "free",
   "standfirst": "The dividend from the Bank of Japan's over-¥100 trn equity ETF portfolio covers what it loses on its bonds. The same portfolio is the only channel through which the exit can break the Bank.",
-
-  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. Data cut from the library master CSVs per the exhibit ledger in the report record (30.Reports/2026-08/2026-08-12-boj-equity-bet-sub.md). Charts 9-11 were built for the report and held out of the published post for length; they sit behind a section header. All engine figures are on the distribution-growth dividend basis of 2026-08-11.",
-
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. Data cut from the library master CSVs per the exhibit ledger in the report record (30.Reports/2026-08/2026-08-12-boj-equity-bet-sub.md). The page carries the eight published exhibits only (Takuji's ruling, 2026-08-12: a report page shows the report's charts). All engine figures are on the distribution-growth dividend basis of 2026-08-11.",
   "_series_order": "Scenario-path charts carry one base_case column holding the actual history then the Main forecast, split solid/dashed by the phase column; the 2.0% and accelerated columns begin at 2026-07 seeded with the last actual value so the lines connect, as the published PNGs prepend it. No two series share a history column, so the shared-history colour trap does not arise.",
-
   "charts": [
     {
       "n": 1,
@@ -21,10 +18,22 @@
       "csv": "data/chart-1-balance-sheet-assets.csv",
       "row_label_col": "line_en",
       "columns": [
-        {"col": "trn", "label": "¥trn, book value, end-June 2026"},
-        {"col": "yield_pct", "label": "Yield, %"},
-        {"col": "yield_asof", "label": "Yield as of"},
-        {"col": "note", "label": "Note"}
+        {
+          "col": "trn",
+          "label": "¥trn, book value, end-June 2026"
+        },
+        {
+          "col": "yield_pct",
+          "label": "Yield, %"
+        },
+        {
+          "col": "yield_asof",
+          "label": "Yield as of"
+        },
+        {
+          "col": "note",
+          "label": "Note"
+        }
       ],
       "rule_after_col": "line_en",
       "rule_after_value": "Gold, cash, sundry",
@@ -38,11 +47,26 @@
       "csv": "data/chart-2-balance-sheet-liabilities.csv",
       "row_label_col": "line_en",
       "columns": [
-        {"col": "trn", "label": "¥trn, book value, end-June 2026"},
-        {"col": "yield_pct", "label": "Rate paid, %"},
-        {"col": "yield_asof", "label": "Rate as of"},
-        {"col": "moves_with_policy_rate", "label": "Moves with policy rate?"},
-        {"col": "note", "label": "Note"}
+        {
+          "col": "trn",
+          "label": "¥trn, book value, end-June 2026"
+        },
+        {
+          "col": "yield_pct",
+          "label": "Rate paid, %"
+        },
+        {
+          "col": "yield_asof",
+          "label": "Rate as of"
+        },
+        {
+          "col": "moves_with_policy_rate",
+          "label": "Moves with policy rate?"
+        },
+        {
+          "col": "note",
+          "label": "Note"
+        }
       ],
       "note": "¥506.8trn of liabilities (79.2%) reprice with the policy rate; ¥132.7trn (20.8%) do not — the split the published chart colours."
     },
@@ -58,8 +82,16 @@
       "split_col": "phase",
       "solid_value": "actual",
       "series": [
-        {"col": "jgb_income_trn", "label": "JGB income", "color": "#378ADD"},
-        {"col": "interest_paid_trn", "label": "Interest paid", "color": "#D85A30"}
+        {
+          "col": "jgb_income_trn",
+          "label": "JGB income",
+          "color": "#378ADD"
+        },
+        {
+          "col": "interest_paid_trn",
+          "label": "Interest paid",
+          "color": "#D85A30"
+        }
       ],
       "note": "Fiscal years: 2020 means FY2020. Interest paid is the broad total — reserves, foreign central-bank deposits and repos. FY2025 is the crossing the title dates: income ¥2.52trn against ¥3.09trn paid. The forecast leg is the base case."
     },
@@ -73,13 +105,29 @@
       "x": "redemption_fy",
       "decimals": 1,
       "components": [
-        {"col": "below_zero", "label": "Yield at purchase: below zero", "color": "#D85A30"},
-        {"col": "b0_025", "label": "0 to 0.25%", "color": "#EF9F27"},
-        {"col": "b025_100", "label": "0.25 to 1.00%", "color": "#378ADD"},
-        {"col": "b100_plus", "label": "1.00% and over", "color": "#888780"}
+        {
+          "col": "below_zero",
+          "label": "Yield at purchase: below zero",
+          "color": "#D85A30"
+        },
+        {
+          "col": "b0_025",
+          "label": "0 to 0.25%",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "b025_100",
+          "label": "0.25 to 1.00%",
+          "color": "#378ADD"
+        },
+        {
+          "col": "b100_plus",
+          "label": "1.00% and over",
+          "color": "#888780"
+        }
       ],
-      "total": {"col": "total", "label": "Total maturing", "color": "#2C2C2A"},
-      "note": "The FY2036 bar is ‘2036 and later’. The published chart merges the master CSV’s 0.25–0.50% and 0.50–1.00% bands into one 0.25–1.00% band; the page follows it, and adds the total-maturing line for hover convenience — the published chart carries the stack only. The coral band — bonds bought at negative yields, ¥37trn — is still on the book into the 2030s."
+      "note": "The FY2036 bar is ‘2036 and later’. The published chart merges the master CSV’s 0.25–0.50% and 0.50–1.00% bands into one 0.25–1.00% band; the page follows it. The coral band — bonds bought at negative yields, ¥37trn — is still on the book into the 2030s.",
+      "bargap": 0.25
     },
     {
       "n": 5,
@@ -93,9 +141,21 @@
       "split_col": "phase",
       "solid_value": "actual",
       "series": [
-        {"col": "base_case", "label": "Base case", "color": "#378ADD"},
-        {"col": "case_2_0", "label": "2.0% case", "color": "#EF9F27"},
-        {"col": "accelerated", "label": "Accelerated 2.5%", "color": "#D85A30"}
+        {
+          "col": "base_case",
+          "label": "Base case",
+          "color": "#378ADD"
+        },
+        {
+          "col": "case_2_0",
+          "label": "2.0% case",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "accelerated",
+          "label": "Accelerated 2.5%",
+          "color": "#D85A30"
+        }
       ],
       "note": "Actual to July 2026, then the three JMA scenarios: base case to a 1.5% terminal in March 2027; the 2.0% case on a gradual pace; the accelerated case hiking every three months to 2.5% by January 2028."
     },
@@ -111,9 +171,21 @@
       "split_col": "phase",
       "solid_value": "actual",
       "series": [
-        {"col": "base_case", "label": "Base case", "color": "#378ADD"},
-        {"col": "case_2_0", "label": "2.0% case", "color": "#EF9F27"},
-        {"col": "accelerated", "label": "Accelerated 2.5%", "color": "#D85A30"}
+        {
+          "col": "base_case",
+          "label": "Base case",
+          "color": "#378ADD"
+        },
+        {
+          "col": "case_2_0",
+          "label": "2.0% case",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "accelerated",
+          "label": "Accelerated 2.5%",
+          "color": "#D85A30"
+        }
       ],
       "note": "The 10-year ends 2029 at 3.13% in the base case, 3.61% in the 2.0% case and 4.06% accelerated — it passes 4% only when the Bank is behind the curve."
     },
@@ -127,9 +199,21 @@
       "x": "fy",
       "decimals": 2,
       "bars": [
-        {"col": "base_case", "label": "Base case", "color": "#378ADD"},
-        {"col": "case_2_0", "label": "2.0% case", "color": "#EF9F27"},
-        {"col": "accelerated", "label": "Accelerated 2.5%", "color": "#D85A30"}
+        {
+          "col": "base_case",
+          "label": "Base case",
+          "color": "#378ADD"
+        },
+        {
+          "col": "case_2_0",
+          "label": "2.0% case",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "accelerated",
+          "label": "Accelerated 2.5%",
+          "color": "#D85A30"
+        }
       ],
       "note": "Economic result (経常利益) before any provision release. Base case +0.69 / +0.58 / +2.04; the 2.0% case loses 0.44 in FY2027; the accelerated case loses 1.78 then 1.11."
     },
@@ -145,60 +229,13 @@
       "flag_col": "is_estimate",
       "flag_note": "Faded bars are JMA estimates",
       "bars": [
-        {"col": "reserves_trn", "label": "Reserves at fiscal year-end", "color": "#378ADD"}
+        {
+          "col": "reserves_trn",
+          "label": "Reserves at fiscal year-end",
+          "color": "#378ADD"
+        }
       ],
       "note": "¥561trn at end-FY2023, when the exit began; ¥282trn at end-FY2028 — halved. The published chart draws the estimates as dotted bars; on this page they render faded, the builder’s standard mark for a value not yet measured."
-    },
-    {
-      "n": 9,
-      "kind": "line",
-      "section": "Built for the report, held out of the post",
-      "section_note": "Three charts produced for this research that did not make the published article, which was at Substack’s length limit. Same data discipline as the rest of the page.",
-      "title": "30-year JGB yield scenarios",
-      "ylabel": "JGB 30-year yield, %",
-      "source": "Source: JMA. Dashed lines are forecasts.",
-      "csv": "data/chart-9-jgb30y-scenarios.csv",
-      "x": "ym",
-      "decimals": 2,
-      "split_col": "phase",
-      "solid_value": "actual",
-      "series": [
-        {"col": "base_case", "label": "Base case", "color": "#378ADD"},
-        {"col": "case_2_0", "label": "2.0% case", "color": "#EF9F27"},
-        {"col": "accelerated", "label": "Accelerated 2.5%", "color": "#D85A30"}
-      ],
-      "note": "The 30-year ends 2029 at 3.80% in the base case, 4.31% in the 2.0% case and 4.81% accelerated — rising toward 5% only in a clear behind-the-curve case."
-    },
-    {
-      "n": 10,
-      "kind": "bar_line",
-      "title": "Remittance to public coffer drops to zero as rates rise",
-      "ylabel": "¥trn per fiscal year",
-      "source": "Source: JMA. Annual payments from the BoJ to the national treasury.",
-      "csv": "data/chart-10-treasury-remittance.csv",
-      "x": "fy",
-      "decimals": 2,
-      "bars": [
-        {"col": "base_case", "label": "Base case", "color": "#378ADD"},
-        {"col": "case_2_0", "label": "2.0% case", "color": "#EF9F27"},
-        {"col": "accelerated", "label": "Accelerated 2.5%", "color": "#D85A30"}
-      ],
-      "note": "Three-year totals FY2026-28: ¥2.74trn in the base case, ¥0.80trn in the 2.0% case, ¥0.38trn accelerated — with two of the three years paying nothing in the accelerated case. The cost of the exit surfaces here, not in a reported loss."
-    },
-    {
-      "n": 11,
-      "kind": "bar_line",
-      "title": "A fiscal crisis pushes the BoJ into sustained loss",
-      "ylabel": "¥trn per fiscal year",
-      "source": "Source: JMA. Economic result before provision release. Stagflation: 2.5% policy rate, index -50%, distributions -40%, from FY2027.",
-      "csv": "data/chart-11-stagflation.csv",
-      "x": "fy",
-      "decimals": 2,
-      "bars": [
-        {"col": "base_case", "label": "Base case", "color": "#378ADD"},
-        {"col": "stagflation", "label": "Stagflation crisis", "color": "#D85A30"}
-      ],
-      "note": "The only scenario in the research where the ¥7.5trn provision is exhausted: losses of 3.21 / 2.80 / 1.48 across FY2027-29, and a first reported loss of ¥0.04trn in FY2029. The gap between the two series mixes the rate path with the equity shock; the 2.5% path with dividends intact runs -1.78 / -1.11 / +0.49."
     }
   ]
 }
