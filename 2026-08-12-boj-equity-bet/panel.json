@@ -12,63 +12,45 @@
   "charts": [
     {
       "n": 1,
-      "kind": "table",
+      "kind": "ranked_bars",
       "title": "Majority of BoJ's assets are low-yielding",
-      "source": "Sources: BoJ, JMA estimates. * denote yields as of FY2025.",
+      "source": "Sources: BoJ, JMA estimates.",
       "csv": "data/chart-1-balance-sheet-assets.csv",
-      "row_label_col": "line_en",
-      "columns": [
+      "label_col": "line_en",
+      "top_n": 7,
+      "panels": [
         {
           "col": "trn",
-          "label": "¥trn, book value, end-June 2026"
-        },
-        {
-          "col": "yield_pct",
-          "label": "Yield, %"
-        },
-        {
-          "col": "yield_asof",
-          "label": "Yield as of"
-        },
-        {
-          "col": "note",
-          "label": "Note"
+          "header": "¥trn, book value, end-June 2026",
+          "color": "#378ADD",
+          "decimals": 1,
+          "prefix": "¥",
+          "suffix": "trn"
         }
       ],
-      "rule_after_col": "line_en",
-      "rule_after_value": "Gold, cash, sundry",
-      "note": "The published chart is a horizontal bar chart; the page presents the same seven balance-sheet lines, and the ETF-at-market memo line below the rule, as a table so every figure and note is readable. Yields marked FY2025 are the realised figures carried forward, as the chart's asterisks denote."
+      "note": "The seven asset lines as published, largest first. The equity ETF book is ¥37trn at book value against an estimated ¥107.6trn at market, as the report states.",
+      "margin_l": 205
     },
     {
       "n": 2,
-      "kind": "table",
+      "kind": "ranked_bars",
       "title": "80% of BoJ's funding costs move with policy rate",
-      "source": "Sources: BoJ, JMA estimates. * denote yields as of FY2025.",
+      "source": "Sources: BoJ, JMA estimates.",
       "csv": "data/chart-2-balance-sheet-liabilities.csv",
-      "row_label_col": "line_en",
-      "columns": [
+      "label_col": "line_en",
+      "top_n": 7,
+      "panels": [
         {
           "col": "trn",
-          "label": "¥trn, book value, end-June 2026"
-        },
-        {
-          "col": "yield_pct",
-          "label": "Rate paid, %"
-        },
-        {
-          "col": "yield_asof",
-          "label": "Rate as of"
-        },
-        {
-          "col": "moves_with_policy_rate",
-          "label": "Moves with policy rate?"
-        },
-        {
-          "col": "note",
-          "label": "Note"
+          "header": "¥trn, book value, end-June 2026",
+          "color": "#378ADD",
+          "decimals": 1,
+          "prefix": "¥",
+          "suffix": "trn"
         }
       ],
-      "note": "¥506.8trn of liabilities (79.2%) reprice with the policy rate; ¥132.7trn (20.8%) do not — the split the published chart colours."
+      "note": "The seven liability lines as published, largest first. ¥506.8trn of them (79.2%) — reserves, foreign central-bank deposits and repos — reprice with the policy rate, which is the title's 80%.",
+      "margin_l": 205
     },
     {
       "n": 3,

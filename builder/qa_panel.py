@@ -1813,25 +1813,39 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
          "the held-out section header is gone")
     gate(f'href="{manifest["post_url"]}"' in page, "links back to the post")
 
-    print("\nExhibits 1-2 — the balance sheet (tables; gates on delivered CSVs)")
-    a = csv_rows("chart-1-balance-sheet-assets.csv")
-    gate(len(a) == 8, "assets table: seven lines plus the at-market memo",
-         f"{len(a)} rows")
-    tot_a = sum(float(r["trn"]) for r in a[:-1])
-    gate(abs(tot_a - 639.551) < 0.01, "asset lines sum to the published ¥639.55trn",
-         f"{tot_a:.3f}")
-    gate(abs(float(a[-1]["trn"]) - 107.57) < 0.02,
-         "the ETF-at-market memo is ¥107.6trn", a[-1]["trn"])
+    print("\nExhibits 1-2 — the balance sheet as bars, numbers only")
+    # Takuji's 2026-08-12 ruling (second review): the free page carries the
+    # published bars and the number behind each — no yields, no provenance,
+    # no composition notes. Those live in the paid workbook.
+    for cid, csvname, total_desc in (
+            ("chart_1", "chart-1-balance-sheet-assets.csv", "asset"),
+            ("chart_2", "chart-2-balance-sheet-liabilities.csv", "liability")):
+        rows_ = csv_rows(csvname)
+        gate(len(rows_) == 7, f"{cid}: seven {total_desc} lines", str(len(rows_)))
+        gate(list(rows_[0].keys()) == ["line_en", "trn"],
+             f"{cid}: name and value only — every detail column absent",
+             str(list(rows_[0].keys())))
+        tot = sum(float(r["trn"]) for r in rows_)
+        gate(abs(tot - 639.551) < 0.01,
+             f"{cid}: lines sum to the published ¥639.55trn", f"{tot:.3f}")
+        bars = [t for t in figs[cid]["data"] if t["type"] == "bar"]
+        gate(len(bars) == 1 and len(bars[0]["x"]) == 7,
+             f"{cid}: one panel of seven horizontal bars",
+             f"{len(bars)} trace(s)")
+        vals = bars[0]["x"]
+        gate(all(vals[i] >= vals[i + 1] for i in range(len(vals) - 1))
+             or all(vals[i] <= vals[i + 1] for i in range(len(vals) - 1)),
+             f"{cid}: bars run largest-first, as published")
     li = csv_rows("chart-2-balance-sheet-liabilities.csv")
-    gate(len(li) == 7 and abs(sum(float(r["trn"]) for r in li) - 639.551) < 0.01,
-         "liability lines sum to the same total")
     res = [r for r in li if r["line_en"] == "Reserves"]
     gate(len(res) == 1 and abs(float(res[0]["trn"]) - 440.365) < 0.001,
-         "the Reserves row carries ¥440.4trn at 1.00%", res and res[0]["trn"])
-    rep = sum(float(r["trn"]) for r in li if r["moves_with_policy_rate"] == "Yes")
-    gate(abs(rep - 506.827) < 0.01 and abs(rep / 639.551 - 0.792) < 0.002,
-         "repricing liabilities are ¥506.8trn = 79.2%, the title's 80%",
-         f"{rep:.3f} = {rep / 639.551 * 100:.1f}%")
+         "the Reserves bar carries ¥440.4trn", res and res[0]["trn"])
+    # Absence gates for the detail the ruling removed (replaced, never dropped):
+    for leak in ("T-bills nil since Dec-2025", "GC repo less 5bp",
+                 "bond 7.458", "legacy Fund portion", "yield_asof"):
+        gate(leak not in page, f"private detail absent from the page: '{leak}'")
+    gate("¥107.6trn at market" in page or "107.6trn at market" in page,
+         "the at-market value stays, in the caption — it is in the report")
 
     print("\nExhibit 3 — the carry crossing")
     inc = series_pairs(figs["chart_3"], "JGB income")

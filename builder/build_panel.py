@@ -484,10 +484,15 @@ def fig_ranked_bars(spec: dict, rows: list[dict], T: dict) -> dict:
 
     # Panel headers stand in for the axis titles, colour-matched to their bars,
     # exactly as the PNG does — there is no legend.
-    domains = [(0.0, 0.46), (0.54, 1.0)]
+    # One panel is a plain horizontal bar chart (added 2026-08-12 for the BoJ
+    # balance-sheet exhibits): full-width domain, no narrow-mode re-stacking.
+    # The two-panel path is byte-identical to before.
+    domains = [(0.0, 0.46), (0.54, 1.0)] if len(panels) > 1 else [(0.0, 1.0)]
     layout = base_layout(spec, T, legend=False)
     layout["bargap"] = 0.30
-    layout["margin"] = dict(l=132, r=64, t=40, b=28)
+    # margin_l is spec-able (2026-08-12): the default 132 fits country names;
+    # the BoJ balance-sheet lines are longer and clip without ~205.
+    layout["margin"] = dict(l=spec.get("margin_l", 132), r=64, t=40, b=28)
     layout.pop("yaxis", None)
     layout.pop("xaxis", None)
     for i, p in enumerate(panels):
@@ -519,6 +524,8 @@ def fig_ranked_bars(spec: dict, rows: list[dict], T: dict) -> dict:
     # off the frame (measured: 36px past the edge at 375). Stacked, both panels
     # keep the full width and the shared order still reads down the page, which
     # is the comparison the chart exists to make.
+    if len(panels) == 1:
+        return dict(data=traces, layout=layout)
     narrow = {
         "maxwidth": 560, "height": spec.get("narrow_height", 720),
         "wide_height": spec.get("height", 470),

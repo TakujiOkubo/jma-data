@@ -1,8 +1,8 @@
-line_en,trn,yield_pct,yield_asof,moves_with_policy_rate,note
-Reserves,440.365,1.000,Jun2026,Yes,"pays the policy rate, now 1.00%"
-Foreign central-bank deposits,48.469,0.543,FY2025,Yes,"GC repo less 5bp, floored at zero"
-Repos sold,17.993,0.730,FY2025,Yes,policy rate plus ~18bp
-Banknotes,115.032,,,No,
-Loss provisions,10.957,,,No,bond 7.458 + FX 3.291 + retirement 0.208
-Net assets,3.872,,,No,"capital 0.0001 + legal reserves 3.872, after the FY2025 appropriation"
-Government deposits and sundry,2.864,,,No,govt 2.775 + sundry 0.089
+line_en,trn
+Reserves,440.365
+Foreign CB deposits,48.469
+Repos sold,17.993
+Banknotes,115.032
+Loss provisions,10.957
+Net assets,3.872
+"Govt deposits, sundry",2.864
