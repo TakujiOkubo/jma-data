@@ -1731,7 +1731,180 @@ def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
          f"5 exhibits vs {sibling.name}")
 
 
+BOJ_EB_TITLES = [
+    "Majority of BoJ's assets are low-yielding",
+    "80% of BoJ's funding costs move with policy rate",
+    "Funding cost passed JGB income in FY2025",
+    "Low-yielding JGBs take a decade to roll off the BoJ",
+    "Policy rate scenarios",
+    "10-year JGB yield scenarios",
+    "BoJ portfolio P/L: losses as the policy rate rises to 2.0%",
+    "Reserves to decline by 50% by FY2028",
+    "30-year JGB yield scenarios",
+    "Remittance to public coffer drops to zero as rates rise",
+    "A fiscal crisis pushes the BoJ into sustained loss",
+]
+
+
+def qa_boj_equity_bet(root, manifest, page, figs) -> None:
+    """The free panel to "The BoJ's Equity Bet Is Paying for QE Exit".
+
+    Eight published exhibits in post order, then three built-for-the-report
+    charts behind a section header. Every figure the report prints is
+    re-derived from the delivered files; the balance-sheet exhibits are tables
+    (no plotly figure), so their gates run on the delivered CSVs and the page
+    HTML. Engine figures are the distribution-growth basis of 2026-08-11.
+    """
+    def csv_rows(name):
+        with open(root / "data" / name, newline="", encoding="utf-8-sig") as f:
+            return list(csv.DictReader(f))
+
+    def series_pairs(fig, name):
+        # split_col emits a solid and a dashed trace per series, same name:
+        # merge them into {x: y} keeping the non-null value.
+        out = {}
+        for t in fig["data"]:
+            if t.get("name") == name:
+                for x, y in zip(t["x"], t["y"]):
+                    if y is not None:
+                        out[x] = y
+        return out
+
+    print("\nTitles, order, section")
+    h2s = re.findall(r"<h2>(.*?)</h2>", page.replace("&#x27;", "'"))
+    ex = [t for t in h2s if t in BOJ_EB_TITLES]
+    gate(len(ex) == 11 and ex == BOJ_EB_TITLES,
+         "the eleven exhibits run in ledger order", str(len(ex)))
+    gate(page.count("Built for the report, held out of the post") == 1,
+         "the held-out section header appears exactly once")
+    gate(f'href="{manifest["post_url"]}"' in page, "links back to the post")
+
+    print("\nExhibits 1-2 — the balance sheet (tables; gates on delivered CSVs)")
+    a = csv_rows("chart-1-balance-sheet-assets.csv")
+    gate(len(a) == 8, "assets table: seven lines plus the at-market memo",
+         f"{len(a)} rows")
+    tot_a = sum(float(r["trn"]) for r in a[:-1])
+    gate(abs(tot_a - 639.551) < 0.01, "asset lines sum to the published ¥639.55trn",
+         f"{tot_a:.3f}")
+    gate(abs(float(a[-1]["trn"]) - 107.57) < 0.02,
+         "the ETF-at-market memo is ¥107.6trn", a[-1]["trn"])
+    li = csv_rows("chart-2-balance-sheet-liabilities.csv")
+    gate(len(li) == 7 and abs(sum(float(r["trn"]) for r in li) - 639.551) < 0.01,
+         "liability lines sum to the same total")
+    res = [r for r in li if r["line_en"] == "Reserves"]
+    gate(len(res) == 1 and abs(float(res[0]["trn"]) - 440.365) < 0.001,
+         "the Reserves row carries ¥440.4trn at 1.00%", res and res[0]["trn"])
+    rep = sum(float(r["trn"]) for r in li if r["moves_with_policy_rate"] == "Yes")
+    gate(abs(rep - 506.827) < 0.01 and abs(rep / 639.551 - 0.792) < 0.002,
+         "repricing liabilities are ¥506.8trn = 79.2%, the title's 80%",
+         f"{rep:.3f} = {rep / 639.551 * 100:.1f}%")
+
+    print("\nExhibit 3 — the carry crossing")
+    inc = series_pairs(figs["chart_3"], "JGB income")
+    paid = series_pairs(figs["chart_3"], "Interest paid")
+    gate(len(inc) == 9 and len(paid) == 9, "both lines span FY2020-FY2028",
+         f"{len(inc)}/{len(paid)}")
+    gate(abs(inc["2025"] - 2.52) < 0.005 and abs(paid["2025"] - 3.09) < 0.005,
+         "FY2025: income 2.52 against 3.09 paid", f"{inc['2025']}/{paid['2025']}")
+    gate(paid["2024"] < inc["2024"] and paid["2025"] > inc["2025"],
+         "the crossing is AT FY2025 — the title's claim, audited")
+
+    print("\nExhibit 4 — the redemption wall")
+    f4 = figs["chart_4"]
+    bands = {t["name"]: [y for y in t["y"] if y is not None]
+             for t in f4["data"] if t["type"] == "bar"}
+    gate(len(bands) == 4, "four display bands, as published", str(len(bands)))
+    coral = sum(bands["Yield at purchase: below zero"])
+    gate(abs(coral - 37.4) < 0.2, "the below-zero band totals ¥37.4trn",
+         f"{coral:.1f}")
+    grand = sum(sum(v) for v in bands.values())
+    gate(abs(grand - 519.4) < 0.5, "the stack totals the ¥519.4trn book",
+         f"{grand:.1f}")
+
+    print("\nExhibits 5, 6, 9 — the scenario paths")
+    ends = {"chart_5": ("Base case", 1.50, "2.0% case", 2.00,
+                        "Accelerated 2.5%", 2.50),
+            "chart_6": ("Base case", 3.13, "2.0% case", 3.61,
+                        "Accelerated 2.5%", 4.06),
+            "chart_9": ("Base case", 3.80, "2.0% case", 4.31,
+                        "Accelerated 2.5%", 4.81)}
+    for cid, (n1, v1, n2, v2, n3, v3) in ends.items():
+        for name, want in ((n1, v1), (n2, v2), (n3, v3)):
+            pairs = series_pairs(figs[cid], name)
+            # Base spans the full window, 2022-01..2029-07 = 91 months; the two
+            # alternative scenarios exist only from the 2026-07 seam = 37.
+            expect_n = 91 if name == n1 else 37
+            gate(len(pairs) == expect_n,
+                 f"{cid} {name}: exactly {expect_n} monthly points",
+                 str(len(pairs)))
+            last = pairs[max(pairs)]
+            gate(abs(last - want) < 0.005, f"{cid} {name} ends at {want:.2f}",
+                 f"{last:.2f}")
+        base = series_pairs(figs[cid], n1)
+        for name in (n2, n3):
+            pairs = series_pairs(figs[cid], name)
+            first = min(pairs)
+            gate(first == "2026-07-01" and abs(pairs[first] - base[first]) < 1e-9,
+                 f"{cid} {name} starts at the 2026-07 seam on the actual value")
+
+    print("\nExhibit 7 — P/L under three scenarios")
+    f7 = figs["chart_7"]
+    b7 = {t["name"]: t["y"] for t in f7["data"]}
+    gate([round(v, 2) for v in b7["Base case"]] == [0.69, 0.58, 2.04],
+         "base case +0.69 / +0.58 / +2.04", str(b7["Base case"]))
+    gate(abs(b7["2.0% case"][1] - (-0.44)) < 0.005,
+         "the 2.0% case loses 0.44 in FY2027", str(b7["2.0% case"][1]))
+    gate([round(v, 2) for v in b7["Accelerated 2.5%"][1:]] == [-1.78, -1.11],
+         "the accelerated case loses 1.78 then 1.11",
+         str(b7["Accelerated 2.5%"][1:]))
+
+    print("\nExhibit 8 — reserves halve")
+    f8 = figs["chart_8"]
+    t8 = next(t for t in f8["data"] if t["type"] == "bar")
+    vals = dict(zip(t8["x"], t8["y"]))
+    gate(len(vals) == 10, "ten fiscal-year bars", str(len(vals)))
+    gate(abs(vals["FY2023"] - 561) < 1 and abs(vals["FY2028"] - 282) < 1,
+         "561 at FY2023, 282 at FY2028", f"{vals['FY2023']}/{vals['FY2028']}")
+    ratio = vals["FY2028"] / vals["FY2023"]
+    gate(0.49 <= ratio <= 0.52, "the title's halving claim holds",
+         f"{ratio:.3f}")
+    faded = t8["marker"]["opacity"].count(0.55)
+    gate(faded == 4, "exactly the four estimate bars render faded", str(faded))
+
+    print("\nExhibit 10 — the remittance")
+    b10 = {t["name"]: t["y"] for t in figs["chart_10"]["data"]}
+    for name, want in (("Base case", 2.74), ("2.0% case", 0.80),
+                       ("Accelerated 2.5%", 0.38)):
+        got = sum(b10[name])
+        gate(abs(got - want) < 0.011, f"{name} three-year total {want:.2f}",
+             f"{got:.2f}")
+    zeros = [b10["2.0% case"][1], b10["Accelerated 2.5%"][1],
+             b10["Accelerated 2.5%"][2]]
+    gate(all(abs(z) < 0.005 for z in zeros),
+         "the three zero-payment years are drawn at zero", str(zeros))
+
+    print("\nExhibit 11 — the stagflation")
+    b11 = {t["name"]: t["y"] for t in figs["chart_11"]["data"]}
+    gate([round(v, 2) for v in b11["Stagflation crisis"][1:]] ==
+         [-3.21, -2.80, -1.48],
+         "stagflation loses 3.21 / 2.80 / 1.48 across FY2027-29",
+         str(b11["Stagflation crisis"][1:]))
+    gate(abs(b11["Base case"][0] - 0.69) < 0.005
+         and abs(b11["Stagflation crisis"][0] - 0.51) < 0.005,
+         "FY2026 is +0.69 base against +0.51 stagflation")
+
+    print("\nWhat the free page must not offer")
+    gate(page.count("Download CSV") == 0,
+         "no per-chart download link on any of the eleven exhibits")
+    gate("Download the full workbook" not in page,
+         "no workbook button")
+    gate("workbook" not in manifest, "and no workbook declared")
+    gate("Paid subscribers receive the data behind every chart" in page,
+         "the free-tier perk block states what a subscription buys")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
+      "2026-08-12-boj-equity-bet": qa_boj_equity_bet,
       "jgb-yield-curve-model": qa_yield_curve,
       FXJPY_FREE: qa_fx_reserve_jpy,
       FXJPY_PAID: qa_fx_reserve_jpy,
