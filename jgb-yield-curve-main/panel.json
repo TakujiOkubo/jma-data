@@ -1,5 +1,6 @@
 {
   "slug": "jgb-yield-curve-main",
+  "audience": "paid",
   "unlisted": true,
   "title": "JGB yield curve model — Main Forecast",
   "series_label": "Yield curve model",

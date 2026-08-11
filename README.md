@@ -60,24 +60,45 @@ to a vendored copy of the same values and says so.
    published figures. The gates exist to catch a panel that disagrees with the
    article, which is the only failure that actually matters here.
 
-### Tiers
+### What a page offers, and who it is for
 
-Every page built from 2026-08-05 declares `"tier"` in its manifest.
+**Three keys, and they are independent.** They were one until 2026-08-12, which
+is how `paid` came to be read as a description of a page's subject matter.
 
-| tier | what the page is | data download |
-|------|------------------|---------------|
-| `free` | the report's charts — it exists to show the research | **none.** No per-card CSV link, no workbook button. In their place the header states what a paid subscription buys, above the Subscribe button. |
-| `paid` | the model and the estimates, where the data *is* the perk | keeps every download it has |
+| key | values | what it does |
+|-----|--------|--------------|
+| `downloads` | `true` / `false` / absent | **Does the page offer its data?** `true` gives every card a "Download CSV" link, renders the workbook button if a `workbook` is declared, and prints the closing line that says so. `false` gives none of them, and makes declaring a `workbook` a hard error. **Absent defaults to `tier != "free"`** — the behaviour from before the key existed, so every page already built rebuilds byte-identical. |
+| `tier` | `free` / `paid` / absent | **What the page says about subscribing.** A `free` page carries the perk block naming what a subscription buys, above the Subscribe button. Required on every page built from 2026-08-05; absent means pre-rule, and the builder prints a note. Kept under its old name because renaming it would move bytes on every live page. |
+| `audience` | `free` / `paid` | **Who the page is for.** Inert — the builder never reads it. It exists so the set of paid pages is queryable, which matters while paid pages are still hosted in this public repo. |
+
+**The perk block is suppressed whenever `downloads` is true**, whatever the tier:
+a page that hands out its data cannot also advertise that data as the thing a
+subscription buys. That is what makes a free page *with* downloads — permitted by
+exception, Takuji 2026-08-11 — expressible without omitting `tier` and thereby
+recording a new page as pre-rule.
+
+Which value is right for a given page is **policy, not schema**: Takuji's
+decision, recorded in
+`G:\My Drive\Takuji-home\40.Projects\Substack\_publication-protocol.md`. Nothing
+about a page's subject matter follows from any of these keys — pages here carry
+report exhibits, model output, standing statistics and pipeline panels, in both
+tiers.
+
+> **None of this restricts access.** `unlisted: true` keeps a page off the
+> landing index and authenticates nobody, and this repo is public, so any page in
+> it is readable by anyone holding the URL. Access control is the separate gated
+> site, `jma-data-paid`, behind Cloudflare Access.
 
 The tidy CSVs still live in `<slug>/data/` on a free page — they are the
 builder's input and the workbook's provenance. The page just doesn't offer them.
 The chart values are inline in `index.html` as figure JSON either way, so this
 governs what is *offered*, not what is reachable.
 
-`qa_panel.py` gates the tier in both directions, so a free page and a paid one
-cannot drift into each other's state. Pages built before the rule carry no
-`tier` key and are unchanged by it — the decision was forward-only, and they
-rebuild byte-identical. Do not retrofit.
+`qa_panel.py` gates all of this in both directions, resolving the keys from the
+manifest itself rather than importing the rule from the builder, so a page cannot
+drift into a state its manifest does not declare. Pages built before the rule
+carry no `tier` key and are unchanged by it — the decision was forward-only, and
+they rebuild byte-identical. Do not retrofit.
 
 ### Manifest kinds
 

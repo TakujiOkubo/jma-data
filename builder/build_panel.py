@@ -42,9 +42,13 @@ rendered as HTML rather than inside the figure, which matches the house PNG
 
 MANIFEST (panel.json)
     slug, title, date, post_url, standfirst, workbook (optional filename)
-    tier    "free" | "paid" — required on every page built from 2026-08-05.
-            "free" suppresses every data download and states the paid offer
-            instead; "paid" keeps them. Omitted only on pre-rule pages.
+    downloads  true | false — does the page offer its data? Optional; defaults
+            to (tier != "free"), the behaviour before the key existed.
+    tier    "free" | "paid" — what the page says about subscribing. Required on
+            every page built from 2026-08-05; omitted only on pre-rule pages.
+    audience  "free" | "paid" — who the page is for. Inert: recorded so the set
+            of paid pages is queryable, never read by this builder.
+            See "WHAT A PAGE OFFERS" below for how downloads and tier interact.
     charts: [ {n, kind, title, subtitle, ylabel, source, csv, ...} ]
 
     kind "line"     x, start, end, series[{col,label,color,dash}],
@@ -98,18 +102,35 @@ BOTTOM_BANNER = ("The charts and data on this page are free to use and "
                  "either English or Japanese.")
 SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 
-# TIER RULE (Takuji, 2026-08-05). A manifest may declare "tier".
-#   "free" — the page is the report's charts, and exists to show the research.
-#            It offers NO data download: no per-card CSV link, no workbook
-#            button. In their place it names what a paid subscription buys.
-#            The tidy CSVs stay in the page's data/ folder as build inputs and
-#            as the workbook's provenance; the page simply does not offer them,
-#            and the numbers are in the figure JSON either way.
-#   "paid" — the model and the estimates, where the data IS the perk. Keeps
-#            every download it has.
-#   absent — a page built before this rule. Behaviour is exactly as it was, so
-#            the pages already live rebuild byte-identical. The rule was taken
-#            forward-only by decision; do not retrofit "tier" onto them.
+# WHAT A PAGE OFFERS. Two independent manifest keys, and they were one until
+# 2026-08-12. Neither says who the page is for -- that is "audience", which this
+# builder deliberately ignores, and the policy behind it is Takuji's, recorded in
+# 40.Projects\Substack\_publication-protocol.md. Nothing about a page's subject
+# matter follows from either key.
+#
+# "downloads" (bool, optional) -- does the page OFFER its data?
+#            true  : per-card "Download CSV" links, the workbook button if a
+#                    "workbook" is declared, and the closing line that says so.
+#            false : none of those. The tidy CSVs stay in the page's data/ folder
+#                    as build inputs and as the workbook's provenance, and the
+#                    numbers are in the figure JSON either way -- this governs
+#                    what is offered, not what is reachable.
+#            absent: defaults to (tier != "free"), which is exactly the behaviour
+#                    before this key existed, so every page already built rebuilds
+#                    byte-identical.
+#
+# "tier" ("free" | "paid" | absent) -- what the page SAYS about subscribing.
+#            "free" pages carry the perk block naming what a subscription buys,
+#            above the Subscribe button. Retained under its old name because
+#            renaming it would move bytes on every page already live.
+#            absent = built before 2026-08-05; forward-only by decision, so do
+#            not retrofit "tier" onto those pages.
+#
+# The perk block is suppressed when downloads are on, whatever the tier: a page
+# that hands out its data cannot also advertise that data as the thing a
+# subscription buys. Takuji reserved the free-page-with-downloads case as a
+# per-page exception on 2026-08-11; this is what makes it expressible without
+# omitting "tier" and thereby recording a new page as pre-rule.
 PERK_HTML = (
     '<p class="perk">Paid subscribers receive the data behind every chart as '
     "an Excel workbook, plus access to our JGB yield-curve model pages.</p>\n"
@@ -848,7 +869,20 @@ def build(slug: str) -> Path:
     elif tier not in ("free", "paid"):
         raise SystemExit(f'panel.json: "tier" must be "free" or "paid", '
                          f"got {tier!r}")
-    free_tier = tier == "free"
+
+    # See "WHAT A PAGE OFFERS" above. Absent, this resolves to the pre-2026-08-12
+    # behaviour, which is what keeps every existing page byte-identical.
+    if "downloads" in manifest:
+        downloads = manifest["downloads"]
+        if not isinstance(downloads, bool):
+            raise SystemExit(f'panel.json: "downloads" must be true or false, '
+                             f"got {downloads!r}")
+    else:
+        downloads = tier != "free"
+
+    # A page that offers its data cannot also advertise that data as the thing a
+    # subscription buys.
+    show_perk = tier == "free" and not downloads
 
     cards, figs = [], []
     about_cards: dict[int, str] = {}   # exhibits embedded in the About section
@@ -898,8 +932,8 @@ def build(slug: str) -> Path:
                if spec.get("subtitle") else "")
         label = spec.get("label") or f"Chart {n}"
 
-        # A free page shows the chart head with no download offer beside it.
-        dl = ("" if free_tier else
+        # A page that offers no downloads shows the chart head bare.
+        dl = ("" if not downloads else
               f'\n      <a class="dl" href="{html.escape(spec["csv"])}" '
               "download>Download CSV</a>")
 
@@ -926,14 +960,13 @@ def build(slug: str) -> Path:
         [{"id": i, "fig": f} for i, f in figs], separators=(",", ":"))
 
     m = manifest
-    # The header slot that used to carry the workbook button. On a free page it
-    # carries the offer instead — the workbook is the thing a subscription buys,
-    # so the removal is stated as what a reader gets rather than left blank.
+    # One header slot, holding whichever of the two applies. A page with no
+    # downloads states what a subscription buys instead of leaving it blank.
     workbook = ""
-    if free_tier:
-        if m.get("workbook"):
-            raise SystemExit('panel.json: a "free" tier page cannot declare a '
-                             '"workbook" download')
+    if m.get("workbook") and not downloads:
+        raise SystemExit('panel.json: a page that offers no downloads cannot '
+                         'declare a "workbook" download')
+    if show_perk:
         workbook = PERK_HTML
     elif m.get("workbook"):
         workbook = (f'<a class="btn" href="{html.escape(m["workbook"])}" download>'
@@ -1047,7 +1080,7 @@ def build(slug: str) -> Path:
     if footer_note:
         # The closing sentence advertises the per-card CSV link, so it goes when
         # the link does — otherwise the page points at something that isn't there.
-        csv_line = "" if free_tier else " Each card links its own CSV."
+        csv_line = "" if not downloads else " Each card links its own CSV."
         endnote = (f'<p class="endnote text">{html.escape(footer_note)} '
                    "Hover to read values, drag to zoom, double-click to "
                    f"reset.{csv_line}</p>")
@@ -1064,7 +1097,7 @@ def build(slug: str) -> Path:
         subscribe_url=SUBSCRIBE_URL,
         # Same reason as scenario_css: an unused rule would change bytes on
         # pages that are meant to rebuild identically.
-        perk_css=PERK_CSS if free_tier else "",
+        perk_css=PERK_CSS if show_perk else "",
         disclaimer=DISCLAIMER_HTML,
         meta=meta,
         stamp=stamp,
