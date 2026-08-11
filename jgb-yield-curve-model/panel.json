@@ -4,6 +4,7 @@
   "date": "Model vintage 19 July 2026 · monthly, July 2002 – July 2029",
   "masthead_date": "19 July 2026",
   "sort": "2026-07-19",
+  "audience": "paid",
   "standfirst": "The JMA yield-curve model's own output: fitted zero-coupon JGB yields split into the part explained by expected future policy rates and the part that is compensation for holding duration. Six maturities, monthly from 2002, with the JMA baseline projection to 2029.",
   "stamp": "Model vintage: 19 July 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
   "intro_html": "The JMA yield curve model splits each JGB yield into interest-rate expectations and a term premium, letting Japan’s long-run interest rate move with its fundamentals. If you are new to this page, a fuller explanation of the model sits at the bottom, and the full argument is in our report, <em><a href=\"https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly\">The Long Climb in JGB Yields Is Nearly Over</a></em>. The charts below are interactive. Hover for exact values, zoom, and download the data behind each chart.",

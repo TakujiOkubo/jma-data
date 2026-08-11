@@ -62,12 +62,29 @@ to a vendored copy of the same values and says so.
 
 ### Tiers
 
-Every page built from 2026-08-05 declares `"tier"` in its manifest.
+Every page built from 2026-08-05 declares `"tier"` in its manifest. **The key
+controls what the page offers. It does not describe what kind of page it is, and
+it is not an access control.**
 
-| tier | what the page is | data download |
-|------|------------------|---------------|
-| `free` | the report's charts — it exists to show the research | **none.** No per-card CSV link, no workbook button. In their place the header states what a paid subscription buys, above the Subscribe button. |
-| `paid` | the model and the estimates, where the data *is* the perk | keeps every download it has |
+| tier | what the builder emits |
+|------|------------------------|
+| `free` | **no downloads.** No per-card CSV link, no workbook button, and the closing line that advertises links is dropped. In their place the header states what a paid subscription buys, above the Subscribe button. Declaring a `workbook` is a hard error. |
+| `paid` | keeps every download the page has, and no subscription pitch in the header. |
+| *(absent)* | pre-2026-08-05 behaviour: downloads on. The builder prints a note. Do not use this to give a new page downloads — see below. |
+
+Who a page is *for*, and whether a given page should offer downloads, are
+decisions recorded in
+`G:\My Drive\Takuji-home\40.Projects\Substack\_publication-protocol.md`, not
+facts about the key. Nothing about a page's subject matter follows from its tier:
+pages here carry report exhibits, model output, standing statistics and pipeline
+panels, in both tiers.
+
+**Known limitation.** `tier` currently bundles two independent things — what the
+page offers, and who it is pitched at. A free-audience page that should carry
+downloads (permitted by exception, 2026-08-11) cannot be expressed: omitting
+`tier` turns the downloads on but records the page as pre-rule, which is false. A
+separate `downloads` key is specified and not yet built; it must change
+`qa_panel.py` as well, since the gate reads `tier` directly.
 
 The tidy CSVs still live in `<slug>/data/` on a free page — they are the
 builder's input and the workbook's provenance. The page just doesn't offer them.
