@@ -82,7 +82,7 @@
       "kind": "decomp",
       "title": "Low-yielding JGBs take a decade to roll off the BoJ",
       "ylabel": "JGBs maturing, ¥trn",
-      "source": "Source: BoJ, MoF, JMA. BoJ holdings at July 2026, by yield at purchase.",
+      "source": "Source: BoJ, MoF, JMA. BoJ holdings at July 2026, by yield at purchase. The FY2036 bar is ‘2036 and later’. The published chart merges 0.25–0.50% and 0.50–1.00% bands into one 0.25–1.00% band.",
       "csv": "data/chart-4-redemption-by-yield.csv",
       "x": "redemption_fy",
       "decimals": 1,
@@ -108,7 +108,6 @@
           "color": "#888780"
         }
       ],
-      "note": "The FY2036 bar is ‘2036 and later’. The published chart merges the master CSV’s 0.25–0.50% and 0.50–1.00% bands into one 0.25–1.00% band; the page follows it. The coral band — bonds bought at negative yields, ¥37trn — is still on the book into the 2030s.",
       "bargap": 0.25
     },
     {
@@ -196,8 +195,7 @@
           "label": "Accelerated 2.5%",
           "color": "#D85A30"
         }
-      ],
-      "note": "Economic result (経常利益) before any provision release. Base case +0.69 / +0.58 / +2.04; the 2.0% case loses 0.44 in FY2027; the accelerated case loses 1.78 then 1.11."
+      ]
     },
     {
       "n": 8,
@@ -219,5 +217,6 @@
       ],
       "note": "¥561trn at end-FY2023, when the exit began; ¥282trn at end-FY2028 — halved. The published chart draws the estimates as dotted bars; on this page they render faded, the builder’s standard mark for a value not yet measured."
     }
-  ]
+  ],
+  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Paid subscribers have access to data behind charts, as well as to model estimates for our proprietary models and Yield Curve Model. Paid subscribers are encouraged to send questions on my research and receive priority in my replies in either English or Japanese."
 }

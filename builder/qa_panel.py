@@ -153,9 +153,20 @@ FXJPY_PAID_BOTTOM_BANNER = (
     "subscribers are encouraged to send questions on my research and receive "
     "priority in my replies.")
 
+# Takuji's wording, 2026-08-12, for the equity-bet page ("our our" of his
+# request de-duplicated as an obvious typo):
+BOJ_EB_BOTTOM_BANNER = (
+    "The charts and data on this page are free to use and reproduce with "
+    "attribution to Japan Macro Advisors. Paid subscribers have access to data "
+    "behind charts, as well as to model estimates for our proprietary models "
+    "and Yield Curve Model. Paid subscribers are encouraged to send questions "
+    "on my research and receive priority in my replies in either English or "
+    "Japanese.")
+
 BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
                   "global-fx-reserve-share": RESERVES_BOTTOM_BANNER,
-                  "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER}
+                  "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER,
+                  "2026-08-12-boj-equity-bet": BOJ_EB_BOTTOM_BANNER}
 
 
 def qa_skin(page, bottom_banner) -> None:
