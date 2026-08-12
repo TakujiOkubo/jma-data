@@ -163,10 +163,22 @@ BOJ_EB_BOTTOM_BANNER = (
     "on my research and receive priority in my replies in either English or "
     "Japanese.")
 
+# The paid tier of the same article, 2026-08-12. His free-page wording pitches
+# the paid tier; a reader already inside it needs told what the page is instead,
+# so the pitch is replaced by the FX-paid page's two sentences and his closing
+# one is kept, "in either English or Japanese" included.
+BOJ_EB_PAID_BOTTOM_BANNER = (
+    "The charts and data on this page are free to use and reproduce with "
+    "attribution to Japan Macro Advisors. Only paid subscribers have access "
+    "to this page. Each card links the tidy CSV behind its chart. Paid "
+    "subscribers are encouraged to send questions on my research and receive "
+    "priority in my replies in either English or Japanese.")
+
 BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
                   "global-fx-reserve-share": RESERVES_BOTTOM_BANNER,
                   "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER,
-                  "2026-08-12-boj-equity-bet": BOJ_EB_BOTTOM_BANNER}
+                  "2026-08-12-boj-equity-bet": BOJ_EB_BOTTOM_BANNER,
+                  "2026-08-12-boj-equity-bet-paid": BOJ_EB_PAID_BOTTOM_BANNER}
 
 
 def qa_skin(page, bottom_banner) -> None:
@@ -1767,6 +1779,9 @@ def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
          f"5 exhibits vs {sibling.name}")
 
 
+BOJ_EB_FREE = "2026-08-12-boj-equity-bet"
+BOJ_EB_PAID = "2026-08-12-boj-equity-bet-paid"
+
 BOJ_EB_TITLES = [
     "Majority of BoJ's assets are low-yielding",
     "80% of BoJ's funding costs move with policy rate",
@@ -1787,7 +1802,12 @@ BOJ_EB_STRUCK = [
 
 
 def qa_boj_equity_bet(root, manifest, page, figs) -> None:
-    """The free panel to "The BoJ's Equity Bet Is Paying for QE Exit".
+    """Both tiers of "The BoJ's Equity Bet Is Paying for QE Exit".
+
+    One report, two pages that differ only in whether they offer the data, so
+    one gate function serves both and the cross-tier block at the end is the
+    failure the split introduces: each page passes its own value gates while
+    quietly disagreeing with the other about a number.
 
     The eight published exhibits in post order, and nothing else — the three
     built-for-the-report extras were struck at review (Takuji, 2026-08-12).
@@ -1934,18 +1954,87 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
     faded = t8["marker"]["opacity"].count(0.55)
     gate(faded == 4, "exactly the four estimate bars render faded", str(faded))
 
-    print("\nWhat the free page must not offer")
-    gate(page.count("Download CSV") == 0,
-         "no per-chart download link on any of the eight exhibits")
+    print("\nWhat this page offers")
+    # Resolved from the manifest the same way build_panel.py resolves it, and
+    # restated rather than imported so the gate cannot agree with the builder by
+    # construction. Which variant this is comes off the slug, not off the tier:
+    # the two are independent, and reading one from the other is the conflation
+    # the downloads key was split out to remove.
+    tier = manifest["tier"]
+    downloads = manifest["downloads"] if "downloads" in manifest else tier != "free"
+    is_paid_variant = manifest["slug"] == BOJ_EB_PAID
+    n_charts = len(manifest["charts"])
+
+    if downloads:
+        # Replaced gate, never dropped: the free page's "no download link
+        # anywhere" assertion stops being true here, so the new assertion is
+        # written rather than the old one deleted.
+        gate(page.count("Download CSV") == n_charts,
+             "one CSV download per exhibit", str(page.count("Download CSV")))
+        gate(page.count('class="dl"') == n_charts,
+             "and each is a real card link, not loose text",
+             str(page.count('class="dl"')))
+        gate("Each card links its own CSV." in page,
+             "the closing line advertises the links the page actually carries")
+        gate("Paid subscribers receive the data behind every chart" not in page,
+             "the perk block is suppressed: a page handing out its data cannot "
+             "also sell that data")
+    else:
+        gate(page.count("Download CSV") == 0,
+             "no per-chart download link on any of the eight exhibits")
+        gate("Each card links its own CSV." not in page,
+             "and the closing line does not advertise one")
+        gate("Paid subscribers receive the data behind every chart" in page,
+             "the free-tier perk block states what a subscription buys")
     gate("Download the full workbook" not in page,
-         "no workbook button")
+         "no workbook button on either tier")
     gate("workbook" not in manifest, "and no workbook declared")
-    gate("Paid subscribers receive the data behind every chart" in page,
-         "the free-tier perk block states what a subscription buys")
+
+    if is_paid_variant:
+        gate("Only paid subscribers have access to this page" in page,
+             "the paid page says what it is")
+        # The eight CSVs the cards link must actually be there and match the
+        # free page's byte for byte: a link is only worth as much as its target.
+        missing, differing = [], []
+        for c in manifest["charts"]:
+            name = Path(c["csv"]).name
+            mine = root / "data" / name
+            theirs = REPO / BOJ_EB_FREE / "data" / name
+            if not mine.exists():
+                missing.append(name)
+            elif mine.read_bytes() != theirs.read_bytes():
+                differing.append(name)
+        gate(len(manifest["charts"]) == 8 and not missing and not differing,
+             "all eight linked CSVs are present and byte-identical to the free "
+             "page's", f"missing {missing}, differing {differing}")
+
+    print("\nCross-tier equality")
+    sibling = REPO / (BOJ_EB_FREE if is_paid_variant else BOJ_EB_PAID)
+    if not (sibling / "index.html").exists():
+        gate(False, "the sibling tier is built, so the two can be compared",
+             f"{sibling.name} has no index.html")
+        return
+    _, sfigs = load_delivered(sibling)
+    # The whole delivered figure, not just the y arrays: charts 1 and 2 are
+    # ranked_bars, whose VALUES sit on x and whose labels sit on y, so a
+    # y-only comparison would compare the two pages' axis labels and pass while
+    # the bars disagreed.
+    compared, same = 0, True
+    for c in manifest["charts"]:
+        cid = f"chart_{c['n']}"
+        compared += 1
+        if json.dumps(figs[cid], sort_keys=True) != \
+                json.dumps(sfigs[cid], sort_keys=True):
+            same = False
+            gate(False, f"chart {c['n']} draws the same figure on both tiers")
+    gate(compared == 8 and same,
+         "every exhibit draws an identical figure on the free and paid pages",
+         f"{compared} exhibits vs {sibling.name}")
 
 
 QA = {"2026-07-20-long-climb": qa_long_climb,
-      "2026-08-12-boj-equity-bet": qa_boj_equity_bet,
+      BOJ_EB_FREE: qa_boj_equity_bet,
+      BOJ_EB_PAID: qa_boj_equity_bet,
       "jgb-yield-curve-model": qa_yield_curve,
       FXJPY_FREE: qa_fx_reserve_jpy,
       FXJPY_PAID: qa_fx_reserve_jpy,

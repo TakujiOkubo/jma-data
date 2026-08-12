@@ -1,0 +1,225 @@
+{
+  "slug": "2026-08-12-boj-equity-bet-paid",
+  "title": "The BoJ's Equity Bet Is Paying for QE Exit",
+  "date": "12 August 2026",
+  "masthead_date": "12 August 2026",
+  "post_url": "https://takujiokubo.substack.com/p/the-bojs-equity-bet-is-paying-for",
+  "unlisted": true,
+  "tier": "paid",
+  "standfirst": "The dividend from the Bank of Japan's over-¥100 trn equity ETF portfolio covers what it loses on its bonds. The same portfolio is the only channel through which the exit can break the Bank.",
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. Data cut from the library master CSVs per the exhibit ledger in the report record (30.Reports/2026-08/2026-08-12-boj-equity-bet-sub.md). The page carries the eight published exhibits only (Takuji's ruling, 2026-08-12: a report page shows the report's charts). All engine figures are on the distribution-growth dividend basis of 2026-08-11.",
+  "_series_order": "Scenario-path charts carry one base_case column holding the actual history then the Main forecast, split solid/dashed by the phase column; the 2.0% and accelerated columns begin at 2026-07 seeded with the last actual value so the lines connect, as the published PNGs prepend it. No two series share a history column, so the shared-history colour trap does not arise.",
+  "charts": [
+    {
+      "n": 1,
+      "kind": "ranked_bars",
+      "title": "Majority of BoJ's assets are low-yielding",
+      "source": "Sources: BoJ, JMA estimates.",
+      "csv": "data/chart-1-balance-sheet-assets.csv",
+      "label_col": "line_en",
+      "top_n": 7,
+      "panels": [
+        {
+          "col": "trn",
+          "header": "¥trn, book value, end-June 2026",
+          "color": "#378ADD",
+          "decimals": 1,
+          "prefix": "¥",
+          "suffix": "trn"
+        }
+      ],
+      "note": "The seven asset lines as published, largest first. The equity ETF book is ¥37trn at book value against an estimated ¥107.6trn at market, as the report states.",
+      "margin_l": 205
+    },
+    {
+      "n": 2,
+      "kind": "ranked_bars",
+      "title": "80% of BoJ's funding costs move with policy rate",
+      "source": "Sources: BoJ, JMA estimates.",
+      "csv": "data/chart-2-balance-sheet-liabilities.csv",
+      "label_col": "line_en",
+      "top_n": 7,
+      "panels": [
+        {
+          "col": "trn",
+          "header": "¥trn, book value, end-June 2026",
+          "color": "#378ADD",
+          "decimals": 1,
+          "prefix": "¥",
+          "suffix": "trn"
+        }
+      ],
+      "note": "The seven liability lines as published, largest first. ¥506.8trn of them (79.2%) — reserves, foreign central-bank deposits and repos — reprice with the policy rate, which is the title's 80%.",
+      "margin_l": 205
+    },
+    {
+      "n": 3,
+      "kind": "line",
+      "title": "Funding cost passed JGB income in FY2025",
+      "ylabel": "¥trn per fiscal year",
+      "source": "Source: BoJ, JMA. Dashed lines are JMA forecast.",
+      "csv": "data/chart-3-carry-income-vs-paid.csv",
+      "x": "fy",
+      "decimals": 2,
+      "split_col": "phase",
+      "solid_value": "actual",
+      "series": [
+        {
+          "col": "jgb_income_trn",
+          "label": "JGB income",
+          "color": "#378ADD"
+        },
+        {
+          "col": "interest_paid_trn",
+          "label": "Interest paid",
+          "color": "#D85A30"
+        }
+      ],
+      "note": "Fiscal years: 2020 means FY2020. Interest paid is the broad total — reserves, foreign central-bank deposits and repos. FY2025 is the crossing the title dates: income ¥2.52trn against ¥3.09trn paid. The forecast leg is the base case."
+    },
+    {
+      "n": 4,
+      "kind": "decomp",
+      "title": "Low-yielding JGBs take a decade to roll off the BoJ",
+      "ylabel": "JGBs maturing, ¥trn",
+      "source": "Source: BoJ, MoF, JMA. BoJ holdings at July 2026, by yield at purchase. The FY2036 bar is ‘2036 and later’. The published chart merges 0.25–0.50% and 0.50–1.00% bands into one 0.25–1.00% band.",
+      "csv": "data/chart-4-redemption-by-yield.csv",
+      "x": "redemption_fy",
+      "decimals": 1,
+      "components": [
+        {
+          "col": "below_zero",
+          "label": "Yield at purchase: below zero",
+          "color": "#D85A30"
+        },
+        {
+          "col": "b0_025",
+          "label": "0 to 0.25%",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "b025_100",
+          "label": "0.25 to 1.00%",
+          "color": "#378ADD"
+        },
+        {
+          "col": "b100_plus",
+          "label": "1.00% and over",
+          "color": "#888780"
+        }
+      ],
+      "bargap": 0.25
+    },
+    {
+      "n": 5,
+      "kind": "line",
+      "title": "Policy rate scenarios",
+      "ylabel": "BoJ policy rate, %",
+      "source": "Source: JMA. Dashed lines are forecasts.",
+      "csv": "data/chart-5-policy-scenarios.csv",
+      "x": "ym",
+      "decimals": 2,
+      "split_col": "phase",
+      "solid_value": "actual",
+      "series": [
+        {
+          "col": "base_case",
+          "label": "Base case",
+          "color": "#378ADD"
+        },
+        {
+          "col": "case_2_0",
+          "label": "2.0% case",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "accelerated",
+          "label": "Accelerated 2.5%",
+          "color": "#D85A30"
+        }
+      ],
+      "note": "Actual to July 2026, then the three JMA scenarios: base case to a 1.5% terminal in March 2027; the 2.0% case on a gradual pace; the accelerated case hiking every three months to 2.5% by January 2028."
+    },
+    {
+      "n": 6,
+      "kind": "line",
+      "title": "10-year JGB yield scenarios",
+      "ylabel": "JGB 10-year yield, %",
+      "source": "Source: JMA. Dashed lines are forecasts.",
+      "csv": "data/chart-6-jgb10y-scenarios.csv",
+      "x": "ym",
+      "decimals": 2,
+      "split_col": "phase",
+      "solid_value": "actual",
+      "series": [
+        {
+          "col": "base_case",
+          "label": "Base case",
+          "color": "#378ADD"
+        },
+        {
+          "col": "case_2_0",
+          "label": "2.0% case",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "accelerated",
+          "label": "Accelerated 2.5%",
+          "color": "#D85A30"
+        }
+      ],
+      "note": "The 10-year ends 2029 at 3.13% in the base case, 3.61% in the 2.0% case and 4.06% accelerated — it passes 4% only when the Bank is behind the curve."
+    },
+    {
+      "n": 7,
+      "kind": "bar_line",
+      "title": "BoJ portfolio P/L: losses as the policy rate rises to 2.0%",
+      "ylabel": "¥trn per fiscal year",
+      "source": "Source: JMA. Bars are the economic result, before any provision release.",
+      "csv": "data/chart-7-profit-scenarios.csv",
+      "x": "fy",
+      "decimals": 2,
+      "bars": [
+        {
+          "col": "base_case",
+          "label": "Base case",
+          "color": "#378ADD"
+        },
+        {
+          "col": "case_2_0",
+          "label": "2.0% case",
+          "color": "#EF9F27"
+        },
+        {
+          "col": "accelerated",
+          "label": "Accelerated 2.5%",
+          "color": "#D85A30"
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "kind": "bar_line",
+      "title": "Reserves to decline by 50% by FY2028",
+      "ylabel": "Reserves, ¥trn",
+      "source": "Source: BoJ, JMA estimates. Figures are end of FY. Dotted bars are estimates.",
+      "csv": "data/chart-8-reserves-year-end.csv",
+      "x": "fy",
+      "decimals": 0,
+      "flag_col": "is_estimate",
+      "flag_note": "Faded bars are JMA estimates",
+      "bars": [
+        {
+          "col": "reserves_trn",
+          "label": "Reserves at fiscal year-end",
+          "color": "#378ADD"
+        }
+      ],
+      "note": "¥561trn at end-FY2023, when the exit began; ¥282trn at end-FY2028 — halved. The published chart draws the estimates as dotted bars; on this page they render faded, the builder’s standard mark for a value not yet measured."
+    }
+  ],
+  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. Each card links the tidy CSV behind its chart. Paid subscribers are encouraged to send questions on my research and receive priority in my replies in either English or Japanese.",
+  "_derived_from": "Generated from 2026-08-12-boj-equity-bet/panel.json by builder/derive_boj_equity_bet_paid.py. Do not hand-edit: edit the free manifest and re-derive, or the two tiers drift. Only slug, audience, downloads, tier and bottom_banner differ; the charts list is copied through unchanged, which is what makes the cross-tier equality gate true by construction rather than by inspection.",
+  "audience": "paid",
+  "downloads": true
+}
