@@ -37,14 +37,23 @@ OVERRIDES = {
     "tier": "paid",
     # Takuji's free-page wording pitches the paid tier ("Paid subscribers have
     # access to data behind charts..."). On the paid page the reader is already
-    # inside it, and the page now carries those CSVs, so the pitch is replaced
-    # by what this page IS -- the same substitution the FX reserve paid page
-    # made -- keeping his closing sentence, English or Japanese included.
+    # inside it, so the pitch is replaced by what this page IS, keeping his
+    # closing sentence, English or Japanese included.
+    #
+    # It does NOT say "Only paid subscribers have access to this page", the
+    # sentence the FX reserve paid page and the standing reserves page carry.
+    # Takuji, 2026-08-13: tone the exclusivity down, because nothing enforces
+    # it -- this page sits in a public repo and "unlisted" authenticates
+    # nobody, so that sentence is false to any reader holding the URL. He is
+    # content to share an ungated paid page in the meantime (about ten paid
+    # subscribers; a password-protected page is still being designed). "Shared
+    # with paid subscribers" is what is actually true, and qa_panel gates the
+    # stronger claim's absence.
     "bottom_banner": (
         "The charts and data on this page are free to use and reproduce with "
-        "attribution to Japan Macro Advisors. Only paid subscribers have "
-        "access to this page. Each card links the tidy CSV behind its chart. "
-        "Paid subscribers are encouraged to send questions on my research and "
+        "attribution to Japan Macro Advisors. This page is shared with paid "
+        "subscribers; each card links the tidy CSV behind its chart. Paid "
+        "subscribers are encouraged to send questions on my research and "
         "receive priority in my replies in either English or Japanese."),
 }
 

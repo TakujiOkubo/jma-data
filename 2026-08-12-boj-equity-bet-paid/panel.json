@@ -218,7 +218,7 @@
       "note": "¥561trn at end-FY2023, when the exit began; ¥282trn at end-FY2028 — halved. The published chart draws the estimates as dotted bars; on this page they render faded, the builder’s standard mark for a value not yet measured."
     }
   ],
-  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Only paid subscribers have access to this page. Each card links the tidy CSV behind its chart. Paid subscribers are encouraged to send questions on my research and receive priority in my replies in either English or Japanese.",
+  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. This page is shared with paid subscribers; each card links the tidy CSV behind its chart. Paid subscribers are encouraged to send questions on my research and receive priority in my replies in either English or Japanese.",
   "_derived_from": "Generated from 2026-08-12-boj-equity-bet/panel.json by builder/derive_boj_equity_bet_paid.py. Do not hand-edit: edit the free manifest and re-derive, or the two tiers drift. Only slug, audience, downloads, tier and bottom_banner differ; the charts list is copied through unchanged, which is what makes the cross-tier equality gate true by construction rather than by inspection.",
   "audience": "paid",
   "downloads": true

@@ -165,12 +165,19 @@ BOJ_EB_BOTTOM_BANNER = (
 
 # The paid tier of the same article, 2026-08-12. His free-page wording pitches
 # the paid tier; a reader already inside it needs told what the page is instead,
-# so the pitch is replaced by the FX-paid page's two sentences and his closing
-# one is kept, "in either English or Japanese" included.
+# so the pitch is replaced and his closing sentence kept, "in either English or
+# Japanese" included.
+#
+# Deliberately NOT the FX-paid page's "Only paid subscribers have access to this
+# page". Takuji, 2026-08-13: tone the exclusivity down, because nothing enforces
+# it -- the page sits in this public repo and "unlisted" authenticates nobody,
+# so the sentence is false to any reader holding the URL. He accepts an ungated
+# paid page in the meantime (about ten paid subscribers, unlikely to be
+# sensitive about exclusivity) while a password-protected page is designed.
 BOJ_EB_PAID_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. Only paid subscribers have access "
-    "to this page. Each card links the tidy CSV behind its chart. Paid "
+    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "subscribers; each card links the tidy CSV behind its chart. Paid "
     "subscribers are encouraged to send questions on my research and receive "
     "priority in my replies in either English or Japanese.")
 
@@ -1991,8 +1998,18 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
     gate("workbook" not in manifest, "and no workbook declared")
 
     if is_paid_variant:
-        gate("Only paid subscribers have access to this page" in page,
-             "the paid page says what it is")
+        gate("This page is shared with paid subscribers" in page,
+             "the paid page says who it is for")
+        # Replaced, not dropped (Takuji, 2026-08-13). The first build carried
+        # the FX-paid page's "Only paid subscribers have access to this page".
+        # Nothing enforces that here, so it asserted an access control the page
+        # does not have; the claim is now gated on ABSENCE. Re-gate rather than
+        # delete if the password-protected site he is designing ever makes it
+        # true for this page.
+        for claim in ("Only paid subscribers have access",
+                      "subscribers only", "Subscribers only"):
+            gate(claim not in page,
+                 f"claims no access control it does not have: {claim!r}")
         # The eight CSVs the cards link must actually be there and match the
         # free page's byte for byte: a link is only worth as much as its target.
         missing, differing = [], []
