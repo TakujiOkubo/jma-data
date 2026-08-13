@@ -19,11 +19,18 @@ OVERRIDES = {
     "tier": "paid",
     # The default bottom banner advertises the paid tier to a free reader. On
     # the paid page it has to say what this page IS, as the model pages do.
+    #
+    # It says "shared with", not "only ... have access to". Takuji, 2026-08-13:
+    # nothing enforces exclusivity here -- jma-data is public and "unlisted"
+    # authenticates nobody -- so the stronger sentence was false to any reader
+    # holding the URL. He accepts an ungated paid page in the meantime while a
+    # password-protected one is designed. qa_skin gates the claim's absence on
+    # every page in this repo.
     "bottom_banner": (
         "The charts and data on this page are free to use and reproduce with "
-        "attribution to Japan Macro Advisors. Only paid subscribers have "
-        "access to this page. Each card links the tidy CSV behind its chart. "
-        "Paid subscribers are encouraged to send questions on my research and "
+        "attribution to Japan Macro Advisors. This page is shared with paid "
+        "subscribers; each card links the tidy CSV behind its chart. Paid "
+        "subscribers are encouraged to send questions on my research and "
         "receive priority in my replies."),
 }
 

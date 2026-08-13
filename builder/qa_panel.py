@@ -128,8 +128,8 @@ DISCLAIMER = ("This report is provided for information purposes only. It "
 # the generic subscriber line above.
 MODEL_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. Only paid subscribers have access "
-    "to this page. We will update our yield curve model estimates "
+    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "subscribers. We will update our yield curve model estimates "
     "periodically, but in case the published estimate is more than 2 weeks "
     "old, paid subscribers can request an updated estimate and we should be "
     "able to reply within 2 business days.")
@@ -139,8 +139,8 @@ MODEL_BOTTOM_BANNER = (
 # when the IMF closes its COFER year.
 RESERVES_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. Only paid subscribers have access "
-    "to this page. The series are updated once a year, when the IMF closes "
+    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "subscribers. The series are updated once a year, when the IMF closes "
     "its COFER year.")
 
 # The paid tier of an article panel is a third case: it is a report's charts,
@@ -148,8 +148,8 @@ RESERVES_BOTTOM_BANNER = (
 # advertise the paid tier to a reader who is already inside it.
 FXJPY_PAID_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. Only paid subscribers have access "
-    "to this page. Each card links the tidy CSV behind its chart. Paid "
+    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "subscribers; each card links the tidy CSV behind its chart. Paid "
     "subscribers are encouraged to send questions on my research and receive "
     "priority in my replies.")
 
@@ -188,10 +188,34 @@ BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
                   "2026-08-12-boj-equity-bet-paid": BOJ_EB_PAID_BOTTOM_BANNER}
 
 
+# Sentences asserting an access control, in the spellings that have been used or
+# are near enough to be reached for. Forbidden in THIS repo only: jma-data is
+# public and "unlisted" authenticates nobody, so any such sentence is false to a
+# reader holding the URL. Takuji ruled on the wording 2026-08-13 -- he accepts
+# sharing ungated paid pages meanwhile (about ten paid subscribers; a
+# password-protected page is still being designed) -- and the five pages that
+# carried it were re-worded to "This page is shared with paid subscribers."
+#
+# The gated site is the other case and this must not follow the builder there:
+# on jma-data-paid, Cloudflare Access does enforce it, so the claim would be
+# TRUE. Hence the repo test rather than an unconditional gate. If that site ever
+# hosts these pages, re-gate the claim as a presence check; do not delete it.
+ACCESS_CLAIMS = ("Only paid subscribers have access",
+                 "only paid subscribers have access",
+                 "Subscribers only", "subscribers only",
+                 "paid subscribers only")
+PUBLIC_REPO = REPO.name == "jma-data"
+
+
 def qa_skin(page, bottom_banner) -> None:
     """The Web Report page identity — same fixed blocks on every panel page,
     with the bottom-banner wording checked against this page's approved text."""
     print("\nPage skin (fixed blocks)")
+    if PUBLIC_REPO:
+        found = [c for c in ACCESS_CLAIMS if c in page]
+        gate(len(ACCESS_CLAIMS) == 5 and not found,
+             "claims no access control this public repo does not have",
+             f"checked {len(ACCESS_CLAIMS)} spellings, found {found}")
     gate("../assets/jma-logo.png" in page
          and "Unbiased Opinion on Japan&rsquo;s Economy" in page,
          "masthead: logo + tagline present")
@@ -914,8 +938,13 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
          and f'href="{slug}/"' not in
          (REPO / "index.html").read_text(encoding="utf-8"),
          "unlisted: the page is not on the landing page")
-    gate("Only paid subscribers" in page,
-         "paid-access banner present (this is not a teaser page)")
+    # Re-pointed 2026-08-13, purpose unchanged: this page addresses paid
+    # subscribers rather than teasing them, and the banner is where it says so.
+    # It asserted the exclusivity sentence until Takuji retired that wording;
+    # the assertion moves to the sentence that replaced it rather than being
+    # dropped, which would leave the teaser/paid distinction unguarded.
+    gate("shared with paid subscribers" in page,
+         "paid-audience banner present (this is not a teaser page)")
     gate('class="assump"' in page
          and manifest["assumptions"]["heading"] in page,
          "the assumptions block is on the page, above the charts")
@@ -1764,8 +1793,8 @@ def qa_fx_reserve_jpy(root, manifest, page, figs) -> None:
         gate("workbook" not in manifest,
              "the paid page declares no workbook download: the .xlsx is Takuji's "
              "to send and jma-data is public")
-        gate("Only paid subscribers have access to this page" in page,
-             "paid page says so")
+        gate("This page is shared with paid subscribers" in page,
+             "paid page says who it is for")
 
     print("\nCross-tier equality")
     sibling = REPO / (FXJPY_FREE if is_paid_variant else FXJPY_PAID)
@@ -2000,16 +2029,9 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
     if is_paid_variant:
         gate("This page is shared with paid subscribers" in page,
              "the paid page says who it is for")
-        # Replaced, not dropped (Takuji, 2026-08-13). The first build carried
-        # the FX-paid page's "Only paid subscribers have access to this page".
-        # Nothing enforces that here, so it asserted an access control the page
-        # does not have; the claim is now gated on ABSENCE. Re-gate rather than
-        # delete if the password-protected site he is designing ever makes it
-        # true for this page.
-        for claim in ("Only paid subscribers have access",
-                      "subscribers only", "Subscribers only"):
-            gate(claim not in page,
-                 f"claims no access control it does not have: {claim!r}")
+        # The absence of the exclusivity claim was gated here first; it is now
+        # asserted in qa_skin for every page in this repo, which is strictly
+        # stronger -- it covers pages not yet written, not only this one.
         # The eight CSVs the cards link must actually be there and match the
         # free page's byte for byte: a link is only worth as much as its target.
         missing, differing = [], []
