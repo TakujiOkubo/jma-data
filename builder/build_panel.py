@@ -823,7 +823,12 @@ def fig_curve(spec: dict, rows: list[dict], T: dict) -> dict:
                      ticktext=[f"{t}Y" for t in tenors])),
     )
     layout["hovermode"] = "x unified"
-    layout["margin"]["b"] = layout["margin"]["b"] + 22   # room for the x title
+    # The x title and the legend both live below the axis: at base_layout's
+    # y=-0.14 the legend row sat ON the title (both pages' chart 6, caught in
+    # Takuji's 2026-08-15 review). Push the legend below the title and give
+    # the margin room for the two rows.
+    layout["legend"] = {**layout["legend"], "y": -0.26}
+    layout["margin"]["b"] = layout["margin"]["b"] + 58   # x title + legend row
     return dict(data=traces, layout=layout)
 
 
