@@ -89,6 +89,11 @@ tiers.
 > it is readable by anyone holding the URL. Access control is the separate gated
 > site, `jma-data-paid`, behind Cloudflare Access.
 
+`"site_nav": true` adds a visible "← All data packs" link at the very top of the
+page, above the masthead. Off by default, and pages without the key rebuild
+byte-identical — the link and its CSS are emitted only when declared. Built for
+the gated site, whose landing page is the only index its reader has.
+
 The tidy CSVs still live in `<slug>/data/` on a free page — they are the
 builder's input and the workbook's provenance. The page just doesn't offer them.
 The chart values are inline in `index.html` as figure JSON either way, so this

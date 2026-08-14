@@ -912,6 +912,16 @@ def build(slug: str) -> Path:
     # subscription buys.
     show_perk = tier == "free" and not downloads
 
+    # A visible way back to the landing index at the top of the page, for a
+    # site whose reader needs one (the gated site's ask, 2026-08-14). Emitted
+    # only for a page that declares it — an inert rule in every other page's
+    # stylesheet would change bytes on pages that are meant to rebuild
+    # byte-identical.
+    site_nav = manifest.get("site_nav", False)
+    if not isinstance(site_nav, bool):
+        raise SystemExit(f'panel.json: "site_nav" must be true or false, '
+                         f"got {site_nav!r}")
+
     cards, figs = [], []
     about_cards: dict[int, str] = {}   # exhibits embedded in the About section
     for spec in manifest["charts"]:
@@ -1126,6 +1136,8 @@ def build(slug: str) -> Path:
         # Same reason as scenario_css: an unused rule would change bytes on
         # pages that are meant to rebuild identically.
         perk_css=PERK_CSS if show_perk else "",
+        topnav=TOPNAV_HTML if site_nav else "",
+        topnav_css=TOPNAV_CSS if site_nav else "",
         disclaimer=DISCLAIMER_HTML,
         meta=meta,
         stamp=stamp,
@@ -1173,6 +1185,14 @@ PERK_CSS = """  .perk{margin:18px 0 0;font:400 14.5px/1.6 'Public Sans',sans-ser
         color:#54544e}
 """
 
+# The top-of-page link back to the landing index, injected only for a page
+# declaring "site_nav": true. Label matches the footer's existing "All data
+# packs" link so the two read as the same destination.
+TOPNAV_CSS = """  .topnav{max-width:680px;margin:0 auto 20px;
+          font:600 13px 'Public Sans',sans-serif}
+"""
+TOPNAV_HTML = '<p class="topnav"><a href="../">&larr; All data packs</a></p>\n'
+
 PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1191,7 +1211,7 @@ PAGE = """<!DOCTYPE html>
   a{{color:#3b65a2;text-decoration:none}}
   a:hover{{color:#2c4d7e;text-decoration:underline}}
   .text{{max-width:680px;margin-left:auto;margin-right:auto}}
-  .mrow{{display:flex;justify-content:space-between;align-items:flex-end;
+{topnav_css}  .mrow{{display:flex;justify-content:space-between;align-items:flex-end;
         padding-bottom:12px;border-bottom:2px solid #1c1c1c}}
   .mrow img{{height:24px;width:auto;display:block;flex:none}}
   .mdate{{font:400 12px 'Public Sans',sans-serif;color:#737373}}
@@ -1269,7 +1289,7 @@ PAGE = """<!DOCTYPE html>
 </style>
 </head>
 <body>
-<div class="text">
+{topnav}<div class="text">
   <div class="mrow">
     <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
     <span class="mdate">{mast_date}</span>
