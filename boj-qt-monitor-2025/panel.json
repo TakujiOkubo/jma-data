@@ -1,0 +1,34 @@
+{
+  "slug": "boj-qt-monitor-2025",
+  "audience": "free",
+  "title": "BoJ-QT progress monitor (Free edition)",
+  "date": "Data vintage December 2025",
+  "sort": "2025-12",
+  "standfirst": "The Bank of Japan's presence in the JGB market in five exhibits: its ownership share, where on the curve it sits, the average maturity of its book, its net purchases, and the supply the private market must absorb. This is the free edition, frozen at December 2025; the paid edition is updated monthly and carries the projection to 2030.",
+  "index_desc": "Key indicators for monitoring the BoJ's exit from QE: ownership ratio by maturity segment, average maturity of JGB and BoJ reserves combined, net purchases (purchases - redemptions), and the JGB supply the market must absorb. Free edition, frozen at December 2025.",
+  "tier": "free",
+  "downloads": false,
+  "charts": [
+    {
+      "n": 1,
+      "title": "BoJ's JGB ownership share"
+    },
+    {
+      "n": 2,
+      "title": "BoJ's JGB ownership by maturity segment"
+    },
+    {
+      "n": 3,
+      "title": "Average maturity of JGB owned by BoJ"
+    },
+    {
+      "n": 4,
+      "title": "BoJ's net JGB purchase"
+    },
+    {
+      "n": 5,
+      "title": "JGBs in private hands"
+    }
+  ],
+  "_note": "Derived by derive_free_qt_monitor.py from the paid page in jma-data-paid: data truncated at 2025-12, projection removed. This manifest exists so build_index.py can list the page; the page is not built by builder/build_panel.py. Frozen — do not refresh (Takuji, 2026-08-16)."
+}
