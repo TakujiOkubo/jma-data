@@ -156,11 +156,25 @@ FXJPY_PAID_BOTTOM_BANNER = (
 
 # Takuji's wording, 2026-08-12, for the equity-bet page ("our our" of his
 # request de-duplicated as an obvious typo):
-BOJ_EB_BOTTOM_BANNER = (
+# The free tier of a report page. Renamed from BOJ_EB_BOTTOM_BANNER on
+# 2026-08-19: two reports' free pages carry it, so naming it after the first of
+# them invited the next page to be given its own near-identical copy.
+#
+# The middle sentence was rewritten the same day (Takuji). It had promised
+# "model estimates for our proprietary models and Yield Curve Model", written
+# before the gated site existed; it now names the JMA Database and what a reader
+# can do there, deliberately NOT repeating the perk block higher up the page,
+# which lists the three datasets. His phrase, from his email to paid
+# subscribers: "not readily available in the public domain".
+#
+# The first sentence is TOP_BANNER verbatim and must stay so -- qa_skin gates
+# that it appears exactly twice on the page. The last sentence is his.
+FREE_REPORT_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. Paid subscribers have access to data "
-    "behind charts, as well as to model estimates for our proprietary models "
-    "and Yield Curve Model. Paid subscribers are encouraged to send questions "
+    "attribution to Japan Macro Advisors. Paid subscribers also get the JMA "
+    "Database, where every chart is interactive and the data behind it "
+    "downloads \u2014 proprietary estimates that are not readily available in "
+    "the public domain. Paid subscribers are encouraged to send questions "
     "on my research and receive priority in my replies in either English or "
     "Japanese.")
 
@@ -185,11 +199,11 @@ BOJ_EB_PAID_BOTTOM_BANNER = (
 BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
                   "global-fx-reserve-share": RESERVES_BOTTOM_BANNER,
                   "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER,
-                  "2026-08-12-boj-equity-bet": BOJ_EB_BOTTOM_BANNER,
+                  "2026-08-12-boj-equity-bet": FREE_REPORT_BOTTOM_BANNER,
                   "2026-08-12-boj-equity-bet-paid": BOJ_EB_PAID_BOTTOM_BANNER,
                   # Same approved wording as the 12 August pair, carried
                   # over verbatim; one banner sentence across the site.
-                  "2026-08-18-jgb-effective-rate": BOJ_EB_BOTTOM_BANNER,
+                  "2026-08-18-jgb-effective-rate": FREE_REPORT_BOTTOM_BANNER,
                   "2026-08-18-jgb-effective-rate-paid": BOJ_EB_PAID_BOTTOM_BANNER}
 
 
