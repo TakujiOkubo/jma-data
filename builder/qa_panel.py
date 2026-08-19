@@ -91,7 +91,7 @@ def qa_structure(manifest, page, figs) -> None:
     # that data as the thing a subscription buys -- which is the state a free
     # page with downloads would otherwise ship in.
     perk_present = ('class="perk"' in page
-                    and "Paid subscribers receive the data behind every chart"
+                    and PERK_MARKER
                     in page)
     gate(perk_present == show_perk,
          "perk block present exactly when the page offers no downloads and "
@@ -210,6 +210,12 @@ ACCESS_CLAIMS = ("Only paid subscribers have access",
                  "Subscribers only", "subscribers only",
                  "paid subscribers only")
 PUBLIC_REPO = REPO.name == "jma-data"
+
+# Enough of the perk sentence to identify it, in one place. The full sentence
+# lives in build_panel.PERK_HTML; gating a distinctive opening rather than the
+# whole thing means a comma moving does not fail every free page's QA, while a
+# rewrite -- which is what happened on 2026-08-19 -- still does.
+PERK_MARKER = "Paid subscribers get the JMA Database"
 
 
 def qa_skin(page, bottom_banner) -> None:
@@ -2017,7 +2023,7 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
              str(page.count('class="dl"')))
         gate("Each card links its own CSV." in page,
              "the closing line advertises the links the page actually carries")
-        gate("Paid subscribers receive the data behind every chart" not in page,
+        gate(PERK_MARKER not in page,
              "the perk block is suppressed: a page handing out its data cannot "
              "also sell that data")
     else:
@@ -2025,7 +2031,7 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
              "no per-chart download link on any of the eight exhibits")
         gate("Each card links its own CSV." not in page,
              "and the closing line does not advertise one")
-        gate("Paid subscribers receive the data behind every chart" in page,
+        gate(PERK_MARKER in page,
              "the free-tier perk block states what a subscription buys")
     gate("Download the full workbook" not in page,
          "no workbook button on either tier")
@@ -2370,7 +2376,7 @@ def qa_jgb_effective_rate(root, manifest, page, figs) -> None:
              f"{n_dl} links")
         gate("Each card links its own CSV." not in page,
              "and the closing line does not advertise one")
-        gate("Paid subscribers receive the data behind every chart" in page,
+        gate(PERK_MARKER in page,
              "the free-tier perk block states what a subscription buys")
     gate("Download the full workbook" not in page,
          "no workbook button on either tier")

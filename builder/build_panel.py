@@ -141,9 +141,26 @@ SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 # subscription buys. Takuji reserved the free-page-with-downloads case as a
 # per-page exception on 2026-08-11; this is what makes it expressible without
 # omitting "tier" and thereby recording a new page as pre-rule.
+# The perk sentence names what a subscription buys, above the Subscribe button
+# on a free page. Rewritten 2026-08-19 (Takuji): it had promised "the data behind
+# every chart as an Excel workbook, plus access to our JGB yield-curve model
+# pages", written before the gated site existed. The paid offer is now the JMA
+# Database at jma-data-paid.pages.dev, and he describes it to subscribers by
+# naming the three datasets, so the page now says what his email says. The
+# workbook is no longer named: it is still produced per report, but it is no
+# longer the headline of what a subscription buys.
+#
+# Two lines at the 680px text column is the constraint he set — about 180
+# characters, and this is 178. Measured in the rendered page, not estimated. It
+# wraps further on a phone, as the sentence it replaces also did.
+#
+# This is a fixed block: changing it changes every free page carrying it, which
+# is the point — one claim across the site, as with the exclusivity sentence
+# retired on 2026-08-13.
 PERK_HTML = (
-    '<p class="perk">Paid subscribers receive the data behind every chart as '
-    "an Excel workbook, plus access to our JGB yield-curve model pages.</p>\n"
+    '<p class="perk">Paid subscribers get the JMA Database: the proprietary '
+    "estimates behind my research — the BoJ-QT progress monitor, the JGB "
+    "yield-curve model, and global FX reserves back to 1980.</p>\n"
     f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>')
 DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
                    "does not constitute investment advice or an offer or "
