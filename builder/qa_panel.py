@@ -12,6 +12,7 @@ gate computed on anything other than the object that ships is not a gate.
 from __future__ import annotations
 
 import csv
+from collections import defaultdict
 import html
 import json
 import re
@@ -185,7 +186,11 @@ BOTTOM_BANNERS = {"jgb-yield-curve-model": MODEL_BOTTOM_BANNER,
                   "global-fx-reserve-share": RESERVES_BOTTOM_BANNER,
                   "2026-08-04-fx-reserve-jpy-paid": FXJPY_PAID_BOTTOM_BANNER,
                   "2026-08-12-boj-equity-bet": BOJ_EB_BOTTOM_BANNER,
-                  "2026-08-12-boj-equity-bet-paid": BOJ_EB_PAID_BOTTOM_BANNER}
+                  "2026-08-12-boj-equity-bet-paid": BOJ_EB_PAID_BOTTOM_BANNER,
+                  # Same approved wording as the 12 August pair, carried
+                  # over verbatim; one banner sentence across the site.
+                  "2026-08-18-jgb-effective-rate": BOJ_EB_BOTTOM_BANNER,
+                  "2026-08-18-jgb-effective-rate-paid": BOJ_EB_PAID_BOTTOM_BANNER}
 
 
 # Sentences asserting an access control, in the spellings that have been used or
@@ -2071,7 +2076,328 @@ def qa_boj_equity_bet(root, manifest, page, figs) -> None:
          f"{compared} exhibits vs {sibling.name}")
 
 
+# --------------------------------------------------- 2026-08-18 effective rate
+JGB_ER_FREE = "2026-08-18-jgb-effective-rate"
+JGB_ER_PAID = "2026-08-18-jgb-effective-rate-paid"
+
+# The chart library on Drive, as build_panel.py resolves it. These gates read
+# two things from it that the page's own folder cannot corroborate: the table
+# script's published markdown twin, and the master's stock column, which the
+# page deliberately does not carry.
+CHARTS_ROOT = Path(r"G:\My Drive\charts")
+
+# The delivered artifact of the table script: it emits the .png the report
+# carries and this .md twin from the same rows in the same run. The page's table
+# is gated against it cell by cell, which is stronger than gating against the
+# CSV the page was built from -- that CSV and the page share an origin, so they
+# would agree even if the cut had selected the wrong thing.
+COUPON_MD = (CHARTS_ROOT / "fiscal/jgb-coupon-composition/output"
+             / "jgb_coupon_composition_table_20260819.md")
+# Fiscal years fully covered by the 12 August page's monthly policy path. Both
+# pages are published artifacts; this is the cross-publication check.
+EB_POLICY_CSV = REPO / "2026-08-12-boj-equity-bet/data/chart-5-policy-scenarios.csv"
+
+
+def _rows(root: Path, csv_name: str) -> list[dict]:
+    with open(root / "data" / csv_name, newline="", encoding="utf-8-sig") as f:
+        return list(csv.DictReader(f))
+
+
+def _page_table(page: str) -> list[list[str]]:
+    """The delivered table's body cells, row by row, re-parsed from the HTML."""
+    block = re.search(r'<div class="tablewrap">.*?</table>', page, re.S)
+    if not block:
+        return []
+    return [[html.unescape(c) for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+            for tr in re.findall(r"<tr[^>]*>.*?</tr>", block.group(0), re.S)
+            if "<td" in tr]
+
+
+def _md_table(path: Path) -> list[list[str]]:
+    """The published markdown twin's body cells, bold markers stripped."""
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line.startswith("|") or set(line) <= set("|-: "):
+            continue
+        cells = [c.strip().replace("**", "") for c in line.strip("|").split("|")]
+        if cells[0] in ("", "Outstanding, ¥trn"):     # the header row
+            continue
+        out.append(cells)
+    return out
+
+
+def qa_jgb_effective_rate(root, manifest, page, figs) -> None:
+    is_paid = manifest["slug"] == JGB_ER_PAID
+    n_exhibits = len(manifest["charts"])
+
+    print("Table 1 — against the published markdown twin")
+    got, want = _page_table(page), _md_table(COUPON_MD)
+    # Assert there is something to check BEFORE asserting agreement. A gate that
+    # matched no rows would report "identical" and mean nothing.
+    gate(len(got) == 6 and len(want) == 6,
+         "the delivered table has six body rows and so does the published twin",
+         f"page {len(got)}, published {len(want)}")
+    if len(got) == len(want) == 6:
+        bad = [(i, g, w) for i, (g, w) in enumerate(zip(got, want)) if g != w]
+        gate(not bad, "all 24 cells match the published table cell for cell",
+             f"{len(got) * 4 - len(bad) * 4}/24 agree" if bad else "24/24")
+        for i, g, w in bad:
+            print(f"        row {i}: page {g} != published {w}")
+    # The row accents are the exhibit's argument, not decoration: the table is
+    # titled after the coral row. Each must mark exactly one row.
+    for cls, label in (("focal", "Coupon ≤ 0.5%"), ("strong", "All marketable"),
+                       ("rule", "> 2.0%")):
+        hits = [html.unescape(h) for h in re.findall(
+            rf'<tr class="[^"]*\b{cls}\b[^"]*"><td[^>]*>(.*?)</td>', page)]
+        gate(hits == [label], f"the {cls} accent marks exactly the {label!r} row",
+             f"marked {hits}")
+    gate("table.fc tr.focal td{color:#D85A30" in page,
+         "and the accent stylesheet is on the page")
+    gate("Source: MoF, JSDA, JMA estimates." in page, "Table 1 source note")
+    gate("T-bills carry no coupon" in page, "and its asterisk footnote")
+
+    print("\nChart 1 — the 2% scenario, both panels")
+    f1 = figs["chart_2"]
+    er = _rows(root, "chart-2-effective-rate.csv")
+    by = {r["fy"]: r for r in er}
+    gate(len(f1["data"]) == 5,
+         "five traces: two lines split solid/dotted, plus the bars",
+         f"{len(f1['data'])} traces")
+    # Each figure the report prints, at the precision the report prints it in.
+    for fy, key, want, what in (("2026", "eff_rate", 1.1, "effective rate FY2026"),
+                                ("2028", "eff_rate", 1.6, "effective rate FY2028"),
+                                ("2025", "eff_rate", 0.8, "effective rate FY2025")):
+        gate(round(float(by[fy][key]), 1) == want, f"{what} is {want}%",
+             f"{float(by[fy][key]):.4f}")
+    gate(float(by["2028"]["policy_rate"]) == 2.0,
+         "the policy rate reaches 2.0% in FY2028 — the 2% scenario, as published",
+         f'{by["2028"]["policy_rate"]}')
+    gate(float(by["2028"]["policy_rate"]) != 1.5,
+         "and is NOT the 1.5% main case, which sits beside it in the master file")
+    gate(round(float(by["2028"]["interest_bill"]), 1) == 21.3,
+         "the interest bill reaches ¥21.3trn in FY2028")
+    gate(round(float(by["2028"]["interest_bill"])
+               / float(by["2025"]["interest_bill"]), 1) == 2.0,
+         "which is double the FY2025 bill, as the report says",
+         f'{float(by["2028"]["interest_bill"]) / float(by["2025"]["interest_bill"]):.3f}x')
+    eff = [t for t in f1["data"]
+           if t.get("name", "").startswith("Effective rate")]
+    drawn = [y for t in eff for y in t["y"] if y is not None]
+    pol = [y for t in f1["data"] if t.get("name", "").startswith("BoJ")
+           for y in t["y"] if y is not None]
+    gate(len(eff) == 2 and drawn and max(drawn) < 2.0,
+         'the title\'s claim: the effective rate stays "below 2% for some time"',
+         f"{len(eff)} effective-rate legs peaking at {max(drawn)}%, against "
+         f"a policy rate reaching {max(pol)}%")
+    # Both panels must come from ONE scenario. Bill / rate re-derives the stock
+    # the master carries; a bill cut from the main case against a rate cut from
+    # the risk case would still plot plausibly and would fail here.
+    master = {r["fy"]: r for r in csv.DictReader(
+        open(CHARTS_ROOT / "fiscal/jgb-effective-rate/jgb_effective_rate_data.csv",
+             encoding="utf-8"))}
+    worst, n = 0.0, 0
+    for fy, r in by.items():
+        implied = float(r["interest_bill"]) / (float(r["eff_rate"]) / 100)
+        worst = max(worst, abs(implied - float(master[fy]["stock_all_trn"])))
+        n += 1
+    gate(n == 14 and worst < 0.5,
+         "bill ÷ rate re-derives the debt stock in all 14 years — one scenario, "
+         "not two", f"{n} years, worst gap ¥{worst:.3f}trn")
+    bars = [t for t in f1["data"] if t["type"] == "bar"][0]
+    cols = bars["marker"]["color"]
+    gate(bars.get("yaxis") == "y2" and cols.count("#A8CEEE") == 3
+         and cols.count("#378ADD") == 11,
+         "the bars sit on the lower panel, three of them paled as projections",
+         f'{cols.count("#A8CEEE")} pale of {len(cols)}')
+    ytop, ybot = f1["layout"]["yaxis"]["domain"], f1["layout"]["yaxis2"]["domain"]
+    gate(ybot[1] < ytop[0],
+         "the two panels do not overlap, and share one x-axis",
+         f"top {ytop}, bottom {ybot}")
+    gate(f1["layout"]["yaxis2"]["title"]["text"] == "Interest bill, ¥trn",
+         "the lower panel carries its own axis title")
+    gate(not any("main" in str(t.get("name", "")).lower() for t in f1["data"]),
+         "ABSENCE: the 1.5% main case is on no trace of this chart")
+    gate(all("main" not in c for c in er[0]),
+         "ABSENCE: and no main-case column reached the page's CSV",
+         f"columns {list(er[0])}")
+
+    print("\nChart 1 — cross-publication against the 12 August page")
+    # Two independently published artifacts. Ours is the fiscal-year average of
+    # the monthly path the equity-bet page plots, so the check is an average,
+    # not a copy -- which is what makes it worth running.
+    fyavg = defaultdict(list)
+    for r in csv.DictReader(open(EB_POLICY_CSV, encoding="utf-8")):
+        v = r["case_2_0"].strip()
+        if v:
+            y, mth = int(r["ym"][:4]), int(r["ym"][5:7])
+            fyavg[y - 1 if mth < 4 else y].append(float(v))
+    full = {y: sum(v) / 12 for y, v in fyavg.items()
+            if len(v) == 12 and str(y) in by}
+    gate(len(full) == 2, "two fiscal years are fully covered on both pages",
+         f"FY{sorted(full)}")
+    bad = {y: (a, float(by[str(y)]["policy_rate"])) for y, a in full.items()
+           if round(a, 4) != round(float(by[str(y)]["policy_rate"]), 4)}
+    gate(full and not bad,
+         "the 2% policy path agrees with the 12 August page to 4dp", str(bad))
+
+    print("\nChart 2 — the Indebted Five's maturity")
+    f2 = figs["chart_3"]
+    lines = [t for t in f2["data"] if t["type"] == "scatter"]
+    gate(len(lines) == 5, "five countries drawn", f"{len(lines)} traces")
+    mat = _rows(root, "chart-3-debt-avg-maturity.csv")
+
+    def _last(c):
+        return next(float(r[c]) for r in reversed(mat) if r[c])
+
+    for c, want in (("japan", 8.6), ("france", 8.5), ("italy", 7.0),
+                    ("us", 5.8), ("uk", 13.4)):
+        gate(round(_last(c), 1) == want, f"{c} ends at {want} years",
+             f"{_last(c):.4f}")
+    gate(_last("japan") > _last("france"),
+         "Japan sits just above France, as the report argues",
+         f'{_last("japan") - _last("france"):.2f} years apart')
+    uk = trace(f2, "UK")
+    pts = sum(1 for y in uk["y"] if y is not None)
+    gate(uk["connectgaps"] is True and 0 < pts < len(uk["y"]) / 2,
+         "the UK line is bridged across its quarterly gaps and actually draws",
+         f"{pts} points on a {len(uk['y'])}-row monthly grid")
+    # Replaces an earlier gate asserting only the UK was bridged. The published
+    # script drops blanks per series and connects what is left, so every line
+    # there is drawn across its reporting gaps; bridging only the UK left
+    # Japan broken in 33 places and France in 5. Bridging is safe only while
+    # the gaps stay short, so the length is gated too -- a bridge over a long
+    # outage would draw a straight line through months nobody measured.
+    gate(all(t["connectgaps"] is True for t in lines),
+         "every line is bridged across its reporting gaps, as published",
+         f'{sum(1 for t in lines if t["connectgaps"])} of {len(lines)}')
+    longest = {}
+    for t in lines:
+        run = best = 0
+        seen = False
+        for y in t["y"]:
+            if y is None:
+                run += 1 if seen else 0
+            else:
+                seen, best, run = True, max(best, run), 0
+        longest[t["name"]] = best
+    gate(longest and max(longest.values()) <= 2,
+         "and no bridged gap is longer than two months",
+         f"longest run per series {longest}")
+    gate("Germany" not in json.dumps(f2) and "deu" not in json.dumps(f2),
+         "ABSENCE: Germany is not on the chart (dropped for the Indebted Five)")
+
+    print("\nChart 3 — net interest, % of GDP")
+    f3 = figs["chart_4"]
+    ni = _rows(root, "chart-4-net-interest-pgdp.csv")
+    byy = {r["date"][:4]: r for r in ni}
+    gate(len(f3["data"]) == 10,
+         "five countries, each split into a solid and a dotted leg",
+         f"{len(f3['data'])} traces")
+    for yr, want in (("2026", {"japan": 0.3, "us": 3.8, "italy": 3.6,
+                               "uk": 2.7, "france": 2.2}),
+                     ("2031", {"japan": 1.7, "us": 4.3, "italy": 4.3,
+                               "france": 3.3, "uk": 3.0})):
+        bad = {k: byy[yr][k] for k, v in want.items()
+               if round(float(byy[yr][k]), 1) != v}
+        gate(not bad, f"every {yr} reading matches the report", str(bad))
+    five = ["japan", "us", "italy", "france", "uk"]
+    complete = [r for r in ni if all(r[c] for c in five)]
+    off = [r["date"][:4] for r in complete
+           if min(five, key=lambda c: float(r[c])) != "japan"]
+    gate(len(complete) == 31 and not off,
+         'the title\'s claim: Japan is the lowest of the five in every year drawn',
+         f"{len(complete)} complete years, {len(off)} where it is not")
+    gate("Germany" not in json.dumps(f3) and "Canada" not in json.dumps(f3),
+         "ABSENCE: neither Germany nor Canada is drawn — both are below Japan "
+         "at points, which is why the claim reads Indebted Five and not G7")
+
+    print("\nChart 4 — consolidated maturity")
+    f4 = figs["chart_5"]
+    cm = _rows(root, "chart-5-consolidated-maturity.csv")
+    gate(len(f4["data"]) == 4, "two band edges and two lines",
+         f"{len(f4['data'])} traces")
+    gate(round(float(cm[-1]["gross_years"]), 1) == 8.6,
+         "gross maturity ends at 8.6 years")
+    gate(round(float(cm[-1]["consolidated_years"]), 1) == 6.5,
+         "consolidated ends at 6.5 years — the report's figure")
+    trough = min((r for r in cm if r["date"] >= "2013-06"),
+                 key=lambda r: float(r["consolidated_years"]))
+    gate(round(float(trough["consolidated_years"]), 1) == 5.0
+         and trough["date"][:7] == "2021-05", "the trough is 5.0y in May 2021",
+         f'{trough["consolidated_years"]} {trough["date"]}')
+    hl = [s for s in f4["layout"].get("shapes", []) if s.get("xref") == "paper"]
+    gate(len(hl) == 1 and round(hl[0]["y0"], 4) == 6.4421,
+         "one reference line, at the pre-QQE consolidated level",
+         f"{[round(s['y0'], 4) for s in hl]}")
+    inside = [a for a in f4["layout"].get("annotations", [])
+              if a["text"].startswith("Pre-QQE")]
+    gate(len(inside) == 1 and inside[0]["x"] == 0.02,
+         "its label sits inside the frame, not in the right margin")
+    gate(f4["layout"]["margin"]["r"] <= 60,
+         "so the right margin is not widened to hold a sentence",
+         f'{f4["layout"]["margin"]["r"]}px')
+    eps = [a["text"] for a in f4["layout"].get("annotations", [])
+           if a["text"] in ("CME", "QQE", "YCC", "Exit")]
+    gate(sorted(eps) == ["CME", "Exit", "QQE", "YCC"],
+         "all four episode markers are drawn", str(eps))
+    ref = [r for r in cm if r["date"].startswith("2013-03")][0]
+    shaded = sum(1 for r in cm if r["band_hi"])
+    gate(ref["band_hi"] == "" and 0 < shaded < len(cm),
+         "the band is unshaded before QQE, where the two lines cross",
+         f"{shaded} shaded of {len(cm)} months")
+
+    print("\nWhat this page offers")
+    n_dl = page.count('class="dl"')
+    if is_paid:
+        gate(n_dl == n_exhibits,
+             "every exhibit carries a Download CSV link", f"{n_dl} links")
+        gate("This page is shared with paid subscribers" in page,
+             "the paid page says who it is for")
+        missing, differing = [], []
+        for c in manifest["charts"]:
+            name = Path(c["csv"]).name
+            mine, theirs = root / "data" / name, REPO / JGB_ER_FREE / "data" / name
+            if not mine.exists():
+                missing.append(name)
+            elif mine.read_bytes() != theirs.read_bytes():
+                differing.append(name)
+        gate(n_exhibits == 5 and not missing and not differing,
+             "all five linked CSVs are present and byte-identical to the free "
+             "page's", f"missing {missing}, differing {differing}")
+    else:
+        gate(n_dl == 0, "no per-chart download link on any exhibit",
+             f"{n_dl} links")
+        gate("Each card links its own CSV." not in page,
+             "and the closing line does not advertise one")
+        gate("Paid subscribers receive the data behind every chart" in page,
+             "the free-tier perk block states what a subscription buys")
+    gate("Download the full workbook" not in page,
+         "no workbook button on either tier")
+    gate("workbook" not in manifest, "and no workbook declared")
+
+    print("\nCross-tier equality")
+    sibling = REPO / (JGB_ER_FREE if is_paid else JGB_ER_PAID)
+    if not (sibling / "index.html").exists():
+        gate(False, "the sibling tier is built, so the two can be compared",
+             f"{sibling.name} has no index.html")
+        return
+    spage, sfigs = load_delivered(sibling)
+    gate(set(sfigs) == set(figs) and len(figs) == 4,
+         "both tiers carry the same four figures", f"{sorted(figs)}")
+    bad = [k for k in figs if json.dumps(figs[k], sort_keys=True)
+           != json.dumps(sfigs.get(k), sort_keys=True)]
+    gate(figs and not bad,
+         "every exhibit's delivered figure JSON is identical across the tiers",
+         f"differing: {bad}")
+    # The table is not a figure and would slip through a figure-only comparison.
+    gate(_page_table(page) and _page_table(page) == _page_table(spage),
+         "and the delivered table is identical across the tiers too")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
+      JGB_ER_FREE: qa_jgb_effective_rate,
+      JGB_ER_PAID: qa_jgb_effective_rate,
       BOJ_EB_FREE: qa_boj_equity_bet,
       BOJ_EB_PAID: qa_boj_equity_bet,
       "jgb-yield-curve-model": qa_yield_curve,

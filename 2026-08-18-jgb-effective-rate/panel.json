@@ -1,0 +1,146 @@
+{
+  "slug": "2026-08-18-jgb-effective-rate",
+  "title": "The Land of the Slowly Rising Coupon",
+  "date": "19 August 2026",
+  "masthead_date": "19 August 2026",
+  "post_url": "https://takujiokubo.substack.com/p/the-land-of-the-slowly-rising-coupon",
+  "unlisted": true,
+  "tier": "free",
+  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. Paid subscribers have access to data behind charts, as well as to model estimates for our proprietary models and Yield Curve Model. Paid subscribers are encouraged to send questions on my research and receive priority in my replies in either English or Japanese.",
+  "standfirst": "Some people started talking about a debt crisis in Japan. In this report, I discuss why Japan's net interest payments will remain the lowest among the Indebted Five: US, UK, France, Italy and Japan",
+  "_note": "Titles, subtitles and source notes are the TITLE / SUBTITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim. Data cut from the library master CSVs by cut_data.py per the exhibit ledger in the report record (30.Reports/2026-08/2026-08-18-jgb-effective-rate-sub.md), which re-derives every figure the report prints and refuses to write on disagreement. The page carries the five published exhibits only (Takuji's ruling, 2026-08-12: a report page shows the report's charts). The slug follows the report's own date, 18 August; the masthead carries the publication date, 19 August. Germany is absent from charts 2 and 3, and Canada was never in the net-interest file at all -- that omission is why the claim reads 'Indebted Five' and not G7, and neither country may be restored without re-checking the claim.",
+  "_series_order": "No two series share a history column on any exhibit here, so the shared-history colour trap does not arise. Chart 1 and Chart 3 carry one column per series plus a phase flag, split solid over the actuals and dotted over the projection. On Chart 4 the shaded band is listed before the two lines so they draw on top of it.",
+  "charts": [
+    {
+      "n": 1,
+      "label": "Table 1",
+      "kind": "table",
+      "title": "35% of JGBs pay coupons of 0.5% or less",
+      "subtitle": "Marketable JGBs + T-bills by coupon, July 2026",
+      "source": "Source: MoF, JSDA, JMA estimates.",
+      "note": "* T-bills carry no coupon; figure is the outstanding-weighted average auction yield of the live bill stock (MOF auction results).",
+      "csv": "data/chart-1-coupon-composition.csv",
+      "columns": [
+        {"col": "bucket", "label": ""},
+        {"col": "outstanding", "label": "Outstanding, ¥trn"},
+        {"col": "share", "label": "Share"},
+        {"col": "avg_coupon", "label": "Avg coupon"}
+      ],
+      "rule_after_col": "bucket",
+      "rule_after_value": "> 2.0%",
+      "focal_col": "bucket",
+      "focal_value": "Coupon ≤ 0.5%",
+      "strong_col": "bucket",
+      "strong_value": "All marketable"
+    },
+    {
+      "n": 2,
+      "label": "Chart 1",
+      "kind": "line_bars",
+      "title": "Effective rate will be below 2% for some time",
+      "subtitle": "Effective interest rate on JGBs + T-bills vs BoJ policy rate",
+      "source": "Source: MoF, BoJ, JMA estimates. FY2026-28 are based on 2% terminal rate scenario.",
+      "csv": "data/chart-2-effective-rate.csv",
+      "x": "fy",
+      "decimals": 2,
+      "split_col": "phase",
+      "solid_value": "actual",
+      "series": [
+        {"col": "eff_rate", "label": "Effective rate on the debt (%)", "color": "#378ADD", "width": 2.4},
+        {"col": "policy_rate", "label": "BoJ policy rate, FY avg (%)", "color": "#D85A30", "width": 2}
+      ],
+      "bars": {
+        "col": "interest_bill",
+        "label": "Interest bill (¥trn)",
+        "color": "#378ADD",
+        "proj_color": "#A8CEEE"
+      },
+      "ylabel": "%",
+      "ylabel2": "Interest bill, ¥trn",
+      "yrange": [-0.25, 2.3],
+      "ytick": [0, 0.5, 1.0, 1.5, 2.0],
+      "y2range": [0, 25],
+      "y2tick": [0, 10, 20],
+      "row_heights": [0.6, 0.4],
+      "height": 560,
+      "note": "The 2% terminal-rate scenario is drawn, as published. The 1.5% main case is held in the chart library's master file and is deliberately not on this page."
+    },
+    {
+      "n": 3,
+      "label": "Chart 2",
+      "kind": "line",
+      "title": "Average maturity of government debt",
+      "subtitle": "UK's is 13.4 years, but it issues sizable inflation indexed bonds",
+      "source": "Source: UK DMO, US Treasury (MSPD), Italy MEF, Agence France Trésor, JMA estimate for Japan's. Bonds plus bills; loans excluded. JGB includes FILP bonds and T-bills include FB.",
+      "ylabel": "years",
+      "csv": "data/chart-3-debt-avg-maturity.csv",
+      "x": "date",
+      "start": "2001-01-01",
+      "decimals": 2,
+      "yrange": [4, 16],
+      "series": [
+        {"col": "japan", "label": "Japan", "color": "#D85A30", "connect_gaps": true},
+        {"col": "uk", "label": "UK", "color": "#EF9F27", "connect_gaps": true},
+        {"col": "france", "label": "France", "color": "#888780", "connect_gaps": true},
+        {"col": "italy", "label": "Italy", "color": "#2C2C2A", "connect_gaps": true},
+        {"col": "us", "label": "US", "color": "#378ADD", "connect_gaps": true}
+      ],
+      "note": "All five on one definition: gross marketable central-government securities, coupon bonds plus short-term bills, loans excluded. The UK is published quarterly, the others monthly; every line is drawn across its reporting gaps, as the published chart does."
+    },
+    {
+      "n": 4,
+      "label": "Chart 3",
+      "kind": "line",
+      "title": "Among the \"Indebted Five\", Japan pays the lowest interest",
+      "subtitle": "General government net interest paid, % of GDP; dashed = IMF projection",
+      "source": "Source: IMF WEO (Apr 2026), JMA. Net interest = interest expense minus interest revenue, general government.",
+      "ylabel": "% of GDP",
+      "csv": "data/chart-4-net-interest-pgdp.csv",
+      "x": "date",
+      "start": "1999-12-31",
+      "decimals": 2,
+      "split_col": "phase",
+      "solid_value": "actual",
+      "series": [
+        {"col": "japan", "label": "Japan", "color": "#D85A30"},
+        {"col": "us", "label": "US", "color": "#378ADD"},
+        {"col": "italy", "label": "Italy", "color": "#2C2C2A"},
+        {"col": "france", "label": "France", "color": "#888780"},
+        {"col": "uk", "label": "UK", "color": "#EF9F27"}
+      ],
+      "note": "The WEO publishes no interest series; net interest is its overall balance minus its primary balance, computed by JMA."
+    },
+    {
+      "n": 5,
+      "label": "Chart 4",
+      "kind": "line",
+      "title": "QT is restoring the average maturity length lost due to QE",
+      "source": "Source: MoF, BoJ, JMA. JGBs incl. FILP bonds and T-bills. Consolidated = JGBs held outside the BoJ plus excess reserves at zero maturity.",
+      "ylabel": "Average remaining maturity, years",
+      "csv": "data/chart-5-consolidated-maturity.csv",
+      "x": "date",
+      "decimals": 2,
+      "yrange": [4.0, 10.2],
+      "band": {
+        "hi": "band_hi",
+        "lo": "band_lo",
+        "label": "Shortening from consolidating the BoJ",
+        "fillcolor": "rgba(168,206,238,0.35)"
+      },
+      "series": [
+        {"col": "gross_years", "label": "JGB including T-bills", "color": "#378ADD"},
+        {"col": "consolidated_years", "label": "Consolidated (MoF + BoJ)", "color": "#D85A30"}
+      ],
+      "hlines": [
+        {"y": 6.4421, "label": "Pre-QQE consolidated level, 6.4y (Mar 2013)", "label_pos": "inside"}
+      ],
+      "vlines": [
+        {"x": "2010-10", "label": "CME"},
+        {"x": "2013-04", "label": "QQE"},
+        {"x": "2016-09", "label": "YCC"},
+        {"x": "2024-03", "label": "Exit"}
+      ],
+      "note": "Reused from the 17 August QT-monitor report, unchanged. The band is unshaded before QQE, where the consolidated measure sits above the gross one."
+    }
+  ]
+}

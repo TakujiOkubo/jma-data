@@ -51,8 +51,15 @@ MANIFEST (panel.json)
             See "WHAT A PAGE OFFERS" below for how downloads and tier interact.
     charts: [ {n, kind, title, subtitle, ylabel, source, csv, ...} ]
 
-    kind "line"     x, start, end, series[{col,label,color,dash}],
-                    hlines[{y,label}], decimals
+    kind "line"     x, start, end, series[{col,label,color,dash,connect_gaps}],
+                    hlines[{y,label}], vlines[{x,label}], decimals
+    kind "line_bars"
+                    two stacked panels on ONE shared x-axis: the "line" kind's
+                    series above, a bar series below, each with its own y-axis.
+                    x, start, end, series[], split_col/solid_value,
+                    bars{col,label,color,proj_color}, row_heights[2], row_gap,
+                    yrange/ytick + ylabel (top), y2range/y2tick + ylabel2
+                    (bottom), hlines[{y,label}], vlines[{x,label}], decimals
     kind "bar_line" x, resample ("year_end"), bars[{col,label,color}],
                     line{col,label,color} (optional), flag_col, flag_note,
                     hlines[{y,label}], decimals
@@ -63,7 +70,10 @@ MANIFEST (panel.json)
                     year_col, q_col, value{col,pos_label,neg_label,
                     pos_color,neg_color}, flag_col, line{col,label,color},
                     yrange/ytick, y2range/y2tick, hlines2[{y,label}]
-    kind "table"    columns[{col,label}], row_label_col, rule_after_col/value
+    kind "table"    columns[{col,label}], row_label_col, rule_after_col/value,
+                    focal_col/focal_value (the row the headline is about, set
+                    coral), strong_col/strong_value (the total row). Each must
+                    match exactly one row or the build stops.
 """
 
 from __future__ import annotations
@@ -243,7 +253,20 @@ def apply_hlines(spec: dict, layout: dict, T: dict) -> None:
             y0=h["y"], y1=h["y"],
             line=dict(color=T["GREY"], width=1.4, dash="dash"), layer="below",
         ))
-        if h.get("label"):
+        if not h.get("label"):
+            continue
+        # "inside" sets the label just above the line at the left, where the
+        # published consolidated-maturity chart puts it, instead of in the right
+        # margin. A sentence-length label ("Pre-QQE consolidated level, 6.4y
+        # (Mar 2013)") margined to fit would have taken 300px off a 1180px
+        # frame — a quarter of the plot spent on the caption for one line.
+        if h.get("label_pos") == "inside":
+            annos.append(dict(
+                xref="paper", x=0.02, yref="y", y=h["y"], text=h["label"],
+                showarrow=False, xanchor="left", yanchor="bottom",
+                font=dict(size=11, color=T["GREY"]), yshift=3,
+            ))
+        else:
             annos.append(dict(
                 xref="paper", x=1, yref="y", y=h["y"], text=h["label"],
                 showarrow=False, xanchor="left", yanchor="middle",
@@ -253,13 +276,136 @@ def apply_hlines(spec: dict, layout: dict, T: dict) -> None:
         layout["shapes"] = layout.get("shapes", []) + shapes
     if annos:
         layout["annotations"] = layout.get("annotations", []) + annos
-        # An hline label sits in the right margin. The default 60px holds a
-        # short one ("4%") but clipped "Terminal 1.50%" to "Terminal", so the
+        # A margined hline label sits in the right margin. The default 60px holds
+        # a short one ("4%") but clipped "Terminal 1.50%" to "Terminal", so the
         # margin is sized to the longest label rather than left at a width
-        # that happens to fit the labels used so far.
-        longest = max(len(h["label"]) for h in spec["hlines"] if h.get("label"))
-        layout["margin"]["r"] = max(layout["margin"]["r"],
-                                    18 + int(longest * 6.6))
+        # that happens to fit the labels used so far. Labels placed inside the
+        # frame are excluded — they need no margin, and counting them would
+        # reintroduce exactly the waste "inside" exists to avoid.
+        margined = [h["label"] for h in spec["hlines"]
+                    if h.get("label") and h.get("label_pos") != "inside"]
+        if margined:
+            layout["margin"]["r"] = max(layout["margin"]["r"],
+                                        18 + int(max(map(len, margined)) * 6.6))
+
+
+def x_ref(xs: list[str], i: int, cat: bool):
+    """Where a shape or annotation on the x-axis must be anchored.
+
+    On a date axis that is the x value itself. On a CATEGORY axis it must be the
+    category's index: Plotly coerces a numeric-looking category value to a
+    number, so a forecast boundary written as "2025" is placed at category slot
+    2025 and stretches the axis to 2025 slots, squeezing fourteen fiscal years
+    into the leftmost half per cent of the frame. Every numeric gate passes on
+    that page -- the figure JSON is correct and only the drawing is wrong, which
+    is why it was found by rendering it and looking.
+    """
+    return i if cat else xs[i]
+
+
+def apply_vlines(spec: dict, layout: dict, T: dict, xs: list[str],
+                 cat: bool = False) -> None:
+    """Episode markers — a dotted vertical and a label at the top of the frame.
+
+    The consolidated-maturity chart's CME / QQE / YCC / Exit marks are what let a
+    reader attribute the fall and the recovery to the policy that caused them;
+    without them the chart is two lines that happen to move. Written as a shared
+    helper for the same reason apply_hlines is one.
+
+    The x value is matched against the axis values actually plotted rather than
+    passed through to Plotly raw: a marker for a month the page does not cover
+    would otherwise be placed silently outside the frame, and the miss would look
+    exactly like a chart that never declared it. A bare "YYYY-MM" resolves to
+    whatever day of that month the series carries — these are month-end
+    observations and the episode is the month, not the day. Extends, never
+    assigns.
+    """
+    vl = spec.get("vlines", [])
+    if not vl:
+        return
+    shapes, annos = [], []
+    for v in vl:
+        raw = str(v["x"]).strip()
+        hits = [x for x in xs if x == raw or x.startswith(f"{raw}-")]
+        if len(hits) != 1:
+            raise SystemExit(
+                f'panel.json: vline x={raw!r} matched {len(hits)} points on this '
+                f"chart's axis ({xs[0]}..{xs[-1]}). Every marker must land on "
+                "exactly one plotted point.")
+        x = x_ref(xs, xs.index(hits[0]), cat)
+        shapes.append(dict(
+            type="line", xref="x", x0=x, x1=x, yref="paper", y0=0, y1=1,
+            line=dict(color=T["GREY"], width=0.9, dash="dot"), layer="below",
+        ))
+        if v.get("label"):
+            annos.append(dict(
+                xref="x", x=x, yref="paper", y=1.0, yanchor="bottom",
+                text=v["label"], showarrow=False, xanchor="center",
+                font=dict(size=11, color=T["GREY"]),
+            ))
+    layout["shapes"] = layout.get("shapes", []) + shapes
+    if annos:
+        layout["annotations"] = layout.get("annotations", []) + annos
+        # The labels sit above the plot area; give them the room the default
+        # 16px top margin does not have, or they render clipped at the frame.
+        layout["margin"]["t"] = max(layout["margin"]["t"], 34)
+
+
+def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
+                  dec: int, is_solid, boundary, yaxis: str | None = None) -> list:
+    """The line traces for one panel — shared by "line" and "line_bars".
+
+    Factored rather than copied: the two kinds must split history from
+    projection identically, and a copied block is where that stops being true
+    (apply_hlines carries the same warning). ``yaxis`` is emitted only when the
+    caller passes one, so a single-panel chart's figure JSON is unchanged.
+
+    ``connect_gaps`` is per series and defaults off. A gap is normally missing
+    data and bridging it would invent an observation — but where a series is
+    simply reported less often than the chart's grid (the UK publishes debt
+    maturity quarterly against four monthly neighbours) every intermediate row
+    is blank, and left unbridged the line renders as isolated invisible points.
+    Declaring it per series rather than per chart keeps that judgement attached
+    to the series whose frequency it describes.
+    """
+    traces = []
+    for s in spec["series"]:
+        ys = [to_float(r.get(s["col"])) for r in kept]
+        ys = [None if y is None else round(y, dec) for y in ys]
+        colour = s.get("color", T["BLUE"])
+        line = dict(color=colour, width=s.get("width", 2))
+        if s.get("dash"):
+            line["dash"] = s["dash"]
+        bridge = bool(s.get("connect_gaps", False))
+        ax = dict(yaxis=yaxis) if yaxis else {}
+
+        if is_solid is None:
+            traces.append(dict(
+                type="scatter", mode="lines", name=s["label"],
+                x=xs, y=ys, line=line, connectgaps=bridge,
+                hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
+                **ax,
+            ))
+            continue
+
+        hist = [y if is_solid[i] else None for i, y in enumerate(ys)]
+        # the projection leg keeps the last observed point so the two legs join
+        proj = [y if (not is_solid[i] or i == boundary) else None
+                for i, y in enumerate(ys)]
+        traces.append(dict(
+            type="scatter", mode="lines", name=s["label"], x=xs, y=hist,
+            line=line, connectgaps=bridge,
+            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
+            **ax,
+        ))
+        traces.append(dict(
+            type="scatter", mode="lines", name=s["label"], x=xs, y=proj,
+            line=dict(color=colour, width=s.get("width", 2), dash="dot"),
+            connectgaps=bridge, showlegend=False,
+            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']} (forecast)</extra>",
+            **ax,
+        ))
+    return traces
 
 
 def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
@@ -307,37 +453,7 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
             showlegend=True, hoverinfo="skip", connectgaps=False,
         ))
 
-    for s in spec["series"]:
-        ys = [to_float(r.get(s["col"])) for r in kept]
-        ys = [None if y is None else round(y, dec) for y in ys]
-        colour = s.get("color", T["BLUE"])
-        line = dict(color=colour, width=s.get("width", 2))
-        if s.get("dash"):
-            line["dash"] = s["dash"]
-
-        if not split_col:
-            traces.append(dict(
-                type="scatter", mode="lines", name=s["label"],
-                x=xs, y=ys, line=line, connectgaps=False,
-                hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
-            ))
-            continue
-
-        hist = [y if is_solid[i] else None for i, y in enumerate(ys)]
-        # the projection leg keeps the last observed point so the two legs join
-        proj = [y if (not is_solid[i] or i == boundary) else None
-                for i, y in enumerate(ys)]
-        traces.append(dict(
-            type="scatter", mode="lines", name=s["label"], x=xs, y=hist,
-            line=line, connectgaps=False,
-            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
-        ))
-        traces.append(dict(
-            type="scatter", mode="lines", name=s["label"], x=xs, y=proj,
-            line=dict(color=colour, width=s.get("width", 2), dash="dot"),
-            connectgaps=False, showlegend=False,
-            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']} (forecast)</extra>",
-        ))
+    traces += series_traces(spec, kept, xs, T, dec, is_solid, boundary)
 
     layout = base_layout(
         spec, T, legend=len(spec["series"]) > 1 or bool(spec.get("band")))
@@ -354,9 +470,108 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
 
     # Reference lines (chart 1's 4% mark is the chart's whole argument, not decor)
     apply_hlines(spec, layout, T)
+    apply_vlines(spec, layout, T, xs)
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
 
+    return dict(data=traces, layout=layout)
+
+
+def fig_line_bars(spec: dict, rows: list[dict], T: dict) -> dict:
+    """Two stacked panels on one shared x-axis — the effective-rate chart's
+    published form: rates above, the interest bill in yen below.
+
+    Not expressible as "bar_line", which puts its bars and its line on the same
+    y-axis: these two panels carry different quantities in different units (per
+    cent and trillions of yen) and the published exhibit stacks them precisely so
+    a reader can read up from a bar to the rate that produced it. One x-axis,
+    drawn once at the bottom, is what keeps that reading honest — two separate
+    cards with independently autoscaled x-ranges would not.
+
+    The panels are laid out by hand rather than through plotly.subplots because
+    the builder emits figure JSON directly and never imports plotly; the domains
+    below are what make_subplots(row_heights=..., vertical_spacing=...) computes.
+    """
+    xcol = spec.get("x", "date")
+    start, end = spec.get("start"), spec.get("end")
+    dec = spec.get("decimals", 2)
+
+    kept = [r for r in rows if in_window(str(r[xcol]), start, end)]
+    xs = [x_iso(str(r[xcol])) for r in kept]
+
+    split_col = spec.get("split_col")
+    solid_val = spec.get("solid_value", "actual")
+    if split_col:
+        is_solid = [str(r.get(split_col, "")).strip() == solid_val for r in kept]
+        boundary = max((i for i, s in enumerate(is_solid) if s), default=None)
+    else:
+        is_solid, boundary = None, None
+
+    # ── top panel: the lines, on y ──
+    traces = series_traces(spec, kept, xs, T, dec, is_solid, boundary)
+
+    # ── bottom panel: the bars, on y2 ──
+    b = spec["bars"]
+    ys = [to_float(r.get(b["col"])) for r in kept]
+    ys = [None if y is None else round(y, dec) for y in ys]
+    solid_c = b.get("color", T["BLUE"])
+    # The projection bars are drawn in the pale tint, as the published PNG does —
+    # the same statement the dotted leg makes on the lines above, in the encoding
+    # a bar has. With no split declared every bar is an observation.
+    proj_c = b.get("proj_color", T["FADED_BLUE"])
+    marker = dict(color=solid_c if is_solid is None else
+                  [solid_c if s else proj_c for s in is_solid])
+    traces.append(dict(
+        type="bar", name=b["label"], x=xs, y=ys, marker=marker, yaxis="y2",
+        hovertemplate=f"%{{y:.{dec}f}}<extra>{b['label']}</extra>",
+    ))
+
+    rh = spec.get("row_heights", [0.6, 0.4])
+    gap = spec.get("row_gap", 0.06)
+    h_top, h_bot = (1 - gap) * rh[0], (1 - gap) * rh[1]
+
+    layout = base_layout(spec, T, legend=True)
+    # One x-axis for both panels, anchored to the lower one so it is drawn once,
+    # under the bars. Both panels' traces map to it.
+    layout["xaxis"]["anchor"] = "y2"
+    layout["xaxis"]["domain"] = [0, 1]
+    # Category by default: this kind's x is typically a fiscal year ("2026"),
+    # which a time axis would silently read as a calendar date, and the bars in
+    # the lower panel want even spacing whatever the labels are.
+    layout["xaxis"]["type"] = spec.get("xtype", "category")
+    layout["yaxis"]["domain"] = [round(1 - h_top, 4), 1]
+    layout["yaxis2"] = dict(
+        domain=[0, round(h_bot, 4)], anchor="x",
+        showgrid=True, gridcolor=T["GRID"], gridwidth=1.4,
+        zeroline=False, showline=False, ticks="",
+        tickfont=dict(size=18, color=T["GREY"]),
+        title=dict(text=spec.get("ylabel2") or "",
+                   font=dict(size=18, color=T["GREY"])),
+    )
+    for key, axis in (("yrange", "yaxis"), ("y2range", "yaxis2")):
+        if spec.get(key):
+            layout[axis]["range"] = spec[key]
+    for key, axis in (("ytick", "yaxis"), ("y2tick", "yaxis2")):
+        if spec.get(key):
+            layout[axis]["tickmode"] = "array"
+            layout[axis]["tickvals"] = spec[key]
+
+    cat = layout["xaxis"]["type"] == "category"
+    if boundary is not None and boundary + 1 < len(xs):
+        # The boundary rule spans BOTH panels — yref "paper", so it runs the full
+        # height of the frame rather than stopping at the top panel's floor.
+        bx = x_ref(xs, boundary, cat)
+        layout.setdefault("shapes", []).append(dict(
+            type="line", xref="x", x0=bx, x1=bx,
+            yref="paper", y0=0, y1=1,
+            line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
+        layout.setdefault("annotations", []).append(dict(
+            xref="x", x=bx, yref="paper", y=1.0, yanchor="bottom",
+            text="forecast →", showarrow=False, xanchor="left", xshift=4,
+            font=dict(size=11, color=T["GREY"])))
+
+    apply_hlines(spec, layout, T)
+    apply_vlines(spec, layout, T, xs, cat)
     return dict(data=traces, layout=layout)
 
 
@@ -870,17 +1085,45 @@ def base_layout(spec: dict, T: dict, legend: bool) -> dict:
 def render_table(spec: dict, rows: list[dict]) -> str:
     """Chart 7 is a table, not a series. Rendered as HTML rather than a Plotly
     table: it stays selectable, copyable and readable at phone width, and the
-    heavier rule under the actual-origin row survives."""
+    heavier rule under the actual-origin row survives.
+
+    Two optional row accents, each declared per table and each emitting its CSS
+    only when declared. "focal" is the row the table's headline is about — the
+    coupon table is titled "35% of JGBs pay coupons of 0.5% or less" and the
+    published exhibit sets that one row in coral, so a table rendered without it
+    has lost the sentence it exists to support. "strong" is the total row. Both
+    are drawn from the row's own value rather than its position, because a table
+    that gains a bucket must not silently accent the wrong line.
+    """
     cols = spec["columns"]
     rule_col, rule_val = spec.get("rule_after_col"), spec.get("rule_after_value")
+    focal_col, focal_val = spec.get("focal_col"), spec.get("focal_value")
+    strong_col, strong_val = spec.get("strong_col"), spec.get("strong_value")
 
     head = "".join(f"<th>{html.escape(c['label'])}</th>" for c in cols)
-    body = []
+    body, hits = [], {"rule": 0, "focal": 0, "strong": 0}
     for r in rows:
         cells = "".join(f"<td>{html.escape((r.get(c['col']) or '').strip())}</td>"
                         for c in cols)
-        cls = ' class="rule"' if rule_col and r.get(rule_col, "").strip() == rule_val else ""
+        names = []
+        for name, col, val in (("rule", rule_col, rule_val),
+                               ("focal", focal_col, focal_val),
+                               ("strong", strong_col, strong_val)):
+            if col and r.get(col, "").strip() == val:
+                names.append(name)
+                hits[name] += 1
+        cls = f' class="{" ".join(names)}"' if names else ""
         body.append(f"<tr{cls}>{cells}</tr>")
+
+    # A declared accent that matched no row is the failure this catches: the
+    # value was renamed upstream, the table renders plausibly, and the row the
+    # exhibit is about is no longer marked. Declaring it is asserting it exists.
+    for name, col in (("rule", rule_col), ("focal", focal_col),
+                      ("strong", strong_col)):
+        if col and hits[name] != 1:
+            raise SystemExit(
+                f'panel.json: table {name!r} accent matched {hits[name]} rows, '
+                f"expected exactly 1. Check {name}_value against the CSV.")
     return (f'<div class="tablewrap"><table class="fc"><thead><tr>{head}</tr></thead>'
             f'<tbody>{"".join(body)}</tbody></table></div>')
 
@@ -927,6 +1170,11 @@ def build(slug: str) -> Path:
         raise SystemExit(f'panel.json: "site_nav" must be true or false, '
                          f"got {site_nav!r}")
 
+    # Same rule as site_nav: the accent stylesheet is emitted only for a page
+    # that declares an accent, so no page built before this key existed moves.
+    table_accents = any(c.get("focal_col") or c.get("strong_col")
+                        for c in manifest["charts"])
+
     cards, figs = [], []
     about_cards: dict[int, str] = {}   # exhibits embedded in the About section
     for spec in manifest["charts"]:
@@ -958,7 +1206,8 @@ def build(slug: str) -> Path:
                     + "</div>")
         else:
             div_id = f"chart_{n}"
-            kinds = {"line": fig_line, "bar_line": fig_bar_line,
+            kinds = {"line": fig_line, "line_bars": fig_line_bars,
+                     "bar_line": fig_bar_line,
                      "curve": fig_curve, "decomp": fig_decomp,
                      "ranked_bars": fig_ranked_bars,
                      "signed_bar_line": fig_signed_bar_line}
@@ -1143,6 +1392,7 @@ def build(slug: str) -> Path:
         perk_css=PERK_CSS if show_perk else "",
         topnav=TOPNAV_HTML if site_nav else "",
         topnav_css=TOPNAV_CSS if site_nav else "",
+        table_accent_css=TABLE_ACCENT_CSS if table_accents else "",
         disclaimer=DISCLAIMER_HTML,
         meta=meta,
         stamp=stamp,
@@ -1197,6 +1447,14 @@ TOPNAV_CSS = """  .topnav{max-width:680px;margin:0 auto 20px;
           font:600 13px 'Public Sans',sans-serif}
 """
 TOPNAV_HTML = '<p class="topnav"><a href="../">&larr; All data packs</a></p>\n'
+
+# Table row accents, injected only for a page whose manifest declares one. An
+# inert rule in every other page's stylesheet would move bytes on pages that are
+# meant to rebuild byte-identical, which is why this is not in the fixed block.
+# Coral and the ink weight are the same tokens the published table image uses.
+TABLE_ACCENT_CSS = """  table.fc tr.focal td{color:#D85A30;font-weight:700}
+  table.fc tr.strong td{font-weight:700}
+"""
 
 PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -1271,7 +1529,7 @@ PAGE = """<!DOCTYPE html>
   table.fc td{{text-align:right;padding:8px 12px;border-bottom:1px solid #EDEBE4}}
   table.fc td:first-child{{text-align:left;font-weight:600}}
   table.fc tr.rule td{{border-bottom:2px solid #1c1c1c}}
-  .about{{margin-top:60px}}
+{table_accent_css}  .about{{margin-top:60px}}
   .about h2{{font:700 23px/1.3 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px}}
   .about p,.about-cont p{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
            margin:0 0 18px;text-wrap:pretty}}
