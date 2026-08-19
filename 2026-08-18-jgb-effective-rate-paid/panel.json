@@ -259,7 +259,7 @@
       "note": "Reused from the 17 August QT-monitor report, unchanged. The band is unshaded before QQE, where the consolidated measure sits above the gross one."
     }
   ],
-  "_derived_from": "Generated from 2026-08-18-jgb-effective-rate/panel.json by builder/derive_jgb_effective_rate_paid.py. Do not hand-edit: edit the free manifest and re-derive, or the two tiers drift. Only slug, audience, downloads, tier and bottom_banner differ; the charts list is copied through unchanged, which is what makes the cross-tier equality gate true by construction rather than by inspection.",
+  "_derived_from": "Generated from 2026-08-18-jgb-effective-rate/panel.json by builder/derive_jgb_effective_rate_paid.py. Do not hand-edit: edit the free manifest and re-derive, or the two tiers drift. Only slug, audience, downloads, tier, unlisted and bottom_banner differ; the charts list is copied through unchanged, which is what makes the cross-tier equality gate true by construction rather than by inspection.",
   "audience": "paid",
   "downloads": true
 }

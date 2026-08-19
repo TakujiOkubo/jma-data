@@ -2375,6 +2375,18 @@ def qa_jgb_effective_rate(root, manifest, page, figs) -> None:
     gate("Download the full workbook" not in page,
          "no workbook button on either tier")
     gate("workbook" not in manifest, "and no workbook declared")
+    # Takuji's decision of 2026-08-19, gated because it is a decision and not
+    # a default: the FREE page is LISTED on the landing index (a free
+    # marketing page nobody can find does half its job -- the same reasoning
+    # as the QT monitor's free edition, 2026-08-16), the paid page is not.
+    # Listing is not access control: this repo is public, so "unlisted" only
+    # keeps a page off the index. The tiers differing here is also why
+    # "unlisted" is a declared override in the derive script -- without it the
+    # paid page would inherit the free page's listing.
+    gate(manifest.get("unlisted") is (True if is_paid else False),
+         "listed on the landing index exactly when it should be",
+         f'unlisted={manifest.get("unlisted")} on the '
+         f'{"paid" if is_paid else "free"} tier')
 
     print("\nCross-tier equality")
     sibling = REPO / (JGB_ER_FREE if is_paid else JGB_ER_PAID)

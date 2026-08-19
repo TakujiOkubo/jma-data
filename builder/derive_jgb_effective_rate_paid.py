@@ -28,6 +28,20 @@ EXHIBITS = 5
 # Every key on which the two tiers are allowed to differ, and why.
 OVERRIDES = {
     "slug": PAID,
+    # The tiers differ here, and this is the key that makes the difference
+    # load-bearing rather than cosmetic. Takuji, 2026-08-19: the FREE page is
+    # listed on the landing index -- a free marketing page nobody can find does
+    # half its job, the same reasoning as the QT monitor's free edition on
+    # 2026-08-16. The paid page stays off the index.
+    #
+    # Without this override the paid page would inherit the free page's
+    # "unlisted": false and quietly appear on the public landing page. It would
+    # not have shipped silently -- the divergence assertion at the foot of this
+    # script fails on any key that differs and is not declared here -- but the
+    # failure would have read as a broken derivation rather than as the policy
+    # decision it is. Note that listing is not access control either way:
+    # jma-data is public, so "unlisted" only keeps a page off the index.
+    "unlisted": True,
     # Inert -- the builder never reads it. It exists so the set of paid pages
     # can be queried while paid pages are still hosted in this public repo
     # (protocol section 5, the known gap).
@@ -73,9 +87,9 @@ m["_derived_from"] = (
     "Generated from " + FREE + "/panel.json by "
     "builder/derive_jgb_effective_rate_paid.py. Do not hand-edit: edit the free "
     "manifest and re-derive, or the two tiers drift. Only slug, audience, "
-    "downloads, tier and bottom_banner differ; the charts list is copied "
-    "through unchanged, which is what makes the cross-tier equality gate true "
-    "by construction rather than by inspection.")
+    "downloads, tier, unlisted and bottom_banner differ; the charts list is "
+    "copied through unchanged, which is what makes the cross-tier equality gate "
+    "true by construction rather than by inspection.")
 
 for k, v in OVERRIDES.items():
     m[k] = v
