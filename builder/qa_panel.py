@@ -157,7 +157,7 @@ FXJPY_PAID_BOTTOM_BANNER = (
 # Takuji's wording, 2026-08-12, for the equity-bet page ("our our" of his
 # request de-duplicated as an obvious typo):
 # The free tier of a report page. Renamed from BOJ_EB_BOTTOM_BANNER on
-# 2026-08-19: two reports' free pages carry it, so naming it after the first of
+# 2026-08-20: two reports' free pages carry it, so naming it after the first of
 # them invited the next page to be given its own near-identical copy.
 #
 # The middle sentence was rewritten the same day (Takuji). It had promised
@@ -228,7 +228,7 @@ PUBLIC_REPO = REPO.name == "jma-data"
 # Enough of the perk sentence to identify it, in one place. The full sentence
 # lives in build_panel.PERK_HTML; gating a distinctive opening rather than the
 # whole thing means a comma moving does not fail every free page's QA, while a
-# rewrite -- which is what happened on 2026-08-19 -- still does.
+# rewrite -- which is what happened on 2026-08-20 -- still does.
 PERK_MARKER = "Paid subscribers get the JMA Database"
 
 
@@ -2395,7 +2395,7 @@ def qa_jgb_effective_rate(root, manifest, page, figs) -> None:
     gate("Download the full workbook" not in page,
          "no workbook button on either tier")
     gate("workbook" not in manifest, "and no workbook declared")
-    # Takuji's decision of 2026-08-19, gated because it is a decision and not
+    # Takuji's decision of 2026-08-20, gated because it is a decision and not
     # a default: the FREE page is LISTED on the landing index (a free
     # marketing page nobody can find does half its job -- the same reasoning
     # as the QT monitor's free edition, 2026-08-16), the paid page is not.

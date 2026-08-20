@@ -142,7 +142,7 @@ SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 # per-page exception on 2026-08-11; this is what makes it expressible without
 # omitting "tier" and thereby recording a new page as pre-rule.
 # The perk sentence names what a subscription buys, above the Subscribe button
-# on a free page. Rewritten 2026-08-19 (Takuji): it had promised "the data behind
+# on a free page. Rewritten 2026-08-20 (Takuji): it had promised "the data behind
 # every chart as an Excel workbook, plus access to our JGB yield-curve model
 # pages", written before the gated site existed. The paid offer is now the JMA
 # Database at jma-data-paid.pages.dev, and he describes it to subscribers by

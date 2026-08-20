@@ -29,7 +29,7 @@ EXHIBITS = 5
 OVERRIDES = {
     "slug": PAID,
     # The tiers differ here, and this is the key that makes the difference
-    # load-bearing rather than cosmetic. Takuji, 2026-08-19: the FREE page is
+    # load-bearing rather than cosmetic. Takuji, 2026-08-20: the FREE page is
     # listed on the landing index -- a free marketing page nobody can find does
     # half its job, the same reasoning as the QT monitor's free edition on
     # 2026-08-16. The paid page stays off the index.
@@ -50,7 +50,7 @@ OVERRIDES = {
     # anyway, but a page that offers its data should say so in its manifest
     # instead of leaving a reader to re-derive it from the tier. This is the
     # key that puts the Download CSV link on every card -- Takuji's ask for
-    # this page, 2026-08-19.
+    # this page, 2026-08-20.
     "downloads": True,
     "tier": "paid",
     # The free page's banner pitches the paid tier. On the paid page the reader
