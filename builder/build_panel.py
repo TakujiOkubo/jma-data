@@ -157,11 +157,21 @@ SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 # This is a fixed block: changing it changes every free page carrying it, which
 # is the point — one claim across the site, as with the exclusivity sentence
 # retired on 2026-08-13.
+#
+# Restyled 2026-08-22 (Takuji's pick from four rendered variants): the sentence
+# and button now sit in a brand-blue accent card — left rule in the button blue,
+# tinted background, lead clause bold in the same blue — instead of a muted grey
+# paragraph. Wording unchanged. qa_panel gates on class="perk" and on the
+# sentence opening as plain text, so the paragraph keeps its class and the
+# <strong> wraps the whole marker substring without splitting it.
 PERK_HTML = (
-    '<p class="perk">Paid subscribers get the JMA Database: the proprietary '
-    "estimates behind my research — the BoJ-QT progress monitor, the JGB "
-    "yield-curve model, and global FX reserves back to 1980.</p>\n"
-    f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>')
+    '<div class="perkbox">\n'
+    '  <p class="perk"><strong>Paid subscribers get the JMA Database:</strong> '
+    "the proprietary estimates behind my research — the BoJ-QT progress "
+    "monitor, the JGB yield-curve model, and global FX reserves back to "
+    "1980.</p>\n"
+    f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>\n'
+    '  </div>')
 DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
                    "does not constitute investment advice or an offer or "
                    "solicitation to buy or sell any security. While the "
@@ -1451,10 +1461,14 @@ SCENARIO_CSS = """  .assump{margin:24px 0 0;border-left:3px solid #3b65a2;backgr
   .sib span{font:400 14px/1.6 'Public Sans',sans-serif;color:#737373}
 """
 
-# The free page's subscription line, sitting where the workbook button would.
+# The free page's subscription block, sitting where the workbook button would.
 # Injected only on a free page, for the same byte-identity reason as above.
-PERK_CSS = """  .perk{margin:18px 0 0;font:400 14.5px/1.6 'Public Sans',sans-serif;
-        color:#54544e}
+# Accent-card form chosen by Takuji 2026-08-22; the rule and bold lead take the
+# .btn blue so the card and its button read as one element.
+PERK_CSS = """  .perkbox{margin:18px 0 0;border-left:4px solid #3b65a2;background:#f4f6fa;
+           padding:14px 18px}
+  .perkbox .perk{margin:0;font:400 15px/1.6 'Public Sans',sans-serif;color:#2c2c2a}
+  .perkbox strong{font-weight:700;color:#3b65a2}
 """
 
 # The top-of-page link back to the landing index, injected only for a page
