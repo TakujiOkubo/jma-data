@@ -16,7 +16,7 @@
     {
       "n": 1,
       "kind": "bar_line",
-      "title": "Mind the gross-net gap",
+      "title": "O Canada, the True Net debt strong and free",
       "ylabel": "General government debt, % of GDP",
       "source": "Source: IMF WEO (Apr 2026), S&P, JMA. 2026 projection. Net-debt definitions differ by country.",
       "csv": "data/chart-1-g7-gross-net.csv",
