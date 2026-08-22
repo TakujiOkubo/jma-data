@@ -1,0 +1,84 @@
+{
+  "slug": "2026-08-21-canada-gross-net",
+  "audience": "free",
+  "title": "We Don't Judge Canada by Its Gross Debt",
+  "date": "21 August 2026",
+  "masthead_date": "21 August 2026",
+  "post_url": "https://takujiokubo.substack.com/",
+  "unlisted": true,
+  "tier": "free",
+  "downloads": false,
+  "standfirst": "Gross debt to GDP ratio is over-rated as the key indicator for fiscal soundness. In this report, we explain why a gross debt ratio, least of all the “250% debt to GDP” slogan, should be retired and cannot carry the debt-sustainability verdict.",
+
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim (chart 4's SOURCE carries the script's all-caps MOF; chart 3's is MoF). The page carries the report's four exhibits only. post_url is the protocol fallback: the post was not published at dispatch. date and masthead_date are the 2026-08-21 report date in the repo's established human form (cf. warsh '3 August 2026', effective-rate '19 August 2026'); Takuji corrects to the publication date at review if it differs. Chart 1 renders over a categorical country axis, and the shared builder's x_iso() appends '-01' to any 7-character x value, so Germany's tick label renders as 'Germany-01' — a shared-builder defect noted in the run report, out of scope to fix under §6 (no builder change).",
+
+  "charts": [
+    {
+      "n": 1,
+      "kind": "bar_line",
+      "title": "Mind the gross-net gap",
+      "ylabel": "General government debt, % of GDP",
+      "source": "Source: IMF WEO (Apr 2026), S&P, JMA. 2026 projection. Net-debt definitions differ by country.",
+      "csv": "data/chart-1-g7-gross-net.csv",
+      "x": "country",
+      "decimals": 1,
+      "bars": [
+        {"col": "gross_debt_pgdp", "label": "Gross", "color": "#378ADD"},
+        {"col": "net_debt_pgdp", "label": "Net", "color": "#D85A30"}
+      ],
+      "note": "S&P ratings: Japan A+, Italy BBB+, US AA+, France A+, Canada AAA, UK AA, Germany AAA (long-term foreign currency, verified 2026-08-21). Canada's AAA sits beside a gross ratio above the UK's — the point of the chart."
+    },
+    {
+      "n": 2,
+      "kind": "line",
+      "title": "Should the debt size be measured in traded value?",
+      "ylabel": "JSDA reference price, ¥ per ¥100 face",
+      "source": "Source: JSDA, JMA. 30-year JGB #66, 0.4% coupon, due March 2050.",
+      "csv": "data/chart-2-jgb30y66-price.csv",
+      "x": "date",
+      "decimals": 1,
+      "series": [
+        {"col": "price_yen", "label": "Market value of 30-year JGB #66", "color": "#D85A30"}
+      ],
+      "hlines": [{"y": 100, "label": "par = ¥100, repaid at maturity in 2050"}],
+      "note": "Issued near par in May 2020; ¥46.3 in August 2026. The state still repays ¥100 at maturity in 2050."
+    },
+    {
+      "n": 3,
+      "kind": "line",
+      "title": "Two valuations for total JGBs, 22 points of GDP apart",
+      "ylabel": "Marketable JGBs + T-bills, % of GDP",
+      "source": "Source: JSDA, MoF, Cabinet Office, JMA estimates. Marketable central-government debt, narrower than general government debt.",
+      "csv": "data/chart-3-market-vs-face.csv",
+      "x": "date",
+      "decimals": 1,
+      "series": [
+        {"col": "face_pgdp", "label": "Face value", "color": "#378ADD"},
+        {"col": "market_pgdp", "label": "Market value", "color": "#D85A30"}
+      ],
+      "note": "Market value peaked 11 points above face in November 2020; it is 22 points below today — the valuation mechanism behind the IMF's April 2026 definition change."
+    },
+    {
+      "n": 4,
+      "kind": "decomp",
+      "title": "Japan's 70-point gap, and what stands behind it",
+      "ylabel": "% of GDP",
+      "source": "Source: IMF WEO (Apr 2026), BoJ, MOF, GPIF, JMA estimates. Assets: 2026 Q1.",
+      "csv": "data/chart-4-gap-assets.csv",
+      "x": "category",
+      "decimals": 1,
+      "bargap": 0.4,
+      "yrange": [0, 232],
+      "components": [
+        {"col": "fx_pgdp", "label": "FX reserves", "color": "#378ADD"},
+        {"col": "pension_debt_pgdp", "label": "Pension debt instruments", "color": "#EF9F27"},
+        {"col": "pension_equity_pgdp", "label": "Pension equities", "color": "#F4C87F"},
+        {"col": "cash_fixed_pgdp", "label": "cash/fixed income assets of governments", "color": "#888780"},
+        {"col": "other_assets_pgdp", "label": "Other assets", "color": "#C6C5BF"},
+        {"col": "net_pgdp", "label": "Net debt", "color": "#D85A30"},
+        {"col": "gross_pgdp", "label": "Gross debt", "color": "#378ADD"}
+      ],
+      "note": "The three debt-instrument segments — FX reserves, pension bonds and deposits, and government cash — sum to the 70-point gross-net gap. Equity holdings do not count toward the IMF's netting. * All cash, deposits and other fixed income assets owned by central/local government."
+    }
+  ]
+}
