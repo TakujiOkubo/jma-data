@@ -158,7 +158,7 @@ SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 # is the point — one claim across the site, as with the exclusivity sentence
 # retired on 2026-08-13.
 #
-# Restyled 2026-08-22 (Takuji, second round the same day): first to a brand-blue
+# Restyled 2026-08-23 (Takuji, second round the same morning): first to a brand-blue
 # accent card, then — his "not prominent enough" — to the headline-card form he
 # picked from three louder rendered variants: full blue border, the lead clause
 # promoted to a PT Serif headline on its own line (the colon becomes the line
@@ -1464,7 +1464,7 @@ SCENARIO_CSS = """  .assump{margin:24px 0 0;border-left:3px solid #3b65a2;backgr
 
 # The free page's subscription block, sitting where the workbook button would.
 # Injected only on a free page, for the same byte-identity reason as above.
-# Headline-card form chosen by Takuji 2026-08-22 (second round); border, rule
+# Headline-card form chosen by Takuji 2026-08-23 (second round); border, rule
 # and headline take the .btn blue so the card and its button read as one
 # element. The .btn override is scoped to the card — the shared .btn elsewhere
 # (bottom banner) is untouched.
