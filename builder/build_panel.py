@@ -1203,6 +1203,15 @@ def build(slug: str) -> Path:
         raise SystemExit(f'panel.json: "site_nav" must be true or false, '
                          f"got {site_nav!r}")
 
+    # "More articles" line under the bottom banner — the funnel's pointer back
+    # to the Substack home page (protocol decision log, 2026-08-23; wording
+    # approved by Takuji). Opt-in like site_nav: pages that do not declare it
+    # rebuild byte-identical.
+    more_articles = manifest.get("more_articles", False)
+    if not isinstance(more_articles, bool):
+        raise SystemExit(f'panel.json: "more_articles" must be true or false, '
+                         f"got {more_articles!r}")
+
     # Same rule as site_nav: the accent stylesheet is emitted only for a page
     # that declares an accent, so no page built before this key existed moves.
     table_accents = any(c.get("focal_col") or c.get("strong_col")
@@ -1423,6 +1432,8 @@ def build(slug: str) -> Path:
         # Same reason as scenario_css: an unused rule would change bytes on
         # pages that are meant to rebuild identically.
         perk_css=PERK_CSS if show_perk else "",
+        more_articles=MORE_ARTICLES_HTML if more_articles else "",
+        more_articles_css=MORE_ARTICLES_CSS if more_articles else "",
         topnav=TOPNAV_HTML if site_nav else "",
         topnav_css=TOPNAV_CSS if site_nav else "",
         table_accent_css=TABLE_ACCENT_CSS if table_accents else "",
@@ -1480,6 +1491,18 @@ PERK_CSS = """  .perkbox{margin:18px 0 0;border:1px solid #3b65a2;border-left:5p
   .perkbox .btn{margin-top:14px;font-size:15px;padding:11px 22px}
 """
 
+# The "More articles" line under the bottom banner, injected only for a page
+# declaring "more_articles": true (the seven free report pages, Takuji's set,
+# 2026-08-23). Wording approved verbatim; matches the banner's measure.
+MORE_ARTICLES_HTML = (
+    '<p class="more-articles">More articles: '
+    '<a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>'
+)
+MORE_ARTICLES_CSS = """  .more-articles{margin:14px auto 0;max-width:680px;
+       font:400 13.5px 'Public Sans',sans-serif;color:#54544e}
+  .more-articles a{color:#3b65a2}
+"""
+
 # The top-of-page link back to the landing index, injected only for a page
 # declaring "site_nav": true. Label matches the footer's existing "All data
 # packs" link so the two read as the same destination.
@@ -1531,7 +1554,7 @@ PAGE = """<!DOCTYPE html>
        font:600 14px 'Public Sans',sans-serif;text-decoration:none;
        padding:9px 16px;border-radius:4px}}
   .btn:hover{{background:#2c4d7e;color:#fff;text-decoration:none}}
-{perk_css}  header{{margin-top:36px}}
+{perk_css}{more_articles_css}  header{{margin-top:36px}}
   header h1{{font:700 36px/1.2 'PT Serif',serif;color:#1c1c1c;margin:0 0 14px;
             text-wrap:balance}}
   header .meta{{font:400 13px 'Public Sans',sans-serif;color:#737373;
@@ -1623,7 +1646,7 @@ PAGE = """<!DOCTYPE html>
   <p>{bottom_banner}</p>
   <a class="btn" href="{subscribe_url}">Subscribe</a>
 </div>
-
+{more_articles}
 <p class="disclaimer">{disclaimer}</p>
 <p class="nav"><a href="../">All data packs</a> ·
   <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>
