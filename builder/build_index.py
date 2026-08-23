@@ -3,7 +3,8 @@
 build_index.py — regenerate the site's landing page from the article manifests.
 
 Scans every ``*/panel.json`` in the repo and lists them newest-first, so the
-landing page cannot drift from what is actually published.
+landing page cannot drift from what is actually published. Listing is opt-in:
+only pages whose manifest declares ``"unlisted": false`` appear (2026-08-23).
 
     python builder/build_index.py
 """
@@ -23,9 +24,11 @@ def main() -> Path:
     packs = []
     for mf in sorted(REPO.glob("*/panel.json")):
         m = json.loads(mf.read_text(encoding="utf-8"))
-        # Comparison variants and drafts carry "unlisted": true — published at
-        # their URL but kept off the landing page.
-        if m.get("unlisted"):
+        # Listing is opt-in (decision 2026-08-23): a page appears on the landing
+        # index only when its manifest declares "unlisted": false. An absent key
+        # keeps the page off the index, so a forgotten key hides a page rather
+        # than exposing it.
+        if m.get("unlisted", True):
             continue
         n_charts = len(m["charts"])
         packs.append((mf.parent.name, m, n_charts))

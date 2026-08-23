@@ -247,7 +247,12 @@ def x_iso(raw: str) -> str:
     the day-of-month is not readable at that scale.
     """
     raw = raw.strip()
-    return f"{raw}-01" if len(raw) == 7 else raw
+    # Only a true 'YYYY-MM' gets the day anchor. Length alone is not enough: a
+    # 7-character categorical x like "Germany" was becoming "Germany-01"
+    # (defect found 2026-08-21 on the Canada page's Chart 1).
+    is_year_month = (len(raw) == 7 and raw[:4].isdigit()
+                     and raw[4] == "-" and raw[5:].isdigit())
+    return f"{raw}-01" if is_year_month else raw
 
 
 def in_window(raw: str, start: str | None, end: str | None) -> bool:
