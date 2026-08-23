@@ -90,7 +90,7 @@ PAGE = """<!DOCTYPE html>
   The data behind the charts in
   <a href="https://takujiokubo.substack.com">my Substack articles</a>, plus the
   output of the JMA JGB yield-curve model. Every chart is redrawn so you can hover
-  to read values, zoom into a period, and download the underlying series as CSV.
+  to read values and zoom into a period.
   {n} page{plural} so far.
 </p>
 <ul>
