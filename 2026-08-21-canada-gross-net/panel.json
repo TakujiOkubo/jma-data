@@ -4,13 +4,13 @@
   "title": "We Don't Judge Canada by Its Gross Debt",
   "date": "21 August 2026",
   "masthead_date": "21 August 2026",
-  "post_url": "https://takujiokubo.substack.com/",
+  "post_url": "https://takujiokubo.substack.com/p/we-dont-judge-canada-by-its-gross",
   "unlisted": true,
   "tier": "free",
   "downloads": false,
   "standfirst": "Gross debt to GDP ratio is over-rated as the key indicator for fiscal soundness. In this report, we explain why a gross debt ratio, least of all the “250% debt to GDP” slogan, should be retired and cannot carry the debt-sustainability verdict.",
 
-  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim (chart 4's SOURCE carries the script's all-caps MOF; chart 3's is MoF). The page carries the report's four exhibits only. post_url is the protocol fallback: the post was not published at dispatch. date and masthead_date are the 2026-08-21 report date in the repo's established human form (cf. warsh '3 August 2026', effective-rate '19 August 2026'); Takuji corrects to the publication date at review if it differs. Chart 1 renders over a categorical country axis, and the shared builder's x_iso() appends '-01' to any 7-character x value, so Germany's tick label renders as 'Germany-01' — a shared-builder defect noted in the run report, out of scope to fix under §6 (no builder change).",
+  "_note": "Titles, source notes and y-axis labels are the TITLE / SOURCE / YLABEL constants of each chart script in the JMA chart library, copied verbatim (chart 4's SOURCE carries the script's all-caps MOF; chart 3's is MoF). The page carries the report's four exhibits only. post_url was the protocol homepage fallback at build (the post was not published at dispatch) and was swapped to the live post URL on 2026-08-23, after publication. date and masthead_date are the 2026-08-21 report date in the repo's established human form (cf. warsh '3 August 2026', effective-rate '19 August 2026'); Takuji corrects to the publication date at review if it differs. Chart 1 renders over a categorical country axis, and the shared builder's x_iso() appends '-01' to any 7-character x value, so Germany's tick label renders as 'Germany-01' — a shared-builder defect noted in the run report, out of scope to fix under §6 (no builder change).",
 
   "charts": [
     {
