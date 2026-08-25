@@ -87,6 +87,21 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 
+# The footer nav's "All data packs" link points at the landing index. On the
+# public site that index is a stub (2026-08-23), so the link leads nowhere
+# useful and Takuji ruled it deleted (2026-08-24), keeping the Substack link.
+# On the gated site the index is the JMA Database landing and the link stays.
+# Same guard pattern as qa_panel's PUBLIC_REPO; this file is synced between
+# the repos, so the branch must live in the code, not in a fork.
+PUBLIC_REPO = REPO.name == "jma-data"
+FOOTER_NAV = (
+    '<p class="nav"><a href="https://takujiokubo.substack.com">'
+    "takujiokubo.substack.com</a></p>"
+    if PUBLIC_REPO else
+    '<p class="nav"><a href="../">All data packs</a> ·\n'
+    '  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>'
+)
+
 # The chart library on Drive owns the interactive house tokens. Build-time only —
 # the published page is static and carries the resolved values inline.
 CHARTS_ROOT = Path(r"G:\My Drive\charts")
@@ -1438,6 +1453,7 @@ def build(slug: str) -> Path:
         topnav_css=TOPNAV_CSS if site_nav else "",
         table_accent_css=TABLE_ACCENT_CSS if table_accents else "",
         disclaimer=DISCLAIMER_HTML,
+        footer_nav=FOOTER_NAV,
         meta=meta,
         stamp=stamp,
         lead=lead,
@@ -1648,8 +1664,7 @@ PAGE = """<!DOCTYPE html>
 </div>
 {more_articles}
 <p class="disclaimer">{disclaimer}</p>
-<p class="nav"><a href="../">All data packs</a> ·
-  <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a></p>
+{footer_nav}
 
 <script src="{plotly}" charset="utf-8"></script>
 <script>

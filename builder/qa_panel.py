@@ -391,9 +391,14 @@ def qa_yield_curve(root, manifest, page, figs) -> None:
          str([t[:22] for t in h2s[:9]]))
     gate(h2s[9:12] == ["About the model", ANCHOR_TITLE, ACM_TITLE],
          "anchor and ACM charts are embedded inside the About section")
-    gate('href="jgb-yield-curve-model/"' in
-         (REPO / "index.html").read_text(encoding="utf-8"),
-         "model page listed on the landing page")
+    # Replaced 2026-08-24 (was: "model page listed on the landing page").
+    # The public landing index retired to a stub on 2026-08-23 and lists
+    # nothing; readers reach this page from the posts that link it. Assert the
+    # stub really is card-free rather than dropping the landing check.
+    idx = (REPO / "index.html").read_text(encoding="utf-8")
+    gate("Interactive charts" in idx, "the landing page is the approved stub")
+    gate('href="jgb-yield-curve-model/"' not in idx and 'class="pack"' not in idx,
+         "the stub lists no pages (model page reached from posts, not the index)")
 
     print("\nDecomposition at each maturity")
     for cid, tenor in zip(range(1, 6), ["10Y", "5Y", "20Y", "30Y", "40Y"]):
