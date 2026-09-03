@@ -2727,6 +2727,43 @@ def qa_boj_psi(root, manifest, page, figs) -> None:
                  for c in manifest["charts"]),
          "no Noguchi chart — the ledger carries no series for him")
 
+
+    # An absence gate for a deliberate deletion. Until 2026-09-04 a member-chart
+    # point still read from a Summary of Opinions with the minutes not yet
+    # published was drawn hollow. Takuji retired the distinction: every PSI score
+    # is provisional -- a minutes-based score is revised by later evidence just
+    # as an SoO-based one is -- so marking only the SoO-sourced points told the
+    # reader something that is true of all of them.
+    #
+    # Gated on the delivered figure, not on the manifest key, because the absent
+    # `hollow_col` is the cause and the hollow marker is the symptom a reader
+    # sees. The builder paints a hollow point with the paper token, so every
+    # marker fill on every member series must now be its own series colour.
+    fills, hollow, seen, declared = 0, 0, 0, []
+    for spec in manifest["charts"]:
+        if spec["kind"] != "line" or not spec["csv"].startswith("data/chart-"):
+            continue
+        if spec["csv"].rsplit("-", 1)[-1][:-4] in ("board", "dispersion"):
+            continue
+        seen += 1
+        declared += [s["label"] for s in spec["series"] if "hollow_col" in s]
+        fig = figs[f"chart_{spec['n']}"]
+        for s in spec["series"]:
+            col = trace(fig, s["label"]).get("marker", {}).get("color")
+            for c in (col if isinstance(col, list) else [col]):
+                fills += 1
+                if str(c).upper() == "#E9E7E0":
+                    hollow += 1
+    gate(seen > 0 and fills > 0 and hollow == 0,
+         "no member-chart point is drawn hollow: every PSI score is provisional",
+         f"{fills} marker fills checked across {seen} member charts, "
+         f"{hollow} hollow")
+    gate(seen > 0 and not declared,
+         "no member chart declares a hollow column",
+         f"{seen} charts checked"
+         + (f"; still declared on {declared}" if declared else ""))
+    gate("hollow marker" not in page,
+         "the hollow-marker note is gone from the page")
     # ---------------------------------------------------------------- rule A
     print("\nRule A  a Summary of Opinions is not used once the minutes exist")
     by = defaultdict(set)
