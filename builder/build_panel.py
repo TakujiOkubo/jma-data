@@ -51,8 +51,9 @@ MANIFEST (panel.json)
             See "WHAT A PAGE OFFERS" below for how downloads and tier interact.
     charts: [ {n, kind, title, subtitle, ylabel, source, csv, ...} ]
 
-    kind "line"     x, start, end, series[{col,label,color,dash,connect_gaps}],
-                    hlines[{y,label}], vlines[{x,label}], decimals
+    kind "line"     x, start, end, series[{col,label,color,dash,connect_gaps,
+                    hollow_col,hover_col}], hlines[{y,label}], vlines[{x,label}],
+                    decimals, markers, marker_size
     kind "line_bars"
                     two stacked panels on ONE shared x-axis: the "line" kind's
                     series above, a bar series below, each with its own y-axis.
@@ -70,6 +71,15 @@ MANIFEST (panel.json)
                     year_col, q_col, value{col,pos_label,neg_label,
                     pos_color,neg_color}, flag_col, line{col,label,color},
                     yrange/ytick, y2range/y2tick, hlines2[{y,label}]
+    kind "xy_map"   a map: one marker per entity on two scored dimensions, with
+                    a date slider. frame_col, label_col, detail_col, dim_col,
+                    value_col, x_dim, y_dim, extra_dims[], group_col, stale_col,
+                    note_col, source_col, groups[{key,label,color,glyph}],
+                    hollow_label, range[2], ticks[], neutral, xlabel/ylabel,
+                    crosshair_notes[{x,y,text,xanchor,yanchor}], key_at[x,y,step],
+                    slider_prefix, frame_labels{}, marker_size, dodge_within,
+                    decimals. Long CSV: one row per frame x entity x dimension.
+
     kind "table"    columns[{col,label}], row_label_col, rule_after_col/value,
                     focal_col/focal_value (the row the headline is about, set
                     coral), strong_col/strong_value (the total row). Each must
@@ -427,12 +437,48 @@ def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
         bridge = bool(s.get("connect_gaps", False))
         ax = dict(yaxis=yaxis) if yaxis else {}
 
+        # Three opt-in decorations, added 2026-09-03 for the BoJ-PSI member
+        # charts. Each is emitted ONLY where the manifest declares it, and the
+        # emitted keys are appended after the existing ones, so every chart
+        # built before they existed rebuilds byte-identical.
+        #
+        #   markers      the series is a run of discrete readings, not a
+        #                continuous measurement — each scored event is a point
+        #   hollow_col   per point, not per series: a score still read from a
+        #                Summary of Opinions with the minutes not yet published
+        #                is drawn hollow, and one dimension can be provisional
+        #                while its neighbours on the same date are settled
+        #   hover_col    a per-point string appended to the hover readout. For
+        #                the PSI charts it names the document the score was read
+        #                from, which is also how a value carried forward from an
+        #                earlier reading shows itself: its source is older than
+        #                the point's own date
+        mode, extra = "lines", {}
+        if spec.get("markers"):
+            mode = "lines+markers"
+            marker = dict(size=spec.get("marker_size", 7), color=colour,
+                          line=dict(color=colour, width=2))
+            if s.get("hollow_col"):
+                blank = ("", "0", "no", "false")
+                marker["color"] = [
+                    T["PAPER"]
+                    if str(r.get(s["hollow_col"], "")).strip().lower() not in blank
+                    else colour
+                    for r in kept]
+            extra["marker"] = marker
+        hov = f"%{{y:.{dec}f}}<extra>{s['label']}</extra>"
+        if s.get("hover_col"):
+            extra["customdata"] = [(r.get(s["hover_col"]) or "").strip()
+                                   for r in kept]
+            hov = (f"%{{y:.{dec}f}}  <span style=\"color:{T['GREY']}\">"
+                   f"%{{customdata}}</span><extra>{s['label']}</extra>")
+
         if is_solid is None:
             traces.append(dict(
-                type="scatter", mode="lines", name=s["label"],
+                type="scatter", mode=mode, name=s["label"],
                 x=xs, y=ys, line=line, connectgaps=bridge,
-                hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
-                **ax,
+                hovertemplate=hov,
+                **ax, **extra,
             ))
             continue
 
@@ -440,11 +486,14 @@ def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
         # the projection leg keeps the last observed point so the two legs join
         proj = [y if (not is_solid[i] or i == boundary) else None
                 for i, y in enumerate(ys)]
+        # The observed leg takes the decorations; the dotted projection leg
+        # stays a bare line, because a marker on a projection reads as an
+        # observation and the whole point of the split is that it cannot.
         traces.append(dict(
-            type="scatter", mode="lines", name=s["label"], x=xs, y=hist,
+            type="scatter", mode=mode, name=s["label"], x=xs, y=hist,
             line=line, connectgaps=bridge,
-            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']}</extra>",
-            **ax,
+            hovertemplate=hov,
+            **ax, **extra,
         ))
         traces.append(dict(
             type="scatter", mode="lines", name=s["label"], x=xs, y=proj,
@@ -1095,6 +1144,213 @@ def fig_curve(spec: dict, rows: list[dict], T: dict) -> dict:
     return dict(data=traces, layout=layout)
 
 
+def _dodge_text(pts: list[tuple[float, float]], near: float) -> list[str]:
+    """Choose a label side per point so two seats on nearly the same score do
+    not print their names on top of each other.
+
+    Plotly places `text` at a fixed offset from the marker and has no collision
+    avoidance, so a map where three members sit within a quarter of a point —
+    which is most meetings — renders as one unreadable smear unless the sides
+    are assigned here. Points are walked in a stable order and each takes the
+    first side not already used by a point within `near` on both axes."""
+    sides = ["middle right", "top center", "bottom center", "middle left"]
+    order = sorted(range(len(pts)), key=lambda i: (-pts[i][1], pts[i][0]))
+    out, placed = ["middle right"] * len(pts), []
+    for i in order:
+        x, y = pts[i]
+        taken = {s for (px, py, s) in placed
+                 if abs(px - x) <= near and abs(py - y) <= near}
+        side = next((s for s in sides if s not in taken), sides[0])
+        out[i] = side
+        placed.append((x, y, side))
+    return out
+
+
+def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
+    """A map, not a series: one marker per entity on two scored dimensions, with
+    a slider that moves the whole map through dates.
+
+    Built for the BoJ Policy Stance Indicator board map, whose published
+    matplotlib twin lives at `charts\\boj\\psi-board-map\\`. The conventions kept
+    from that reviewed chart, because the two must not tell different stories:
+    gridlines on BOTH axes (a point on a map is located in two dimensions, so a
+    horizontal-only grid cannot place it), a fixed square range so a marker
+    moving between frames means the seat moved and never that the axis did,
+    neutral cross-hairs with their plain-English captions, and colour carrying a
+    grouping derived from the y value rather than assigned.
+
+    The CSV is long — one row per frame x entity x dimension — because that is
+    what the resolution script emits. Two of the dimensions are plotted and any
+    others ride along in the hover, so a reader can see the third score without
+    a second chart.
+
+    Frames are drawn as one trace pair each (scored, unscored) with only the
+    last pair visible, and the slider toggles visibility. No animation frames:
+    those would need the page's shared Plotly bootstrap to pass `frames` to
+    newPlot, which would move bytes on every other page in both repos.
+    """
+    frame_col = spec.get("frame_col", "frame")
+    label_col = spec.get("label_col", "label")
+    dim_col = spec.get("dim_col", "dimension")
+    val_col = spec.get("value_col", "score")
+    x_dim, y_dim = spec["x_dim"], spec["y_dim"]
+    extra_dims = spec.get("extra_dims", [])
+    dec = spec.get("decimals", 2)
+    lo, hi = spec.get("range", [0, 10])
+    neutral = spec.get("neutral")
+    groups = {g["key"]: g for g in spec.get("groups", [])}
+
+    # frame -> label -> record. Insertion order is the CSV's, which is the
+    # resolution script's chronological order; the slider inherits it.
+    frames: dict[str, dict[str, dict]] = {}
+    for r in rows:
+        f = (r.get(frame_col) or "").strip()
+        lab = (r.get(label_col) or "").strip()
+        if not f or not lab:
+            continue
+        rec = frames.setdefault(f, {}).setdefault(lab, {"dims": {}, "row": r})
+        rec["dims"][(r.get(dim_col) or "").strip()] = to_float(r.get(val_col))
+        # The per-entity fields repeat on every dimension row; the plotted
+        # dimensions are the authority for the ones that describe the marker.
+        if (r.get(dim_col) or "").strip() == y_dim:
+            rec["row"] = r
+    if not frames:
+        raise SystemExit(f"panel.json: xy_map chart {spec['n']} matched no rows "
+                         f"in {spec['csv']}")
+
+    keys = list(frames)
+    traces, steps = [], []
+    for fi, fkey in enumerate(keys):
+        shown = fi == len(keys) - 1
+        scored, unscored = [], []
+        for lab, rec in frames[fkey].items():
+            x, y = rec["dims"].get(x_dim), rec["dims"].get(y_dim)
+            (scored if (x is not None and y is not None) else unscored).append(
+                (lab, x, y, rec))
+
+        # -- the seats that have both plotted scores
+        pts = [(x, y) for _, x, y, _ in scored]
+        sides = _dodge_text(pts, spec.get("dodge_within", 0.28))
+        colours, edges, widths, texts, custom = [], [], [], [], []
+        for lab, x, y, rec in scored:
+            g = groups.get((rec["row"].get(spec.get("group_col", "")) or "").strip())
+            gc = g["color"] if g else T["GREY"]
+            # Hollow means the evidence behind the marker predates the previous
+            # meeting: the seat has not been re-read, not that its score is soft.
+            stale = bool((rec["row"].get(spec.get("stale_col", "")) or "").strip())
+            colours.append(T["PAPER"] if stale else gc)
+            edges.append(gc)
+            widths.append(2.4 if stale else 1.4)
+            texts.append(lab)
+            extras = " · ".join(
+                f"{d}: {rec['dims'][d]:.{dec}f}" for d in extra_dims
+                if rec["dims"].get(d) is not None)
+            note = (rec["row"].get(spec.get("note_col", "")) or "").strip()
+            src = (rec["row"].get(spec.get("source_col", "")) or "").strip()
+            detail = (rec["row"].get(spec.get("detail_col", "")) or "").strip()
+            custom.append([extras, note, src, detail])
+
+        hov = (f"<b>%{{text}}</b>%{{customdata[3]}}<br>"
+               f"{x_dim}: %{{x:.{dec}f}} · {y_dim}: %{{y:.{dec}f}}"
+               "<br>%{customdata[0]}"
+               "<br><span style=\"color:%s\">%%{customdata[2]}</span>"
+               "%%{customdata[1]}<extra></extra>" % T["GREY"])
+        traces.append(dict(
+            type="scatter", mode="markers+text", name=fkey, visible=shown,
+            x=[x for _, x, _, _ in scored], y=[y for _, _, y, _ in scored],
+            text=texts, textposition=sides,
+            textfont=dict(size=13, color=T["INK"]),
+            customdata=custom, hovertemplate=hov, showlegend=False,
+            marker=dict(size=spec.get("marker_size", 15), color=colours,
+                        line=dict(color=edges, width=widths)),
+        ))
+
+        # -- seats on the roster with no score. Shown at the margin, labelled,
+        #    never dropped and never parked on the neutral cross-hairs, which
+        #    would read as "this member is neutral".
+        ux = lo + (hi - lo) * 0.045
+        traces.append(dict(
+            type="scatter", mode="markers+text", name=fkey + " (unscored)",
+            visible=shown,
+            x=[ux] * len(unscored),
+            y=[lo + (hi - lo) * 0.10 + i * (hi - lo) * 0.075
+               for i in range(len(unscored))],
+            text=[f"  {lab} — not yet scored" for lab, _, _, _ in unscored],
+            textposition=["middle right"] * len(unscored),
+            textfont=dict(size=11, color=T["GREY"]),
+            hoverinfo="skip", showlegend=False,
+            marker=dict(size=13, color="rgba(0,0,0,0)",
+                        line=dict(color=T["GREY"], width=1.4)),
+        ))
+
+        vis = [False] * (2 * len(keys))
+        vis[2 * fi] = vis[2 * fi + 1] = True
+        steps.append(dict(method="update", label=spec.get("frame_labels", {})
+                          .get(fkey, fkey), args=[dict(visible=vis)]))
+
+    layout = base_layout(spec, T, legend=False)
+    layout["hovermode"] = "closest"
+    layout["xaxis"].update(
+        showgrid=True, gridcolor=T["GRID"], gridwidth=1.4,
+        range=[lo, hi], tickmode="array", tickvals=spec.get("ticks", []),
+        title=dict(text=spec.get("xlabel", ""),
+                   font=dict(size=15, color=T["GREY"])))
+    layout["yaxis"].update(
+        range=[lo, hi], tickmode="array", tickvals=spec.get("ticks", []),
+        title=dict(text=spec.get("ylabel", ""),
+                   font=dict(size=15, color=T["GREY"])))
+    layout["margin"] = dict(l=96, r=40, t=16, b=118)
+
+    shapes, notes = [], []
+    if neutral is not None:
+        for ref in ("x", "y"):
+            shapes.append(dict(
+                type="line", layer="below",
+                **({"xref": "x", "x0": neutral, "x1": neutral,
+                    "yref": "paper", "y0": 0, "y1": 1} if ref == "x" else
+                   {"yref": "y", "y0": neutral, "y1": neutral,
+                    "xref": "paper", "x0": 0, "x1": 1}),
+                line=dict(color=T["GREY"], width=1.0, dash="dash")))
+    for a in spec.get("crosshair_notes", []):
+        notes.append(dict(x=a["x"], y=a["y"], text=a["text"], showarrow=False,
+                          xanchor=a.get("xanchor", "left"),
+                          yanchor=a.get("yanchor", "bottom"), align="left",
+                          font=dict(size=11, color=T["GREY"])))
+
+    # The colour key. The house style bans legends because a line can be
+    # direct-labelled in its own colour; here the colour encodes a grouping
+    # several markers share and there is nowhere to put it on a marker, so the
+    # key is drawn as annotations in the corner the data cannot reach.
+    if spec.get("key_at"):
+        kx, ky, step = spec["key_at"]
+        for i, g in enumerate(spec.get("groups", [])
+                              + [dict(color=T["GREY"], label=spec.get(
+                                  "hollow_label", ""), key="", glyph="○")]):
+            if not g.get("label"):
+                continue
+            notes.append(dict(
+                x=kx, y=ky - i * step, xanchor="left", yanchor="middle",
+                showarrow=False, align="left",
+                text=(f"<span style=\"color:{g['color']}\">"
+                      f"{g.get('glyph', '●')}</span>  {g['label']}"),
+                font=dict(size=11.5, color=T["INK"])))
+
+    if shapes:
+        layout["shapes"] = shapes
+    if notes:
+        layout["annotations"] = notes
+    layout["sliders"] = [dict(
+        active=len(keys) - 1, steps=steps, x=0.06, xanchor="left",
+        y=-0.20, yanchor="top", len=0.94, pad=dict(t=6, b=6),
+        transition=dict(duration=0),
+        currentvalue=dict(prefix=spec.get("slider_prefix", ""), xanchor="left",
+                          font=dict(size=14, color=T["INK"])),
+        tickcolor=T["GREY"], bordercolor="rgba(0,0,0,0)", bgcolor=T["GREY"],
+        activebgcolor=T["INK"],
+        font=dict(size=11, color=T["GREY"]))]
+    return dict(data=traces, layout=layout)
+
+
 def base_layout(spec: dict, T: dict, legend: bool) -> dict:
     """The house frame: warm-gray canvas, white horizontal gridlines only, no
     spines, no tick marks, unified hover. Mirrors house_layout() in the chart
@@ -1267,7 +1523,8 @@ def build(slug: str) -> Path:
                      "bar_line": fig_bar_line,
                      "curve": fig_curve, "decomp": fig_decomp,
                      "ranked_bars": fig_ranked_bars,
-                     "signed_bar_line": fig_signed_bar_line}
+                     "signed_bar_line": fig_signed_bar_line,
+                     "xy_map": fig_xy_map}
             fig = kinds[spec["kind"]](spec, rows, T)
             figs.append((div_id, fig))
             h = spec.get("height", 470)
