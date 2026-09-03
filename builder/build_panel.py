@@ -53,7 +53,7 @@ MANIFEST (panel.json)
 
     kind "line"     x, start, end, series[{col,label,color,dash,connect_gaps,
                     hollow_col,hover_col}], hlines[{y,label}], vlines[{x,label}],
-                    decimals, markers, marker_size
+                    decimals, markers, marker_size, yrange, xrange
     kind "line_bars"
                     two stacked panels on ONE shared x-axis: the "line" kind's
                     series above, a bar series below, each with its own y-axis.
@@ -456,8 +456,14 @@ def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
         mode, extra = "lines", {}
         if spec.get("markers"):
             mode = "lines+markers"
-            marker = dict(size=spec.get("marker_size", 7), color=colour,
-                          line=dict(color=colour, width=2))
+            # Per-series size, for the one case where a chart is short enough
+            # that two series can sit on the same value with no line to tell
+            # them apart: Plotly draws in manifest order, so the later series
+            # hides the earlier one and a score the page claims to show is
+            # simply not on it. Declaring descending sizes nests the markers
+            # instead. Chart-level default otherwise, so nothing else moves.
+            marker = dict(size=s.get("marker_size", spec.get("marker_size", 7)),
+                          color=colour, line=dict(color=colour, width=2))
             if s.get("hollow_col"):
                 blank = ("", "0", "no", "false")
                 marker["color"] = [
@@ -570,6 +576,12 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
     apply_vlines(spec, layout, T, xs)
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
+    # A stated x window, for a run of charts a reader compares against each
+    # other. Autoscale gives each its own span, so a member with one reading
+    # fills the frame and a member whose series ends early does not visibly end
+    # early. Opt-in, emitted only where declared.
+    if spec.get("xrange"):
+        layout["xaxis"]["range"] = spec["xrange"]
 
     return dict(data=traces, layout=layout)
 
@@ -1220,6 +1232,24 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
 
     keys = list(frames)
     traces, steps = [], []
+
+    # The neutral cross-hairs are TRACES, not layout shapes, and they are the
+    # first two so every frame's markers draw over them. A shape cannot do this
+    # job here: on Plotly's "below" layer it renders beneath the gridlines, and
+    # the house grid is opaque white, so the line disappears and the page is
+    # left with two captions pointing at nothing (found in the render check,
+    # 2026-09-03). On the "above" layer it would instead be drawn across the
+    # markers. As traces they sit exactly where the published matplotlib twin
+    # puts them: over the grid, under the seats.
+    n_fixed = 0
+    if neutral is not None:
+        for x, y in (([neutral, neutral], [lo, hi]), ([lo, hi], [neutral, neutral])):
+            traces.append(dict(
+                type="scatter", mode="lines", name="neutral", visible=True,
+                x=x, y=y, line=dict(color=T["GREY"], width=1.0, dash="dash"),
+                opacity=0.7, hoverinfo="skip", showlegend=False))
+        n_fixed = 2
+
     for fi, fkey in enumerate(keys):
         shown = fi == len(keys) - 1
         scored, unscored = [], []
@@ -1242,19 +1272,26 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
             edges.append(gc)
             widths.append(2.4 if stale else 1.4)
             texts.append(lab)
-            extras = " · ".join(
-                f"{d}: {rec['dims'][d]:.{dec}f}" for d in extra_dims
-                if rec["dims"].get(d) is not None)
-            note = (rec["row"].get(spec.get("note_col", "")) or "").strip()
-            src = (rec["row"].get(spec.get("source_col", "")) or "").strip()
+            # The hover is assembled here, not in the template, so a blank
+            # field costs no empty line: each optional part carries its own
+            # leading <br> or is the empty string.
             detail = (rec["row"].get(spec.get("detail_col", "")) or "").strip()
-            custom.append([extras, note, src, detail])
+            tail = []
+            for d in extra_dims:
+                if rec["dims"].get(d) is not None:
+                    tail.append(f"{d}: {rec['dims'][d]:.{dec}f}")
+            src = (rec["row"].get(spec.get("source_col", "")) or "").strip()
+            if src:
+                tail.append(f'<span style="color:{T["GREY"]}">{src}</span>')
+            note = (rec["row"].get(spec.get("note_col", "")) or "").strip()
+            if note:
+                tail.append(f'<span style="color:{T["GREY"]}">{note}</span>')
+            custom.append([f" ({detail})" if detail else "",
+                           ("<br>" + "<br>".join(tail)) if tail else ""])
 
-        hov = (f"<b>%{{text}}</b>%{{customdata[3]}}<br>"
+        hov = (f"<b>%{{text}}</b>%{{customdata[0]}}<br>"
                f"{x_dim}: %{{x:.{dec}f}} · {y_dim}: %{{y:.{dec}f}}"
-               "<br>%{customdata[0]}"
-               "<br><span style=\"color:%s\">%%{customdata[2]}</span>"
-               "%%{customdata[1]}<extra></extra>" % T["GREY"])
+               f"%{{customdata[1]}}<extra></extra>")
         traces.append(dict(
             type="scatter", mode="markers+text", name=fkey, visible=shown,
             x=[x for _, x, _, _ in scored], y=[y for _, _, y, _ in scored],
@@ -1283,8 +1320,8 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
                         line=dict(color=T["GREY"], width=1.4)),
         ))
 
-        vis = [False] * (2 * len(keys))
-        vis[2 * fi] = vis[2 * fi + 1] = True
+        vis = [True] * n_fixed + [False] * (2 * len(keys))
+        vis[n_fixed + 2 * fi] = vis[n_fixed + 2 * fi + 1] = True
         steps.append(dict(method="update", label=spec.get("frame_labels", {})
                           .get(fkey, fkey), args=[dict(visible=vis)]))
 
@@ -1301,16 +1338,7 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
                    font=dict(size=15, color=T["GREY"])))
     layout["margin"] = dict(l=96, r=40, t=16, b=118)
 
-    shapes, notes = [], []
-    if neutral is not None:
-        for ref in ("x", "y"):
-            shapes.append(dict(
-                type="line", layer="below",
-                **({"xref": "x", "x0": neutral, "x1": neutral,
-                    "yref": "paper", "y0": 0, "y1": 1} if ref == "x" else
-                   {"yref": "y", "y0": neutral, "y1": neutral,
-                    "xref": "paper", "x0": 0, "x1": 1}),
-                line=dict(color=T["GREY"], width=1.0, dash="dash")))
+    notes, n_cross = [], len(spec.get("crosshair_notes", []))
     for a in spec.get("crosshair_notes", []):
         notes.append(dict(x=a["x"], y=a["y"], text=a["text"], showarrow=False,
                           xanchor=a.get("xanchor", "left"),
@@ -1335,8 +1363,6 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
                       f"{g.get('glyph', '●')}</span>  {g['label']}"),
                 font=dict(size=11.5, color=T["INK"])))
 
-    if shapes:
-        layout["shapes"] = shapes
     if notes:
         layout["annotations"] = notes
     layout["sliders"] = [dict(
@@ -1348,7 +1374,44 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
         tickcolor=T["GREY"], bordercolor="rgba(0,0,0,0)", bgcolor=T["GREY"],
         activebgcolor=T["INK"],
         font=dict(size=11, color=T["GREY"]))]
-    return dict(data=traces, layout=layout)
+
+    # Phone width. Measured at 390px: the colour key's longest line, the x
+    # cross-hair caption and the x-axis title all ran past the plot's right
+    # edge, and an axis title truncated mid-word is exactly the defect no
+    # numeric gate sees. The key is hidden rather than shrunk — at this width
+    # its four lines cannot be made to fit and stay legible — so the figure's
+    # caption has to carry the colour rule, and the manifest's "note" is the
+    # place for it. The captions and titles shorten instead of disappearing,
+    # because they are what make the neutral lines mean anything.
+    narrow = {
+        "maxwidth": spec.get("narrow_maxwidth", 560),
+        "height": spec.get("narrow_height", spec.get("height", 470)),
+        "wide_height": spec.get("height", 470),
+        "layout": {
+            "xaxis.title.text": spec.get("xlabel_narrow", spec.get("xlabel", "")),
+            "yaxis.title.text": spec.get("ylabel_narrow", spec.get("ylabel", "")),
+            "xaxis.title.font.size": 12, "yaxis.title.font.size": 12,
+            "xaxis.tickfont.size": 13, "yaxis.tickfont.size": 13,
+            "margin.l": 52, "margin.r": 16, "margin.b": 124,
+        },
+        "wide": {
+            "xaxis.title.text": spec.get("xlabel", ""),
+            "yaxis.title.text": spec.get("ylabel", ""),
+            "xaxis.title.font.size": 15, "yaxis.title.font.size": 15,
+            "xaxis.tickfont.size": 18, "yaxis.tickfont.size": 18,
+            "margin.l": 96, "margin.r": 40, "margin.b": 118,
+        },
+        "style": {"textfont.size": 11},
+        "wide_style": {"textfont.size": 13},
+    }
+    for i in range(n_cross, len(notes)):          # the colour key only
+        narrow["layout"]["annotations[%d].visible" % i] = False
+        narrow["wide"]["annotations[%d].visible" % i] = True
+    for i, a in enumerate(spec.get("crosshair_notes", [])):
+        if a.get("text_narrow"):
+            narrow["layout"]["annotations[%d].text" % i] = a["text_narrow"]
+            narrow["wide"]["annotations[%d].text" % i] = a["text"]
+    return dict(data=traces, layout=layout, narrow=narrow)
 
 
 def base_layout(spec: dict, T: dict, legend: bool) -> dict:

@@ -2451,6 +2451,277 @@ QA = {"2026-07-20-long-climb": qa_long_climb,
 BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 
 
+# ------------------------------------------------- 2026-09-03 BoJ-PSI page
+# The gates that void the result are G1 and G2 of the work order: a CSV that
+# does not reproduce the ledger makes the page a picture of nothing. So the
+# running estimate is recomputed HERE, from the ledger and the vote register as
+# CSV files, rather than by importing the chart library's resolution module the
+# cut script uses. Importing it would gate that module against itself and prove
+# only that the same code twice gives the same answer.
+#
+# The rules restated (work order psi-board-map-ledger-and-faces, 2026-09-02):
+#   1  a live row is one that is neither superseded nor deferred
+#   3  the estimate at a date is the live row with the latest event_date at or
+#      before it; a tie on date goes to the later row id
+#   4  the executive seat reads Exec-bloc and Ueda together, preferring an
+#      Exec-bloc row on a tie
+#   5  the roster is the names on the meeting's rate-decision row
+PSI_LEDGER = Path(r"G:\My Drive\JMA drive\Research2026\BoJ policy scoring"
+                  r"\Policy stance score\Ledgers\boj_psi_score_ledger_v0_2.csv")
+PSI_REGISTER = Path(r"G:\My Drive\JMA drive\Research2026\BoJ policy scoring"
+                    r"\minutes\decisiondata\mpm_decisions_v12.csv")
+PSI_EXEC = ("Ueda", "Himino", "Uchida")
+PSI_NAMES = {"植田和男": "Ueda", "氷見野良三": "Himino", "内田眞一": "Uchida",
+             "中川順子": "Nakagawa", "高田創": "Takata", "田村直樹": "Tamura",
+             "小枝淳子": "Koeda", "増一行": "Masu", "浅田統一郎": "Asada",
+             "佐藤綾野": "Sato", "安達誠司": "Adachi", "中村豊明": "Nakamura",
+             "野口旭": "Noguchi"}
+PSI_DIMS = ("Economy", "Inflation", "PolicyRate")
+
+# The passages of Takuji's BoJ-PSI primer draft (revision V2, 2026-09-03,
+# `report\draft - BoJ-PSI primer - Takuji revision V2 - 2026-09-03.md`) that the
+# page's explanatory prose is taken from. Gate G5 asserts the page says these
+# and re-words none of them: the page must not grow an explanation of its own,
+# because two explanations of one index drift.
+#
+# THREE LIGHT EDITS are deliberate and are the only departures from the draft's
+# own characters, all in the first sentence pair, all because this page is read
+# by someone who has not read the primer:
+#   "the BoJ communications"   -> "the Bank of Japan's communications"
+#   "a summary of opinions"    -> "a Summary of Opinions"  (proper noun, as the
+#                                 rest of the page and the banner spell it)
+#   "6 business days"          -> "six business days"
+# Anything beyond these is a re-wording and must be put back.
+PSI_PASSAGES = [
+    "BoJ-PSI is a text-based analysis of the Bank of Japan's communications",
+    "six business days after its policy board meeting, followed by more "
+    "detailed minutes one to two months later",
+    "Remarks are anonymous, but we devised a method to make attribution to "
+    "members with a varying level of confidence",
+    "Each member is scored on three dimensions \u2014 Economy, Inflation and "
+    "Policy Rate \u2014 on a 0\u201310 scale where 5 is neutral",
+    "A score around 7 on the Policy Rate dimension indicates advocacy of a "
+    "standard rate hike by 0.25%",
+    "Scoring members separately on Economy and Inflation enables us to see not "
+    "just whether a member is a hawk or dove, but why",
+    "Every attribution is graded on a confidence tier, and only sufficiently "
+    "confident attributions feed PSI scores",
+    "We treat each one as an assessed inference, not an established fact",
+    "BoJ-PSI is an ongoing project",
+    "Scores are revised when later evidence arrives",
+    "We publish updated member scores after each Summary of Opinions and each "
+    "set of minutes",
+    "This page is shared with paid subscribers",
+]
+
+PSI_BOTTOM_BANNER = (
+    "The charts and data on this page are free to use and reproduce with "
+    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "subscribers. BoJ-PSI is an ongoing project: scores are revised when later "
+    "evidence arrives, above all when the minutes replace the Summary of "
+    "Opinions. Updated after each Summary of Opinions and each set of minutes.")
+
+
+def _psi_natural(row_id):
+    return tuple(int(p) if p.isdigit() else p
+                 for p in re.split(r"(\d+)", row_id or ""))
+
+
+def _psi_live():
+    with open(PSI_LEDGER, encoding="utf-8-sig", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    live = [r for r in rows
+            if not r["superseded_by"].strip()
+            and "deferred" not in r["status"].strip().lower()]
+    return rows, live
+
+
+def _psi_estimate(live, labels, dim, cutoff, prefer=None):
+    """Rules 3 and 4. Returns (score, row_id) or (None, '')."""
+    cand = [r for r in live if r["member"].strip() in labels
+            and r["dimension"].strip() == dim
+            and r["event_date"].strip() and r["event_date"].strip() <= cutoff]
+    if not cand:
+        return None, ""
+    latest = max(r["event_date"].strip() for r in cand)
+    cand = [r for r in cand if r["event_date"].strip() == latest]
+    if prefer and len(cand) > 1:
+        cand = [r for r in cand if r["member"].strip() == prefer] or cand
+    w = max(cand, key=lambda r: _psi_natural(r["row_id"]))
+    s = w["final_score"].strip()
+    return (float(s) if s else None), w["row_id"]
+
+
+def _psi_roster(date):
+    """Rule 5 — every name on the meeting's rate-decision row, in register
+    order, with the vote column it came from."""
+    with open(PSI_REGISTER, encoding="utf-8-sig", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    row = next((r for r in rows if r["開催日"].strip() == date
+                and r["種別"].strip() == "政策金利・YCC"), None)
+    if row is None:
+        return [], {}
+    names, votes = [], {}
+    for c, v in (("賛成者", "for"), ("反対者", "against"),
+                 ("棄権者", "abstain"), ("欠席者", "absent")):
+        for jp in (row.get(c) or "").replace("、", ",").split(","):
+            jp = jp.strip()
+            if jp and jp in PSI_NAMES:
+                names.append(PSI_NAMES[jp])
+                votes[PSI_NAMES[jp]] = v
+    return names, votes
+
+
+def _psi_seats(names):
+    """Rule 4 — the three executives are one seat; everyone else is their own."""
+    seats = []
+    on = [n for n in PSI_EXEC if n in names]
+    if on:
+        seats.append(("Executives", ("Exec-bloc", "Ueda"), "Exec-bloc", on))
+    for n in names:
+        if n not in PSI_EXEC:
+            seats.append((n, (n,), None, [n]))
+    return seats
+
+
+def qa_boj_psi(root, manifest, page, figs) -> None:
+    _, live = _psi_live()
+    vintage = json.loads((root / "data" / "vintage.json").read_text("utf-8"))
+    meetings, latest = vintage["meetings"], vintage["latest_meeting"]
+
+    print("\nG0  ledger validity")
+    gate(vintage["chain_audit_findings"] == 0,
+         "the cut ran on a clean chain audit",
+         f"{vintage['chain_audit_findings']} findings, "
+         f"{vintage['ledger_rows']} ledger rows")
+
+    # ---------------------------------------------------------------- G1
+    print("\nG1  the board map reproduces the ledger")
+    board = figs["chart_1"]
+    fixed = [t for t in board["data"] if t["name"] == "neutral"]
+    frames = [t for t in board["data"]
+              if t["name"] != "neutral" and not t["name"].endswith("(unscored)")]
+    gate(len(frames) == len(meetings) and len(meetings) > 1,
+         "one drawn frame per policy meeting",
+         f"{len(frames)} frames for {len(meetings)} meetings")
+    gate(len(fixed) == 2, "the neutral cross-hairs are drawn as traces, so the "
+         "opaque house gridline cannot hide them", f"{len(fixed)} lines")
+    steps = board["layout"]["sliders"][0]["steps"]
+    gate(len(steps) == len(meetings), "one slider step per meeting",
+         f"{len(steps)} steps")
+    gate(all(len(s["args"][0]["visible"]) == len(board["data"]) for s in steps),
+         "every slider step addresses every trace",
+         f"{len(board['data'])} traces")
+    gate(sum(1 for t in board["data"] if t.get("visible")) == 2 + len(fixed),
+         "exactly one meeting is drawn on load, plus the cross-hairs")
+    gate(board["layout"]["sliders"][0]["active"] == len(meetings) - 1,
+         "the slider opens on the latest meeting", latest)
+
+    checked, bad = 0, []
+    for fi, date in enumerate(meetings):
+        names, _votes = _psi_roster(date)
+        want = {}
+        for seat, labels, prefer, _members in _psi_seats(names):
+            x, xr = _psi_estimate(live, labels, "Inflation", date, prefer)
+            y, yr = _psi_estimate(live, labels, "PolicyRate", date, prefer)
+            if x is not None and y is not None:
+                want[seat] = (round(x, 4), round(y, 4), xr, yr)
+        got = dict(zip(frames[fi]["text"],
+                       zip(frames[fi]["x"], frames[fi]["y"])))
+        if set(got) != set(want):
+            bad.append(f"{date}: drawn {sorted(got)} vs ledger {sorted(want)}")
+            continue
+        for seat, (x, y, xr, yr) in want.items():
+            checked += 1
+            if (round(got[seat][0], 4), round(got[seat][1], 4)) != (x, y):
+                bad.append(f"{date} {seat}: drawn {got[seat]} vs ledger "
+                           f"{(x, y)} (rows {xr}/{yr})")
+    gate(checked > 0 and not bad,
+         "every drawn seat is the ledger's running estimate at that meeting",
+         f"{checked} seat-points recomputed" + (f"; {bad[:3]}" if bad else ""))
+
+    # ---------------------------------------------------------------- G2
+    print("\nG2  the member charts reproduce the ledger")
+    series = {"Economy": "Economy", "Inflation": "Inflation",
+              "PolicyRate": "Policy Rate"}
+    pts, wrong, empty = 0, [], []
+    for spec in manifest["charts"]:
+        if spec["kind"] != "line" or not spec["csv"].startswith("data/chart-"):
+            continue
+        labels_by_slug = {
+            "executives": (("Exec-bloc", "Ueda"), "Exec-bloc")}
+        key = spec["csv"].rsplit("-", 1)[-1][:-4]
+        if key in ("board", "dispersion"):
+            continue
+        labels, prefer = labels_by_slug.get(key, ((key.capitalize(),), None))
+        fig = figs[f"chart_{spec['n']}"]
+        if not any(m["member"].strip() in labels for m in live):
+            empty.append(key)
+            continue
+        for dim, label in series.items():
+            t = trace(fig, label)
+            for x, y in zip(t["x"], t["y"]):
+                want, rid = _psi_estimate(live, labels, dim, x, prefer)
+                pts += 1
+                # A blank is a real answer, not a miss: a member can be scored
+                # on one dimension at an event and not yet on another, and the
+                # chart must show the gap rather than bridge it. So the two
+                # sides are compared including their blanks.
+                if (y is None) != (want is None) or (
+                        y is not None and abs(y - want) > 1e-9):
+                    wrong.append(f"{key} {dim} {x}: drawn {y} vs ledger "
+                                 f"{want} ({rid})")
+    gate(pts > 0 and not wrong and not empty,
+         "every plotted point is the ledger's running estimate at that date",
+         f"{pts} points recomputed across the member charts"
+         + (f"; {wrong[:3]}" if wrong else "")
+         + (f"; no ledger rows for {empty}" if empty else ""))
+
+    nak = figs["chart_10"]
+    last = max(trace(nak, "Policy Rate")["x"])
+    gate(last == "2026-06-16",
+         "Nakagawa's series stops at her last meeting and is not extended",
+         f"last point {last}")
+    gate(not any("Noguchi" in (c.get("title") or "")
+                 for c in manifest["charts"]),
+         "no Noguchi chart — the ledger carries no series for him")
+
+    # ---------------------------------------------------------------- G7
+    print("\nG7  roster")
+    names, _ = _psi_roster(latest)
+    seats = {s for s, _l, _p, _m in _psi_seats(names)}
+    # _page_table returns body rows only — the header carries <th>, not <td>.
+    tbl = _page_table(page)
+    gate(len(tbl) == len(seats) and len(seats) > 1,
+         "the latest-scores table reached the page with one row per seat",
+         f"{len(tbl)} rows for {len(seats)} seats")
+    shown = {r[0].split(" (")[0] for r in tbl}
+    gate(shown == seats, "the table's seats are the roster at the latest meeting",
+         f"table {sorted(shown)} vs register {sorted(seats)}")
+    retired = {"Nakagawa", "Noguchi", "Nakamura", "Adachi"} - seats
+    gate(not (retired & shown),
+         "no member whose term has ended appears in the table",
+         f"checked {sorted(retired)}")
+    gate("Sato" in shown, "Sato is on the map and in the table")
+
+    # ---------------------------------------------------------------- G5
+    print("\nG5  text provenance")
+    txt = html.unescape(re.sub(r"<[^>]+>", "", page))
+    missing = [p for p in PSI_PASSAGES if p not in txt]
+    gate(len(PSI_PASSAGES) == 12 and not missing,
+         "every explanatory sentence traces to the primer draft",
+         f"checked {len(PSI_PASSAGES)} passages" +
+         (f"; missing {missing}" if missing else ""))
+    for banned in ("About the model", "About BoJ-PSI", "How we score",
+                   "Methodology"):
+        gate(banned not in page,
+             f"no method block: {banned!r} absent (ruling 2026-08-15)")
+
+
+QA["boj-psi"] = qa_boj_psi
+BOTTOM_BANNERS["boj-psi"] = PSI_BOTTOM_BANNER
+
+
 def main(slug: str) -> int:
     root = REPO / slug
     manifest = json.loads((root / "panel.json").read_text(encoding="utf-8"))
