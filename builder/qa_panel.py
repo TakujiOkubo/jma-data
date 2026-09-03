@@ -2590,9 +2590,16 @@ def qa_boj_psi(root, manifest, page, figs) -> None:
     meetings, latest = vintage["meetings"], vintage["latest_meeting"]
 
     print("\nG0  ledger validity")
-    gate(vintage["chain_audit_findings"] == 0,
-         "the cut ran on a clean chain audit",
-         f"{vintage['chain_audit_findings']} findings, "
+    # Not "clean" -- "carrying no chain break the project has not registered".
+    # The ledger keeps a small set of accepted breaks parked against open
+    # questions (KNOWN_CHAIN_BREAKS in the project's own suite). One member's
+    # parked scoring question must not stop every other member's numbers from
+    # reaching the page; an UNREGISTERED break still must.
+    accepted = vintage.get("chain_audit_accepted", [])
+    gate(vintage["chain_audit_unregistered"] == 0,
+         "the cut ran with no unregistered chain break",
+         f"{vintage['chain_audit_unregistered']} unregistered, "
+         f"{len(accepted)} accepted ({', '.join(accepted) or 'none'}), "
          f"{vintage['ledger_rows']} ledger rows")
 
     # ---------------------------------------------------------------- G1
@@ -2639,6 +2646,30 @@ def qa_boj_psi(root, manifest, page, figs) -> None:
     gate(checked > 0 and not bad,
          "every drawn seat is the ledger's running estimate at that meeting",
          f"{checked} seat-points recomputed" + (f"; {bad[:3]}" if bad else ""))
+    gate(meetings[0] == "2025-05-01",
+         "the map starts at May 2025 (Takuji, 2026-09-03)", meetings[0])
+
+    # An absence gate for a deliberate deletion. Until 2026-09-03 a seat whose
+    # evidence predated the previous meeting was drawn hollow. Takuji retired
+    # that distinction -- a score carried forward for want of new evidence is
+    # still the score -- so the fill must now be a group colour on every drawn
+    # seat, never the page's paper token standing in for "stale".
+    #
+    # Gated on the delivered figure rather than on the manifest key, because the
+    # manifest not declaring `stale_col` is the cause and a hollow marker is the
+    # symptom, and it is the symptom a reader sees.
+    fills, hollow = 0, 0
+    for t in frames:
+        for c in (t["marker"]["color"] if isinstance(t["marker"]["color"], list)
+                  else [t["marker"]["color"]]):
+            fills += 1
+            if str(c).upper() == "#E9E7E0":
+                hollow += 1
+    gate(fills > 0 and hollow == 0,
+         "no seat on the map is drawn hollow: a carried score is a score",
+         f"{fills} marker fills checked, {hollow} hollow")
+    gate("stale_col" not in manifest["charts"][0],
+         "the map declares no staleness column")
 
     # ---------------------------------------------------------------- G2
     print("\nG2  the member charts reproduce the ledger")
@@ -2677,14 +2708,40 @@ def qa_boj_psi(root, manifest, page, figs) -> None:
          + (f"; {wrong[:3]}" if wrong else "")
          + (f"; no ledger rows for {empty}" if empty else ""))
 
-    nak = figs["chart_10"]
-    last = max(trace(nak, "Policy Rate")["x"])
-    gate(last == "2026-06-16",
-         "Nakagawa's series stops at her last meeting and is not extended",
-         f"last point {last}")
+    # Retired members are frozen at their last meeting, never extended. Resolved
+    # from the manifest rather than by hard-coded chart number: the run of member
+    # charts grows as members are scored, and a pinned index silently checks the
+    # wrong chart the first time one is inserted.
+    frozen = {"Nakagawa": "2026-06-16", "Nakamura": "2025-06-17"}
+    for name, want in frozen.items():
+        spec = next((c for c in manifest["charts"]
+                     if (c.get("title") or "").strip() == name), None)
+        gate(spec is not None, f"{name} has a chart")
+        if spec is None:
+            continue
+        last = max(trace(figs[f"chart_{spec['n']}"], "Policy Rate")["x"])
+        gate(last == want,
+             f"{name}'s series stops at the last meeting sat and is not extended",
+             f"last point {last}, expected {want}")
     gate(not any("Noguchi" in (c.get("title") or "")
                  for c in manifest["charts"]),
          "no Noguchi chart — the ledger carries no series for him")
+
+    # ---------------------------------------------------------------- rule A
+    print("\nRule A  a Summary of Opinions is not used once the minutes exist")
+    by = defaultdict(set)
+    for r in live:
+        d = (r.get("event_date") or "").strip()
+        if d:
+            by[(r["member"].strip(), r["dimension"].strip(), d[:7])].add(
+                r["source_type"].strip())
+    checked = len(by)
+    clash = [k for k, v in sorted(by.items())
+             if any("SoO" in s for s in v) and any("Minutes" in s for s in v)]
+    gate(checked > 0 and not clash,
+         "no live Summary-of-Opinions row outlives the minutes for its month",
+         f"{checked} member/dimension/month groups checked; {clash[:3]}"
+         if clash else f"{checked} groups checked")
 
     # ---------------------------------------------------------------- G7
     print("\nG7  roster")
