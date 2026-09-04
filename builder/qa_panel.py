@@ -2777,6 +2777,32 @@ def qa_boj_psi(root, manifest, page, figs) -> None:
          + (f"; still declared on {declared}" if declared else ""))
     gate("hollow marker" not in page,
          "the hollow-marker note is gone from the page")
+
+    # Coincident scores are the norm on these charts, not an edge case: 44% of
+    # member-chart events have at least one pair exactly equal, and Inflation
+    # equals Policy Rate at 22%. Plotly paints in manifest order, so the series
+    # listed last covers the ones beneath it and a score the page claims to be
+    # showing is simply not on it. Takuji's fix of 2026-09-04 nests the marks --
+    # sizes and widths descending in draw order -- rather than nudging a value,
+    # because a nudge resolves the collision by lying about the score.
+    #
+    # Gated on the delivered figure. The failure is silent by nature: the chart
+    # renders perfectly with a series missing.
+    nested, bad_nest = 0, []
+    for spec in manifest["charts"]:
+        if spec["kind"] != "line" or "dispersion" in (spec.get("csv") or ""):
+            continue
+        fig = figs[f"chart_{spec['n']}"]
+        sizes = [trace(fig, s["label"])["marker"]["size"] for s in spec["series"]]
+        widths = [trace(fig, s["label"])["line"]["width"] for s in spec["series"]]
+        nested += 1
+        if not (all(a > b for a, b in zip(sizes, sizes[1:]))
+                and all(a > b for a, b in zip(widths, widths[1:]))):
+            bad_nest.append((spec["n"], sizes, widths))
+    gate(nested > 0 and not bad_nest,
+         "member-chart marks nest, so a shared score cannot hide a series",
+         f"{nested} charts checked, sizes and widths strictly descending"
+         + (f"; {bad_nest}" if bad_nest else ""))
     # ---------------------------------------------------------------- rule A
     print("\nRule A  a Summary of Opinions is not used once the minutes exist")
     by = defaultdict(set)
