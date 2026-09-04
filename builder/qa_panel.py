@@ -84,8 +84,23 @@ def qa_structure(manifest, page, figs) -> None:
         gate("Each card links its own CSV" not in page,
              "closing line does not advertise a link that is not there")
     else:
+        # A chart may opt out of its own link with "download": false while the
+        # rest of the page keeps theirs. The gate follows the declaration BOTH
+        # ways: an opted-out chart is asserted to carry no link, never skipped,
+        # because a skip would let the opt-out spread across the page unnoticed.
+        opted_out = 0
         for c in manifest["charts"]:
-            gate(f'href="{c["csv"]}"' in page, f"chart {c['n']} CSV link present")
+            if c.get("download") is False:
+                opted_out += 1
+                gate(f'href="{c["csv"]}"' not in page,
+                     f"chart {c['n']} offers no CSV download, as declared")
+            else:
+                gate(f'href="{c["csv"]}"' in page,
+                     f"chart {c['n']} CSV link present")
+        gate(opted_out < len(manifest["charts"]) and "Download CSV" in page,
+             "the page still offers at least one CSV download",
+             f"{len(manifest['charts']) - opted_out} of "
+             f"{len(manifest['charts'])} charts link their CSV")
 
     # Gated both ways. A page that hands out its data must not also advertise
     # that data as the thing a subscription buys -- which is the state a free

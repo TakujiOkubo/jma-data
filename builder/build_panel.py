@@ -1601,8 +1601,12 @@ def build(slug: str) -> Path:
                if spec.get("subtitle") else "")
         label = spec.get("label") or f"Chart {n}"
 
-        # A page that offers no downloads shows the chart head bare.
-        dl = ("" if not downloads else
+        # A page that offers no downloads shows the chart head bare, and a
+        # single chart can opt out with "download": false while the rest of
+        # the page keeps its links (Takuji, 2026-09-04: the BoJ-PSI board map
+        # and latest-scores table offer no CSV, the member charts do).
+        # Absent, behaviour is unchanged, so no existing page moves a byte.
+        dl = ("" if not downloads or spec.get("download") is False else
               f'\n      <a class="dl" href="{html.escape(spec["csv"])}" '
               "download>Download CSV</a>")
 
