@@ -2712,17 +2712,30 @@ def qa_boj_psi(root, manifest, page, figs) -> None:
     # from the manifest rather than by hard-coded chart number: the run of member
     # charts grows as members are scored, and a pinned index silently checks the
     # wrong chart the first time one is inserted.
-    frozen = {"Nakagawa": "2026-06-16", "Nakamura": "2025-06-17"}
-    for name, want in frozen.items():
+    # Headings now carry the member's full name and tenure, so a chart is found
+    # by its CSV slug rather than by an exact title match: the lookup has to
+    # survive an editorial change to the heading, and matching on the title made
+    # the gate silently find nothing the moment one was rewritten.
+    frozen = {"nakagawa": "2026-06-16"}
+    for slug, want in frozen.items():
         spec = next((c for c in manifest["charts"]
-                     if (c.get("title") or "").strip() == name), None)
-        gate(spec is not None, f"{name} has a chart")
+                     if (c.get("csv") or "").endswith("-%s.csv" % slug)), None)
+        gate(spec is not None, "%s has a chart" % slug)
         if spec is None:
             continue
         last = max(trace(figs[f"chart_{spec['n']}"], "Policy Rate")["x"])
         gate(last == want,
-             f"{name}'s series stops at the last meeting sat and is not extended",
+             "%s's series stops at the last meeting sat and is not extended" % slug,
              f"last point {last}, expected {want}")
+
+    # An absence gate for a deliberate deletion: Takuji withdrew the Nakamura
+    # chart on 2026-09-04. His ledger rows are untouched and he still appears in
+    # the board map's 2025 frames, so this asserts only that he has no chart of
+    # his own -- not that he has left the page.
+    gate(not any("nakamura" in (c.get("csv") or "").lower()
+                 or "Nakamura" in (c.get("title") or "")
+                 for c in manifest["charts"]),
+         "no Nakamura chart (withdrawn 2026-09-04)")
     gate(not any("Noguchi" in (c.get("title") or "")
                  for c in manifest["charts"]),
          "no Noguchi chart — the ledger carries no series for him")
