@@ -1,0 +1,56 @@
+{
+  "slug": "boj-psi-2026-04",
+  "audience": "free",
+  "unlisted": false,
+  "title": "BoJ-Policy Stance Indicator (Free edition)",
+  "series_label": "BoJ-PSI",
+  "date": "Frozen at the policy board meeting of 28 April 2026",
+  "sort": "2026-04",
+  "standfirst": "Where every seat on the Bank of Japan's policy board sits on Economy, Inflation and the Policy Rate, scored from the Bank's own published communications. A board map with a meeting slider, the scores at each meeting, and one chart per member. This is the free edition, frozen at the April 2026 meeting; the paid edition carries every meeting since.",
+  "index_desc": "BoJ-PSI scores every seat on the policy board on Economy, Inflation and the Policy Rate at each meeting. Free edition, frozen at the April 2026 meeting.",
+  "tier": "free",
+  "downloads": false,
+  "charts": [
+    {
+      "n": 1,
+      "title": "Where each seat on the board sits, meeting by meeting"
+    },
+    {
+      "n": 2,
+      "title": "The board at the April 2026 meeting"
+    },
+    {
+      "n": 3,
+      "title": "Executives — Ueda, Himino and Uchida"
+    },
+    {
+      "n": 4,
+      "title": "Takata Hajime (2022 July–2027 July)"
+    },
+    {
+      "n": 5,
+      "title": "Tamura Naoki (2022 July–2027 July)"
+    },
+    {
+      "n": 6,
+      "title": "Koeda Junko (2025 March–2030 March)"
+    },
+    {
+      "n": 7,
+      "title": "Masu Kazuyuki (2025 July–2030 June)"
+    },
+    {
+      "n": 8,
+      "title": "Asada Toichiro (2026 April–2031 March)"
+    },
+    {
+      "n": 9,
+      "title": "Nakagawa Junko (2021 June–2026 June)"
+    },
+    {
+      "n": 10,
+      "title": "How far apart the board is on the policy rate"
+    }
+  ],
+  "_note": "FREE edition. Derived by derive_free_boj_psi.py in jma-data-paid from the delivered paid page: every series cut at 2026-04-28, Sato's chart dropped (no reading before the cut-off), the board map's last two meetings and slider steps removed, downloads off. This manifest exists only so the repo records what the page is; the page is NOT built by builder/build_panel.py and builder/build_index.py no longer lists anything on the public site, so \"unlisted\" is inert here and records intent only. Frozen -- do not refresh (Takuji, 2026-09-04)."
+}
