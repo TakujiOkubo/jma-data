@@ -1591,9 +1591,20 @@ def build(slug: str) -> Path:
             fig = kinds[spec["kind"]](spec, rows, T)
             figs.append((div_id, fig))
             h = spec.get("height", 470)
+            # "step_buttons": one meeting at a time, for a chart whose
+            # slider a reader would otherwise have to aim at. The markup
+            # carries data-steps-for so the wiring finds its own plot.
+            nav = ""
+            if spec.get("step_buttons"):
+                nav = (f'<div class="stepnav" data-steps-for="{div_id}">'
+                       '<button type="button" class="stepbtn stepprev">'
+                       '&lsaquo; Previous</button>'
+                       '<button type="button" class="stepbtn stepnext">'
+                       'Next &rsaquo;</button></div>')
             body = (f'<figure class="fig"><div class="frame">'
                     f'<div class="plot" id="{div_id}" '
                     f'style="height:{h}px;width:100%"></div></div>'
+                    + nav
                     + (f"<figcaption>{caption}</figcaption>" if caption else "")
                     + "</figure>")
 
@@ -1787,6 +1798,13 @@ def build(slug: str) -> Path:
         header_extra=("\n  " + "\n  ".join(x for x in (assumptions, sibling) if x)
                       if (assumptions or sibling) else ""),
         scenario_css=SCENARIO_CSS if (assumptions or sibling) else "",
+        step_css=STEP_CSS if any(c.get("step_buttons")
+                                 for c in m["charts"]) else "",
+        step_js=STEP_JS if any(c.get("step_buttons")
+                               for c in m["charts"]) else "",
+        step_wire=("      wireSteps(f);\r\n"
+                   if any(c.get("step_buttons")
+                          for c in m["charts"]) else ""),
         about=about,
         endnote=endnote,
         cards="\n".join(cards),
@@ -1859,6 +1877,50 @@ TABLE_ACCENT_CSS = """  table.fc tr.focal td{color:#D85A30;font-weight:700}
   table.fc tr.strong td{font-weight:700}
 """
 
+# Step buttons for a chart with a date slider (Takuji, 2026-09-04). Emitted
+# only for a page that declares "step_buttons" on a chart, because an inert
+# rule still changes bytes on every other page.
+STEP_JS = """  // Step buttons drive the slider Plotly already built, rather than tracking
+  // the current frame themselves: one source of truth for what is on screen,
+  // so dragging the slider and clicking a button cannot disagree.
+  function wireSteps(f){
+    var wrap = document.querySelector('[data-steps-for="' + f.id + '"]');
+    if(!wrap) return;
+    var el = document.getElementById(f.id);
+    var sl = f.fig.layout.sliders && f.fig.layout.sliders[0];
+    if(!sl || !sl.steps || !sl.steps.length) return;
+    var steps = sl.steps, last = steps.length - 1;
+    var prev = wrap.querySelector('.stepprev');
+    var next = wrap.querySelector('.stepnext');
+    function at(){
+      var s = el.layout && el.layout.sliders && el.layout.sliders[0];
+      return (s && typeof s.active === 'number') ? s.active : last;
+    }
+    function sync(){
+      var i = at(); prev.disabled = i <= 0; next.disabled = i >= last;
+    }
+    function go(d){
+      var i = at() + d;
+      if(i < 0 || i > last) return;
+      Plotly.update(el, steps[i].args[0], {'sliders[0].active': i}).then(sync);
+    }
+    prev.addEventListener('click', function(){ go(-1); });
+    next.addEventListener('click', function(){ go(1); });
+    if(el.on) el.on('plotly_sliderchange', sync);
+    sync();
+  }
+"""
+
+
+STEP_CSS = """  .stepnav{display:flex;gap:8px;justify-content:flex-end;margin:10px 0 0}
+  .stepbtn{font:600 13px 'Public Sans',sans-serif;cursor:pointer;
+           border:1px solid #3b65a2;border-radius:3px;padding:4px 12px;
+           color:#3b65a2;background:transparent}
+  .stepbtn:hover:enabled{background:#3b65a2;color:#fff}
+  .stepbtn:disabled{border-color:#c9c7c0;color:#c9c7c0;cursor:default}
+"""
+
+
 PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1903,7 +1965,7 @@ PAGE = """<!DOCTYPE html>
          margin:0 0 18px;font:400 15.5px/1.55 'PT Serif',serif;color:#2c2c2a}}
   .intro,.standfirst{{font:400 17px/1.7 'PT Serif',serif;color:#2a2a28;
                      margin:0 0 6px;text-wrap:pretty}}
-{scenario_css}  .card{{margin-top:46px}}
+{scenario_css}{step_css}  .card{{margin-top:46px}}
   .chead{{display:flex;justify-content:space-between;align-items:baseline;
          gap:12px}}
   .cnum{{font:700 11px 'Public Sans',sans-serif;letter-spacing:1.4px;
@@ -2010,10 +2072,10 @@ PAGE = """<!DOCTYPE html>
   }}
   window.addEventListener('resize', function(){{ FIGS.forEach(fitNarrow); }});
 
-  FIGS.forEach(function(f){{
+{step_js}  FIGS.forEach(function(f){{
     Plotly.newPlot(f.id, f.fig.data, f.fig.layout, CFG).then(function(){{
       fitNarrow(f);
-      // A window resize is not the only way the frame changes width (an
+{step_wire}      // A window resize is not the only way the frame changes width (an
       // orientation change on a phone, a container reflow after the webfont
       // lands). Observe the element itself as well.
       if(f.fig.narrow && window.ResizeObserver)
