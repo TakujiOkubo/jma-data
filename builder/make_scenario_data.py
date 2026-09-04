@@ -21,11 +21,15 @@ look, not this file.
 
 Two traps this script is written around:
 
-* The scenario names invert the branch version numbers. v30_7 (the *newer*
-  branch, the *lower* 1.50% terminal) is Main; v30_6 (1.75%) is Alternative.
-  ``--verify-hikes`` re-reads the Policy_Rate column and fails the cut if the
-  hike months do not match what SCENARIOS declares, so a mislabelled page
-  cannot be built silently.
+* A scenario's name does not stay attached to its hike path. The path that was
+  published as the Alternative until 2026-09 (Sep-26 / Mar-27 / Dec-27 to
+  1.75%) is the **Main** from the August 2026 vintage on, and the Alternative
+  moved up to a 2.00% terminal. So a run directory recognised from memory, or a
+  page labelled from the path it used to carry, is exactly the error to expect
+  here. ``verify_hikes`` re-reads the Policy_Rate column and fails the cut if
+  the hike months do not match what SCENARIOS declares, so a mislabelled page
+  cannot be built silently. (It replaced an earlier trap in the same place: the
+  July vintage's branch version numbers ran opposite to its terminal rates.)
 * ``stage3_forecast.csv`` carries its tenor as "10Y", not as the integer 10,
   and its Scenario column as base/up/down. Both are matched as strings.
 """
@@ -44,6 +48,22 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 # 2026-08-03. hikes[] is the acceptance test, not documentation: the cut fails
 # if the run's Policy_Rate column disagrees.
 #
+# Vintage: AUGUST 2026 (origin 2026-08, forecast 2026-09 -> 2029-08), the runs
+# of session S79 (2026-09-01). Takuji promoted the former Alternative to Main
+# and moved the Alternative up to the 2.00% case on 2026-09-04. The retired
+# 1.50% run (fan-sigma-after-v307) is not published anywhere from that date.
+#
+# ONE ASSUMPTION DIFFERS BEYOND THE POLICY PATH, and the pages must say so.
+# The 2.00% run carries scenario-dependent reversion targets for the super-long
+# and belly term premia (--superlong-normal / --belly-normal, register item
+# 10a, introduced S76); the Main run leaves both at the model's own estimates.
+# Read back from pipeline_run_registry.csv, not re-invented:
+#   superlong_normal = 20Y=154.3447,30Y=194.9790,40Y=205.0735
+#   belly_normal     = 5Y=43.3254,10Y=102.6125
+# S76 measured that channel at roughly +68bp on the 30Y against +21bp for an
+# entire 50bp step in the terminal rate, so a page that named only the BoJ path
+# would invite the reader to credit the wrong assumption with the difference.
+#
 # Each scenario feeds TWO pages from one cut, so they can never drift apart:
 #   jgb-yield-curve-*  the paid page - decomposition-led, RN/TP detail, the
 #                      full About section. Supersedes the frozen model page
@@ -53,17 +73,18 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 SCENARIOS = {
     "main": dict(
         slugs=["jgb-yield-curve-main", "jgb-forecast-main"],
-        run="fan-sigma-after-v307",
-        branch="v30_7-changes",
-        hikes=[("2026-10", 1.25), ("2027-03", 1.50)],
-        terminal=1.50,
+        run="v30-aug2026-terminal175-main",
+        branch="v30_16-changes",
+        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
+        terminal=1.75,
     ),
     "alternative": dict(
         slugs=["jgb-yield-curve-alternative", "jgb-forecast-alternative"],
-        run="fan-sigma-after-v306",
-        branch="v30_6-changes",
-        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
-        terminal=1.75,
+        run="v30-aug2026-terminal200-risk",
+        branch="v30_16-changes",
+        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-07", 1.75),
+               ("2027-12", 2.00)],
+        terminal=2.00,
     ),
 }
 
@@ -89,8 +110,13 @@ PANEL_COLS = (
        for b in ("Fan_hi", "Fan_lo", "Fan_hi_TP", "Fan_lo_TP")]
 )
 
+# The last row is the forecast horizon's own end month, which moves with the
+# origin: July 2029 for the July-2026 vintage, August 2029 for the August one.
+# It is stated rather than derived because it is the row the page's prose and
+# its "projected to ..." line have to agree with, and a silent shift there is
+# the kind that reads as a typo months later.
 TABLE_ROWS = [("Dec 2026", "2026-12"), ("Dec 2027", "2027-12"),
-              ("Dec 2028", "2028-12"), ("Jul 2029", "2029-07")]
+              ("Dec 2028", "2028-12"), ("Aug 2029", "2029-08")]
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -288,9 +314,14 @@ def cut(key: str) -> None:
     print(f"  wrote forecast-table.csv to {len(data_dirs)} pages "
           f"({len(table)} rows)")
 
-    hw = {t: (num(by_ym["2029-07"][f"Fan_hi_{t}"])
-              - num(by_ym["2029-07"][f"Yield_{t}"])) * 100 for t in FAN_TENORS}
-    print("  horizon-end fan half-width (bp): "
+    # Read the horizon end off the run rather than naming a month: the fan is
+    # widest at the last projected month, and a hardcoded one silently reports
+    # the second-to-last after an origin roll.
+    horizon_end = max(r["YM"] for r in out_rows if r["Type"] == "forecast")
+    hw = {t: (num(by_ym[horizon_end][f"Fan_hi_{t}"])
+              - num(by_ym[horizon_end][f"Yield_{t}"])) * 100
+          for t in FAN_TENORS}
+    print(f"  fan half-width at the horizon end ({horizon_end}, bp): "
           + ", ".join(f"{t} +/-{v:.1f}" for t, v in hw.items()))
 
 

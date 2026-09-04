@@ -663,12 +663,18 @@ def qa_fx_carry_unwind(root, manifest, page, figs) -> None:
 RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 
 SCENARIO = {
+    # ---- PARKED slim pages, JULY-2026 vintage ----------------------------
+    # These live on the scenario-forecast-pages branch and are not built on
+    # the deploy branch. Their data is the retired 1.50 / 1.75 pair, so they
+    # must NOT be re-pointed at the August runs while the pages themselves
+    # still carry July numbers: the entry describes the page as it exists.
     "jgb-forecast-main": dict(
         name="Main Forecast",
         run="fan-sigma-after-v307",
         sibling="jgb-forecast-alternative",
         hikes=[("2026-10", 1.25), ("2027-03", 1.50)],
         terminal=1.50,
+        horizon="2029-07",
         # bp, from the note's V30.7 base forecast table
         printed={"2026-12": dict(Y10=312.1, Y20=399.5, Y30=447.2, Y40=440.6),
                  "2027-12": dict(Y10=328.2, Y20=380.2, Y30=402.4, Y40=408.4),
@@ -681,32 +687,77 @@ SCENARIO = {
         sibling="jgb-forecast-main",
         hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
         terminal=1.75,
+        horizon="2029-07",
         # bp, from the note's V30.6 base forecast table
         printed={"2026-12": dict(Y10=306.6, Y20=397.3, Y30=445.5, Y40=439.3),
                  "2027-12": dict(Y10=344.6, Y20=391.0, Y30=410.6, Y40=415.0),
                  "2028-12": dict(Y10=336.1, Y20=379.8, Y30=389.3, Y40=399.2),
                  "2029-07": dict(Y10=327.2, Y20=378.1, Y30=387.8, Y40=397.8)},
     ),
+
+    # ---- LIVE paid pages, AUGUST-2026 vintage ----------------------------
+    # Origin 2026-08, horizon 2029-08. Takuji promoted the former Alternative
+    # path to Main and moved the Alternative to the 2.00% case on 2026-09-04,
+    # so a spec recognised from the July taxonomy is now wrong in both slots.
+    #
+    # Restated independently of make_scenario_data.py, as the slim entries
+    # are. The independent source is the S79 session summary (vault,
+    # 20.Research/JGB market/JGB-Yield-Curve/sessions/, 2026-09-01), which
+    # tabulates the year-end curve from a different reading of the same runs.
+    # It quotes per cent to two decimals, hence printed_tol: these figures are
+    # whole basis points and testing them at 0.06bp would measure the
+    # rounding, not the number. Cells S79 does not state are left out rather
+    # than back-filled from the run, which would make the gate circular.
+    "jgb-yield-curve-main": dict(
+        name="Main Forecast",
+        run="v30-aug2026-terminal175-main",
+        sibling="jgb-yield-curve-alternative",
+        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
+        terminal=1.75,
+        horizon="2029-08",
+        printed_tol=0.6,
+        printed={"2026-08": dict(Y10=296, Y20=391, Y30=446, Y40=442),
+                 "2026-12": dict(Y10=316),
+                 "2027-12": dict(Y10=352, Y20=399, Y30=420),
+                 "2028-12": dict(Y10=348, Y20=385, Y30=392, Y40=399)},
+    ),
+    "jgb-yield-curve-alternative": dict(
+        name="Alternative Forecast: A 2 per cent terminal rate",
+        run="v30-aug2026-terminal200-risk",
+        sibling="jgb-yield-curve-main",
+        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-07", 1.75),
+               ("2027-12", 2.00)],
+        terminal=2.00,
+        horizon="2029-08",
+        printed_tol=0.6,
+        # The Aug-2026 row is the observed curve and is identical on both
+        # pages by construction, so it doubles as a history cross-check.
+        printed={"2026-08": dict(Y10=296, Y20=391, Y30=446, Y40=442),
+                 "2026-12": dict(Y10=325),
+                 "2027-12": dict(Y10=384, Y20=420, Y30=452),
+                 "2028-12": dict(Y10=380, Y20=411, Y30=435, Y40=443)},
+    ),
 }
 
 # Horizon-end fan half-widths in bp, and the sigma behind them, as published in
 # fan-sigma-12m-impact-2026-08-02.md. Identical on both scenarios by
 # construction: sigma depends on US data only, not the BoJ path.
-FAN_HALFWIDTH_2029 = {"10Y": 17.4, "20Y": 21.7, "30Y": 19.8, "40Y": 19.0}
+#
+# These are JULY-vintage figures, and only the parked slim pages draw a band,
+# so nothing on the deploy branch exercises them. FAN_HALFWIDTH_MONTH is what
+# stops that going wrong quietly: if the slim pages are ever unparked they
+# will be rebuilt from the August cut, whose horizon end is a different month,
+# and the gate below refuses to compare rather than reading the wrong row.
+FAN_HALFWIDTH_MONTH = "2029-07"
+FAN_HALFWIDTH = {"10Y": 17.4, "20Y": 21.7, "30Y": 19.8, "40Y": 19.0}
 SIGMA10_BP = 77.5
 USTP_PEAK = ("2026-11", 122.2)
-USTP_TERMINAL = ("2029-07", 94.5)
+# The assumed US path is flat at its terminal from 2029-05, so this level is
+# vintage-independent. It is read at the page's own horizon end rather than at
+# a named month, because the two vintages end in different months and a
+# hardcoded one would either crash or check the wrong row after an origin roll.
+USTP_TERMINAL_BP = 94.5
 BAND = "±1 s.d. range"
-
-# The paid decomposition pages carry the same scenario, from the same runs, in a
-# different layout. Everything scenario-specific is shared with the slim pages
-# above; only the chart ids differ, so they are named rather than hard-coded.
-for _paid, _slim in (("jgb-yield-curve-main", "jgb-forecast-main"),
-                     ("jgb-yield-curve-alternative",
-                      "jgb-forecast-alternative")):
-    SCENARIO[_paid] = dict(SCENARIO[_slim])
-SCENARIO["jgb-yield-curve-main"]["sibling"] = "jgb-yield-curve-alternative"
-SCENARIO["jgb-yield-curve-alternative"]["sibling"] = "jgb-yield-curve-main"
 
 IDS = {
     "jgb-forecast-main": dict(policy=5, curve=3, ustp=6, curve_spec=2,
@@ -845,10 +896,19 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
              f"chart {cid}: lower edge fills up to the invisible upper edge")
         xs = [x[:7] for x in hi["x"]]
         idx = {x: i for i, x in enumerate(xs)}
-        got = (hi["y"][idx["2029-07"]] - lo["y"][idx["2029-07"]]) / 2 * 100
-        gate(abs(got - FAN_HALFWIDTH_2029[tenor]) < 0.1,
+        # Refuse to compare against a published half-width from a different
+        # vintage. FAN_HALFWIDTH is the July-2026 set; a page rebuilt from a
+        # later cut ends in a different month, and silently reading the
+        # penultimate row instead would pass by a few hundredths of a bp.
+        gate(spec["horizon"] == FAN_HALFWIDTH_MONTH,
+             f"the published fan half-widths are for this page's horizon "
+             f"({FAN_HALFWIDTH_MONTH}) — refresh FAN_HALFWIDTH if not",
+             spec["horizon"])
+        m = FAN_HALFWIDTH_MONTH
+        got = (hi["y"][idx[m]] - lo["y"][idx[m]]) / 2 * 100
+        gate(abs(got - FAN_HALFWIDTH[tenor]) < 0.1,
              f"{tenor}: horizon-end half-width is "
-             f"±{FAN_HALFWIDTH_2029[tenor]}bp as published", f"±{got:.1f}bp")
+             f"±{FAN_HALFWIDTH[tenor]}bp as published", f"±{got:.1f}bp")
         # The band must not appear over history: an uncertainty range drawn on
         # observations would be a straightforward misstatement.
         hist = [i for i, x in enumerate(xs)
@@ -894,7 +954,7 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
     print("\nThe US term-premium assumption (shared by both scenarios)")
     assumed = trace(f6, "Assumed path")
     ia = {x[:7]: i for i, x in enumerate(assumed["x"])}
-    for ym, want in (USTP_PEAK, USTP_TERMINAL):
+    for ym, want in (USTP_PEAK, (spec["horizon"], USTP_TERMINAL_BP)):
         gate(abs(assumed["y"][ia[ym]] - want) < 0.1,
              f"assumed US TP at {ym} is {want}bp",
              f"{assumed['y'][ia[ym]]:.1f}bp")
@@ -902,20 +962,36 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
     gate(abs(peak - USTP_PEAK[1]) < 0.1
          and assumed["x"][assumed["y"].index(peak)][:7] == USTP_PEAK[0],
          "the assumed path peaks where the assumption says it does")
+    # The observed ACM leg must stop where the observations do. The first
+    # projected month is read off the delivered panel rather than named: it
+    # moves with the origin, and a hardcoded month turns this from a check on
+    # the page into a check on the vintage it was written at.
+    first_fcst = min(ym for ym, r in by_ym.items() if r["Type"] == "forecast")
     obs = trace(f6, "Observed (ACM)")
-    gate(all(v is None for v in obs["y"][ia["2026-08"]:]),
-         "the observed ACM series stops at the forecast origin")
+    gate(all(v is None for v in obs["y"][ia[first_fcst]:])
+         and obs["y"][ia[first_fcst] - 1] is not None,
+         "the observed ACM series stops at the forecast origin",
+         f"last observation the month before {first_fcst}")
 
     # ---- the published forecast tables ------------------------------------
     print("\nAgainst the printed forecast tables")
     ft = list(csv.DictReader(open(root / "data/forecast-table.csv",
                                   newline="", encoding="utf-8-sig")))
     ftr = {r["ym"]: r for r in ft}
+    # The July entries quote tenths of a basis point and are tested at 0.06bp;
+    # the August ones come from a table printed to two decimals of a per cent,
+    # so they are whole basis points and printed_tol widens to match. Testing a
+    # rounded figure at the tighter tolerance would measure the rounding.
+    tol = spec.get("printed_tol", 0.06)
+    gate(bool(spec["printed"]),
+         "the page has reference figures to be checked against",
+         f"{sum(len(v) for v in spec['printed'].values())} values "
+         f"across {len(spec['printed'])} dates")
     for ym, want in spec["printed"].items():
         for key, v in want.items():
             t = f"{key[1:]}Y"
             drawn = float(by_ym[ym][f"Yield_{t}"]) * 100
-            gate(abs(drawn - v) < 0.06,
+            gate(abs(drawn - v) < tol,
                  f"{ym} {t}: {v}bp as printed in the reference tables",
                  f"{drawn:.1f}bp")
         if ym in ftr:
@@ -992,9 +1068,21 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
         gate(shown.strip() == wording,
              "the assumptions block points to the fuller write-up",
              shown.strip()[:70] + "…")
-        gate(len(manifest["assumptions"]["items"]) == 2,
-             "the assumptions block is the trimmed two-bullet version",
-             f"{len(manifest['assumptions']['items'])} bullets")
+        # Was "the trimmed two-bullet version" until 2026-09-04. The third
+        # bullet is the long-run term premium, added when the Alternative moved
+        # to the 2.00% run: that run carries its own super-long and belly
+        # reversion targets, so the BoJ path is no longer the only thing
+        # separating the two pages and a two-bullet block would have invited
+        # the reader to credit the difference to the wrong assumption. The
+        # assertion is replaced rather than dropped, so the block still cannot
+        # grow unnoticed.
+        heads = [i["head"] for i in manifest["assumptions"]["items"]]
+        gate(heads == ["Bank of Japan policy.", "The US term premium.",
+                       "The long-run term premium."],
+             "the assumptions block is the three named bullets, in order",
+             " / ".join(heads))
+        for h in heads:
+            gate(h in page, f"the {h.rstrip('.')} bullet reaches the page")
         # The report was unpublished when these pages were built, so the
         # pointer is deliberately not a link yet. Whichever state it is in has
         # to be internally consistent: a set url must reach the page as an
@@ -1020,12 +1108,176 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
                != (o_src[ym]["Policy_Rate"] or ""))
     gate(diff > 0, "the two scenarios' policy paths genuinely differ",
          f"{diff} months")
+    shared = [ym for ym in by_ym
+              if ym in o_src
+              and (src[ym]["US_TP10_base"] or "").strip()
+              and (o_src[ym]["US_TP10_base"] or "").strip()]
     same = all(abs(float(src[ym]["US_TP10_base"]) -
-                   float(o_src[ym]["US_TP10_base"])) < 5e-5
-               for ym in by_ym
-               if (src[ym]["US_TP10_base"] or "").strip()
-               and (o_src[ym]["US_TP10_base"] or "").strip())
-    gate(same, "the US term-premium assumption is identical on both scenarios")
+                   float(o_src[ym]["US_TP10_base"])) < 5e-5 for ym in shared)
+    gate(same and len(shared) >= 36,
+         "the US term-premium assumption is identical on both scenarios",
+         f"{len(shared)} months compared")
+
+
+MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+          "August", "September", "October", "November", "December"]
+
+
+def qa_scenario_vintage(root, manifest, page, figs) -> None:
+    """The August-2026 roll, checked on the delivered page.
+
+    Everything here is a claim the page makes in words about which vintage it
+    is and what separates it from its sibling. The numeric gates above would
+    all pass on a page still captioned July, and the retired sentences would
+    all still read plausibly, so each one is asserted on the delivered text —
+    presence for what replaced them, absence for what they replaced."""
+    slug = manifest["slug"]
+    spec = SCENARIO[slug]
+    panel = list(csv.DictReader(open(root / "data/curve-panel.csv",
+                                     newline="", encoding="utf-8-sig")))
+    by_ym = {r["YM"]: r for r in panel}
+
+    origin = max(ym for ym, r in by_ym.items() if r["Type"] == "actual")
+    horizon = max(ym for ym, r in by_ym.items() if r["Type"] == "forecast")
+
+    print("\nModel vintage on the delivered page")
+    gate(horizon == spec["horizon"],
+         f"the delivered projection ends at the declared horizon "
+         f"{spec['horizon']}", horizon)
+    o_name = f"{MONTHS[int(origin[5:7]) - 1]} {origin[:4]}"
+    h_name = f"{MONTHS[int(horizon[5:7]) - 1]} {horizon[:4]}"
+    first_fcst = min(ym for ym, r in by_ym.items() if r["Type"] == "forecast")
+    f_name = f"{MONTHS[int(first_fcst[5:7]) - 1]} {first_fcst[:4]}"
+
+    gate(f"origin {o_name}" in page,
+         f"the vintage stamp names the origin the data actually has "
+         f"({o_name})")
+    # The source note dates the projection from the first PROJECTED month, not
+    # from the origin — the last solid point and the first dotted one are
+    # adjacent months and it is easy to state the wrong one of the two.
+    notes = [c["source"] for c in manifest["charts"]
+             if "= projection" in c.get("source", "")]
+    gate(len(notes) >= 10 and all(f"from {f_name} = projection" in s
+                                  for s in notes),
+         "every source note dates the projection from the first projected "
+         f"month ({f_name})", f"{len(notes)} charts")
+    gate(f"from {f_name} = projection" in page,
+         "and that note reaches the delivered page")
+
+    # standfirst and date are not rendered on this page — they are the landing
+    # card's copy — so they are gated on the manifest, which is where the
+    # gated site's index reads them from.
+    gate(f"projected to {h_name}" in manifest["standfirst"],
+         f"the standfirst names the horizon the data actually reaches "
+         f"({h_name})")
+    gate(manifest["date"].endswith(f"July 2002 – {h_name}"),
+         "the dateline's span ends at the same horizon", manifest["date"])
+    # House convention since the first of these pages: the vintage is the month
+    # after the origin — the data runs to end-August, the estimates are
+    # published in September. Computed with the year roll rather than by adding
+    # one to an index, which would break every December origin.
+    v_y, v_m = int(origin[:4]), int(origin[5:7]) + 1
+    if v_m == 13:
+        v_y, v_m = v_y + 1, 1
+    v_name = f"{MONTHS[v_m - 1]} {v_y}"
+    gate(f"origin {o_name}" in manifest["stamp"]
+         and f"vintage: {v_name}" in manifest["stamp"],
+         f"the stamp's vintage ({v_name}) is the month after the origin, as "
+         "the convention has it", manifest["stamp"].split(".")[0])
+    gate(manifest["date"].startswith(f"Model vintage {v_name}"),
+         "the dateline carries the same vintage as the stamp")
+
+    # Absence gates for the July vintage's own wording. Each names what
+    # replaced it, so that when one of these strings becomes legitimate again
+    # the next person rewrites the assertion rather than deleting it.
+    retired = {
+        "Model vintage August 2026": "superseded by the September 2026 stamp",
+        "origin July 2026": f"superseded by origin {o_name}",
+        "projected to July 2029": f"superseded by projected to {h_name}",
+        "the scenarios differ only in the Bank of Japan policy path":
+            "false since the Alternative moved to the 2.00% run, which "
+            "carries its own super-long and belly reversion targets",
+        "Faster and Further": "the Alternative is now named for its terminal "
+                              "rate, not its timing",
+    }
+    # Checked against the page AND the manifest: standfirst, date and the
+    # landing blurb are copy a reader sees, but they render on the index rather
+    # than here, so a page-only absence gate would leave them unguarded.
+    prose = page + json.dumps(manifest, ensure_ascii=False)
+    for s, why in retired.items():
+        gate(s not in prose, f'retired wording absent: "{s[:52]}" — {why}')
+
+    # The retired scenario pair must not survive anywhere in the page's prose.
+    # Both pages moved up one rung, so the old terminal of EITHER page reads
+    # entirely plausibly on the new one.
+    for bad in ("1.50 per cent", "terminal 1.50"):
+        gate(bad not in page,
+             f'the retired 1.50% terminal is gone: "{bad}"')
+    if slug.endswith("alternative"):
+        # 1.75% is still a legitimate figure here — it is the rung the
+        # Alternative passes through in July 2027, and it is the Main's
+        # terminal, named in the sibling card. What must be gone is the claim
+        # that it is THIS page's destination.
+        for bad in ("terminal 1.75", "terminal rate of 1.75 per cent"):
+            gate(bad not in page,
+                 f'the Alternative no longer terminates at 1.75%: "{bad}"')
+        gate("1.75 per cent" in page,
+             "1.75% still appears — it is the rung passed in July 2027 and "
+             "the Main's terminal")
+
+    print("\nWhat separates the two pages, as the page states it")
+    sibling = REPO / spec["sibling"]
+    o_panel = {r["YM"]: r for r in csv.DictReader(
+        open(sibling / "data/curve-panel.csv", newline="",
+             encoding="utf-8-sig"))}
+    # Re-derived from the two DELIVERED panels, not from the run: the claim is
+    # about what a reader can read off these two pages side by side.
+    def gap(col, tenor):
+        return (float(by_ym[horizon][f"{col}_{tenor}"])
+                - float(o_panel[horizon][f"{col}_{tenor}"])) * 100
+
+    alt = slug.endswith("alternative")
+    sign = 1 if alt else -1
+    y30, rn30, tp30 = (sign * gap(c, "30Y") for c in ("Yield", "RN", "TP"))
+    gate(abs((rn30 + tp30) - y30) < 0.05,
+         "the 30Y gap between the pages splits exactly into RN and TP",
+         f"{y30:.1f} = {rn30:.1f} + {tp30:.1f}bp")
+    gate(tp30 > rn30,
+         "the term premium, not the policy path, is the larger part of the "
+         "30Y gap — which is what the third bullet claims",
+         f"TP {tp30:.1f}bp vs RN {rn30:.1f}bp")
+
+    if not alt:
+        # The Main's third bullet claims the reversion, not the policy path,
+        # is the larger part of the projected fall in 30- and 40-year yields.
+        # Checked on this page's own delivered panel, at both tenors it names.
+        for t in ("30Y", "40Y"):
+            dy = (float(by_ym[horizon][f"Yield_{t}"])
+                  - float(by_ym[origin][f"Yield_{t}"])) * 100
+            dtp = (float(by_ym[horizon][f"TP_{t}"])
+                   - float(by_ym[origin][f"TP_{t}"])) * 100
+            gate(dy < 0 and dtp < dy,
+                 f"{t} falls over the projection and the term premium accounts "
+                 "for more than all of it, as the third bullet claims",
+                 f"yield {dy:+.0f}bp, term premium {dtp:+.0f}bp")
+
+    if alt:
+        # The Alternative's third bullet states these three numbers. Each is
+        # gated at the precision it is printed in: whole basis points.
+        # Each figure is matched in the phrase that carries it, not as a bare
+        # number: "9" alone appears hundreds of times in a page of yields, so a
+        # loose substring test would pass on a bullet saying anything at all.
+        for label, got, said, phrase in (
+                ("total", y30, 43, "the 43 basis points"),
+                ("term premium", tp30, 34, "34 are term premium"),
+                ("expectations", rn30, 9, "9 are interest-rate expectations")):
+            gate(abs(round(got) - said) < 0.5,
+                 f"the third bullet's {label} figure, {said}bp, is what the "
+                 f"two delivered pages show", f"{got:.1f}bp")
+            gate(phrase in page,
+                 f'the {label} figure reaches the page as "{phrase}"')
+        gate(f"in {h_name}," in page,
+             f"the bullet dates its comparison at the horizon end ({h_name})")
 
 
 def qa_scenario_model(root, manifest, page, figs) -> None:
@@ -1035,6 +1287,7 @@ def qa_scenario_model(root, manifest, page, figs) -> None:
     the projection as well as the history, and that the methodology it carries
     is the approved text rather than a paraphrase."""
     qa_scenario_forecast(root, manifest, page, figs)
+    qa_scenario_vintage(root, manifest, page, figs)
 
     slug = manifest["slug"]
     spec = SCENARIO[slug]

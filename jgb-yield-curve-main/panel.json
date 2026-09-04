@@ -4,24 +4,28 @@
   "unlisted": true,
   "title": "JGB yield curve model — Main Forecast",
   "series_label": "Yield curve model",
-  "date": "Model vintage August 2026 · monthly, July 2002 – July 2029",
-  "masthead_date": "3 August 2026",
-  "sort": "2026-08-03",
-  "standfirst": "The JMA yield-curve model's output under our central case for Bank of Japan policy: two 25 basis point increases, in October 2026 and March 2027, to a terminal rate of 1.50 per cent. Fitted spot yields split into interest-rate expectations and term premia at six maturities, monthly from 2002, projected to July 2029.",
-  "stamp": "Model vintage: August 2026, origin July 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
+  "date": "Model vintage September 2026 · monthly, July 2002 – August 2029",
+  "masthead_date": "4 September 2026",
+  "sort": "2026-09-04",
+  "standfirst": "The JMA yield-curve model's output under our central case for Bank of Japan policy: three 25 basis point increases, in September 2026, March 2027 and December 2027, to a terminal rate of 1.75 per cent. Fitted spot yields split into interest-rate expectations and term premia at six maturities, monthly from 2002, projected to August 2029.",
+  "stamp": "Model vintage: September 2026, origin August 2026. Estimates are revised periodically, and updated estimates are available for paid users upon request.",
   "intro_html": "The JMA yield curve model splits each JGB yield into interest-rate expectations and a term premium, letting Japan’s long-run interest rate move with its fundamentals. This page carries the full decomposition — history and projection — under our <strong>Main</strong> scenario for Bank of Japan policy. A fuller explanation of the model sits at the bottom of the page, and the argument behind it is in our report, <em><a href=\"https://takujiokubo.substack.com/p/the-long-climb-in-jgb-yields-is-nearly\">The Long Climb in JGB Yields Is Nearly Over</a></em>. The charts below are interactive. Hover for exact values, zoom, and download the data behind each chart.",
   "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Japan Macro Advisors. This page is shared with paid subscribers. We will update our yield curve model estimates periodically, but in case the published estimate is more than 2 weeks old, paid subscribers can request an updated estimate and we should be able to reply within 2 business days.",
-  "_note": "PAID scenario page, Main. Decomposition-led and RN/TP-heavy, per Takuji 2026-08-03: casual readers do not want model detail, paying professionals do, and the earlier slim build (jgb-forecast-main, now parked) was the free-tier shape. Takuji also ruled this page SUPERSEDES the frozen /jgb-yield-curve-model/ page — an explicit reversal of the S05 freeze, which the work order required be instructed rather than inferred. Data cut by builder/make_scenario_data.py from runs\\fan-sigma-after-v307 (branch v30_7-changes). WATCH THE INVERSION: v30_7 is the newer branch AND the lower 1.50% terminal, and it is Main. NO uncertainty band is drawn on this page: Takuji had it removed 2026-08-03. The Fan_* columns remain in curve-panel.csv (the data is still delivered to subscribers) and the builder still supports the band kind, which the parked slim pages use — so restoring it is a manifest change, not a rebuild. QA now asserts no band reaches the page, so it cannot creep back unnoticed. About blocks and references are the S06-approved text, verbatim. The Bauer-Rudebusch reference typo ('It is seminal paper demostrating') was corrected on Takuji's instruction 2026-08-03, in the same edit across all three pages AND the report markdown, so the copies stay identical. Exhibits 14 and 15 read the Long Climb panel's CSVs by relative path (single-copy pattern).",
+  "_note": "PAID scenario page, Main. Decomposition-led and RN/TP-heavy, per Takuji 2026-08-03: casual readers do not want model detail, paying professionals do, and the earlier slim build (jgb-forecast-main, now parked) was the free-tier shape. Takuji also ruled this page SUPERSEDES the frozen /jgb-yield-curve-model/ page — an explicit reversal of the S05 freeze, which the work order required be instructed rather than inferred. Data cut by builder/make_scenario_data.py from runs\\v30-aug2026-terminal175-main (branch v30_16-changes), the August 2026 vintage (origin 2026-08, horizon 2029-08). WATCH THE PROMOTION: this path — Sep-26 / Mar-27 / Dec-27 to 1.75% — was the Alternative until 2026-09-04, so a run directory or a label recognised from memory will be the retired 1.50% case. The cut re-derives the schedule from Policy_Rate and refuses to write on disagreement. NO uncertainty band is drawn on this page: Takuji had it removed 2026-08-03. The Fan_* columns remain in curve-panel.csv (the data is still delivered to subscribers) and the builder still supports the band kind, which the parked slim pages use — so restoring it is a manifest change, not a rebuild. QA now asserts no band reaches the page, so it cannot creep back unnoticed. About blocks and references are the S06-approved text, verbatim. The Bauer-Rudebusch reference typo ('It is seminal paper demostrating') was corrected on Takuji's instruction 2026-08-03, in the same edit across all three pages AND the report markdown, so the copies stay identical. Exhibits 14 and 15 read the Long Climb panel's CSVs by relative path (single-copy pattern).",
   "assumptions": {
     "heading": "What this projection assumes",
     "items": [
       {
         "head": "Bank of Japan policy.",
-        "text": "Two 25 basis point increases, in October 2026 and March 2027, taking the policy rate from 1.00 per cent to a terminal 1.50 per cent. This is an input, not a model output: everything projected below is conditioned on it."
+        "text": "Three 25 basis point increases, in September 2026, March 2027 and December 2027, taking the policy rate from 1.00 per cent to a terminal 1.75 per cent. This is an input, not a model output: everything projected below is conditioned on it."
       },
       {
         "head": "The US term premium.",
         "text": "A rise in the US 10-year term premium following the change of Federal Reserve chair at the end of May 2026, peaking at 122 basis points at end-November 2026 with half the rise retained thereafter. About a quarter of a US term-premium move passes into superlong JGB yields."
+      },
+      {
+        "head": "The long-run term premium.",
+        "text": "Term premia revert towards their 2004–2012 averages over the projection — the last era of free JGB pricing. At the super-long end that reversion, not the policy path, is the larger part of the projected decline in 30- and 40-year yields."
       }
     ],
     "more": {
@@ -33,8 +37,8 @@
   },
   "sibling": {
     "href": "../jgb-yield-curve-alternative/",
-    "label": "Alternative Forecast: Faster and Further",
-    "text": "The same model with the Bank of Japan moving sooner and going higher — three increases to a 1.75 per cent terminal rate."
+    "label": "Alternative Forecast: A 2 per cent terminal rate",
+    "text": "The same model with the Bank of Japan going further — a fourth increase, to a 2.00 per cent terminal rate, and a higher long-run term premium with it."
   },
   "charts": [
     {
@@ -43,7 +47,7 @@
       "title": "10-year JGB yield: risk-neutral component and term premium",
       "subtitle": "10Y spot yield decomposed into expected policy rates and the term premium",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Lightened bars and the dotted line from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Lightened bars and the dotted line from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -74,7 +78,7 @@
       "title": "5-year JGB yield: risk-neutral component and term premium",
       "subtitle": "5Y spot yield decomposed into expected policy rates and the term premium",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Lightened bars and the dotted line from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Lightened bars and the dotted line from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -104,7 +108,7 @@
       "title": "20-year JGB yield: risk-neutral component and term premium",
       "subtitle": "20Y spot yield decomposed into expected policy rates and the term premium",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Lightened bars and the dotted line from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Lightened bars and the dotted line from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -134,7 +138,7 @@
       "title": "30-year JGB yield: risk-neutral component and term premium",
       "subtitle": "30Y spot yield decomposed into expected policy rates and the term premium",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Lightened bars and the dotted line from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Lightened bars and the dotted line from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -164,7 +168,7 @@
       "title": "40-year JGB yield: risk-neutral component and term premium",
       "subtitle": "40Y spot yield decomposed into expected policy rates and the term premium",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Lightened bars and the dotted line from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Lightened bars and the dotted line from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -196,7 +200,7 @@
       "subtitle": "Fitted spot yield by maturity",
       "ylabel": "Spot yield, % per annum",
       "xlabel": "Maturity",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -242,7 +246,7 @@
       "kind": "table",
       "label": "Table",
       "title": "Projected spot yields to 2029",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage.",
       "csv": "data/forecast-table.csv",
       "columns": [
         {
@@ -280,7 +284,7 @@
       "title": "10-year spot yield: history and projection",
       "subtitle": "A closer view of the projected path",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Dotted from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "start": "2022-01",
@@ -302,7 +306,7 @@
       "title": "30-year spot yield: history and projection",
       "subtitle": "A closer view of the projected path",
       "ylabel": "Per cent per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Dotted from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "start": "2022-01",
@@ -324,7 +328,7 @@
       "title": "Term premia by maturity: 5 to 40 years",
       "subtitle": "Compensation for duration, by maturity, history and projection",
       "ylabel": "Term premium, % per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Dotted from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -365,7 +369,7 @@
       "title": "10-year term premium: history and projection",
       "subtitle": "A closer view of the projected path",
       "ylabel": "Term premium, % per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Dotted from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "start": "2022-01",
@@ -387,7 +391,7 @@
       "title": "30-year term premium: history and projection",
       "subtitle": "The superlong premium, where the US spillover lands hardest",
       "ylabel": "Term premium, % per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Dotted from August 2026 = projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Dotted from September 2026 = projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "start": "2022-01",
@@ -409,7 +413,7 @@
       "title": "Policy rate and risk-neutral rates: 2-year and 10-year",
       "subtitle": "The assumed policy path and the expectations it implies",
       "ylabel": "% per annum",
-      "source": "Source: JMA JGB yield-curve model, Main Forecast, August 2026 vintage. Policy rate is actual in history and the assumed path in the projection.",
+      "source": "Source: JMA JGB yield-curve model, Main Forecast, September 2026 vintage. Policy rate is actual in history and the assumed path in the projection.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "decimals": 3,
@@ -440,7 +444,7 @@
       "title": "US 10-year term premium: observed and assumed path",
       "subtitle": "The external assumption, identical in both scenarios",
       "ylabel": "Term premium, basis points",
-      "source": "Source: Federal Reserve Bank of New York (ACM) for the observed series; JMA assumption from August 2026.",
+      "source": "Source: Federal Reserve Bank of New York (ACM) for the observed series; JMA assumption, unchanged from the August 2026 vintage.",
       "csv": "data/curve-panel.csv",
       "x": "YM",
       "start": "2015-01",
@@ -458,7 +462,7 @@
           "dash": "dot"
         }
       ],
-      "note": "The assumed path peaks at 122 basis points at end-November 2026 and retains half the rise thereafter. It is identical on both scenario pages: the scenarios differ only in the Bank of Japan policy path, and the two assumptions enter the model independently, so their effects are additive."
+      "note": "The assumed path peaks at 122 basis points at end-November 2026 and retains half the rise thereafter, and is identical on both scenario pages, so it is not what separates them. The two pages differ in the Bank of Japan policy path and in the long-run term premium the projection reverts to; both are stated in the assumptions above."
     },
     {
       "n": 14,
