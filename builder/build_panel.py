@@ -1261,14 +1261,12 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
 
         # -- the seats that have both plotted scores
         pts = [(x, y) for _, x, y, _ in scored]
-        # The neighbour test is in SCORE units, but a collision is in PIXELS:
-        # "Executives" is far wider than 0.3 of a point, so two labels can
-        # collide while their markers are outside dodge_within and the placer
-        # never sees them as neighbours. "label_near" widens the test for
-        # LABELS only, leaving marker dodging alone. Defaults to dodge_within,
-        # so a chart that does not set it is unchanged.
-        _near = spec.get("dodge_within", 0.28)
-        sides = _dodge_text(pts, spec.get("label_near", _near))
+        # "dodge_within" is measured in SCORE units while a collision happens
+        # in PIXELS, so it has to be set wider than the eye suggests: on the
+        # PSI board map "Executives" is several times wider than 0.3 of a
+        # point. Despite the name it dodges nothing but labels - it is the
+        # only thing _dodge_text is given and no marker is ever displaced.
+        sides = _dodge_text(pts, spec.get("dodge_within", 0.28))
         colours, edges, widths, texts, custom = [], [], [], [], []
         for lab, x, y, rec in scored:
             g = groups.get((rec["row"].get(spec.get("group_col", "")) or "").strip())
