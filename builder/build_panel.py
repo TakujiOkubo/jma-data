@@ -1602,11 +1602,27 @@ def build(slug: str) -> Path:
             # carries data-steps-for so the wiring finds its own plot.
             nav = ""
             if spec.get("step_buttons"):
+                # "play_button": walk the slider from its first step to its
+                # last on a timer (Takuji, 2026-09-04). Opt-in on top of
+                # step_buttons, never on its own -- a reader who can start the
+                # walk must be able to stop it and then move by hand.
+                play = ""
+                if spec.get("play_button"):
+                    play = ('<button type="button" class="stepbtn stepplay" '
+                            'aria-pressed="false" '
+                            f'data-play-ms="{int(spec.get("play_ms", 800))}">'
+                            'Play</button>')
                 nav = (f'<div class="stepnav" data-steps-for="{div_id}">'
-                       '<button type="button" class="stepbtn stepprev">'
+                       + play
+                       + '<button type="button" class="stepbtn stepprev">'
                        '&lsaquo; Previous</button>'
                        '<button type="button" class="stepbtn stepnext">'
                        'Next &rsaquo;</button></div>')
+            elif spec.get("play_button"):
+                raise SystemExit(
+                    f'chart {spec.get("n")}: "play_button" needs '
+                    '"step_buttons" — a reader who can start the walk must be '
+                    "able to stop it and then step by hand")
             body = (f'<figure class="fig"><div class="frame">'
                     f'<div class="plot" id="{div_id}" '
                     f'style="height:{h}px;width:100%"></div></div>'
@@ -1804,8 +1820,10 @@ def build(slug: str) -> Path:
         header_extra=("\n  " + "\n  ".join(x for x in (assumptions, sibling) if x)
                       if (assumptions or sibling) else ""),
         scenario_css=SCENARIO_CSS if (assumptions or sibling) else "",
-        step_css=STEP_CSS if any(c.get("step_buttons")
-                                 for c in m["charts"]) else "",
+        step_css=(STEP_CSS if any(c.get("step_buttons")
+                                  for c in m["charts"]) else "")
+                 + (PLAY_CSS if any(c.get("play_button")
+                                    for c in m["charts"]) else ""),
         step_js=STEP_JS if any(c.get("step_buttons")
                                for c in m["charts"]) else "",
         step_wire=("      wireSteps(f);\r\n"
@@ -1898,6 +1916,9 @@ STEP_JS = """  // Step buttons drive the slider Plotly already built, rather tha
     var steps = sl.steps, last = steps.length - 1;
     var prev = wrap.querySelector('.stepprev');
     var next = wrap.querySelector('.stepnext');
+    var play = wrap.querySelector('.stepplay');
+    var wait = play ? (+play.dataset.playMs || 800) : 0;
+    var playing = false, timer = null, driving = false;
     function at(){
       var s = el.layout && el.layout.sliders && el.layout.sliders[0];
       return (s && typeof s.active === 'number') ? s.active : last;
@@ -1905,16 +1926,61 @@ STEP_JS = """  // Step buttons drive the slider Plotly already built, rather tha
     function sync(){
       var i = at(); prev.disabled = i <= 0; next.disabled = i >= last;
     }
+    // "driving" marks an update this code asked for, so the slider-change
+    // handler below can tell our own steps from the reader grabbing the
+    // slider mid-walk. Without it a run would stop itself on its first step
+    // wherever Plotly emits the event for a programmatic change.
+    function show(i){
+      driving = true;
+      return Plotly.update(el, steps[i].args[0], {'sliders[0].active': i})
+        .then(function(){ driving = false; sync(); });
+    }
     function go(d){
       var i = at() + d;
       if(i < 0 || i > last) return;
-      Plotly.update(el, steps[i].args[0], {'sliders[0].active': i}).then(sync);
+      show(i);
     }
-    prev.addEventListener('click', function(){ go(-1); });
-    next.addEventListener('click', function(){ go(1); });
-    if(el.on) el.on('plotly_sliderchange', sync);
+    function stop(){
+      playing = false;
+      if(timer){ clearTimeout(timer); timer = null; }
+      if(play){ play.textContent = 'Play';
+                play.setAttribute('aria-pressed', 'false'); }
+    }
+    // Chained timeouts rather than setInterval: each step waits for its own
+    // redraw to land, so a slow frame delays the next one instead of queueing
+    // updates behind it.
+    function tick(i){
+      show(i).then(function(){
+        if(!playing) return;
+        if(i >= last){ stop(); return; }
+        timer = setTimeout(function(){ tick(i + 1); }, wait);
+      });
+    }
+    prev.addEventListener('click', function(){ stop(); go(-1); });
+    next.addEventListener('click', function(){ stop(); go(1); });
+    if(play){
+      play.disabled = last < 1;
+      play.addEventListener('click', function(){
+        if(playing){ stop(); return; }
+        playing = true;
+        play.textContent = 'Pause';
+        play.setAttribute('aria-pressed', 'true');
+        tick(0);            // always from the first step, never from where
+      });                   // the reader happens to have left the slider
+    }
+    if(el.on) el.on('plotly_sliderchange', function(){
+      if(playing && !driving) stop();
+      sync();
+    });
     sync();
   }
+"""
+
+
+# Emitted only for a chart that declares "play_button": the active state is
+# the only rule the stepnav does not already carry, and an inert rule still
+# moves bytes on every other page.
+PLAY_CSS = """  .stepbtn.stepplay[aria-pressed="true"]{background:#3b65a2;color:#fff}
 """
 
 

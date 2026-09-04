@@ -115,6 +115,7 @@ they rebuild byte-identical. Do not retrofit.
 | `bar_line` | grouped bars with an overlay line | `resample`, `bars[]`, `line`, `flag_col` |
 | `signed_bar_line` | bars where the sign carries meaning, plus a line on a second axis | `value{col,pos_label,neg_label}`, `line`, `flag_col`, `yrange`/`ytick`, `y2range`/`y2tick`, `hlines2[]` |
 | `ranked_bars` | a league table: two panels of horizontal bars over the same rows in the same order | `label_col`, `year_col`, `top_n`, `panels[]` |
+| `xy_map` | one labelled point per subject on two axes, one frame per date, with a slider | `frame_col`, `label_col`, `dim_col`/`value_col`, `x_dim`, `y_dim`, `range`, `neutral`, `step_buttons`, `play_button`, `play_ms` |
 | `table` | a table, not a series | `columns[]`, `rule_after_col`/`rule_after_value` |
 
 Any time-series kind accepts `split_col` / `solid_value`: set them and every
@@ -137,6 +138,19 @@ direction arrows go on a page a reader can zoom. Its two y-ranges are stated
 rather than autoscaled: the intervention chart deliberately offsets them so the
 bars occupy the lower half of the frame and the exchange rate the upper half,
 which is what lets a reader read up from a bar to the rate that prevailed.
+
+`xy_map` draws one trace per frame and hides all but the active one, rather
+than using Plotly frames, so the slider's own steps are the record of what is on
+screen. Everything that moves the chart goes through those steps: `step_buttons`
+adds Previous / Next, and `play_button` — which requires `step_buttons`, and is
+rejected without it — adds a Play button that walks from the **first** step to
+the last on a timer, `play_ms` apart (default 800). Play always begins at the
+first frame, never where the reader left the slider, because its job is to show
+the whole path. It becomes Pause while running, and stops if the reader clicks
+Previous or Next or grabs the slider. Truncating such a chart means dropping
+traces **and** rewriting every surviving step's visibility array to the new
+trace count: a step whose array is the wrong length silently stops controlling
+the last traces while every structural check still passes.
 
 `ranked_bars` sorts once, by the first panel's column, and the second panel
 inherits the order — the re-ordering between the panels is the point of the
