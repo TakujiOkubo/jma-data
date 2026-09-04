@@ -450,7 +450,7 @@ def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
         #                is drawn hollow, and one dimension can be provisional
         #                while its neighbours on the same date are settled
         #   hover_col    a per-point string appended to the hover readout. For
-        #                the PSI charts it names the document the score was read
+        #                the score charts it names the document the score was read
         #                from, which is also how a value carried forward from an
         #                earlier reading shows itself: its source is older than
         #                the point's own date
