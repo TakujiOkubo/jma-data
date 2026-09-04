@@ -1998,6 +1998,13 @@ PLAY_CSS = """  .stepnav:has(.stepplay){justify-content:space-between}
            box-shadow:0 1px 3px rgba(44,44,42,.22)}
   .stepbtn.stepplay:hover:enabled{background:#2f5289;border-color:#2f5289}
   .stepbtn.stepplay[aria-pressed="true"]{background:#2C2C2A;border-color:#2C2C2A}
+  /* The running state needs its own hover rule or it never shows: the plain
+     hover above is one class more specific than the aria-pressed rule, and
+     the pointer is ON the button in the ordinary case, having just clicked
+     it. Measured, not assumed - the button came back hover-blue while
+     playing. */
+  .stepbtn.stepplay[aria-pressed="true"]:hover:enabled{background:#42423f;
+           border-color:#42423f}
   .stepplay::before{content:"";display:inline-block;vertical-align:-1px;
            margin-right:9px;border-style:solid;border-width:5px 0 5px 8px;
            border-color:transparent transparent transparent currentColor}
