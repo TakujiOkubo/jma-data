@@ -437,8 +437,9 @@ def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
         bridge = bool(s.get("connect_gaps", False))
         ax = dict(yaxis=yaxis) if yaxis else {}
 
-        # Three opt-in decorations, added 2026-09-03 for the BoJ-PSI member
-        # charts. Each is emitted ONLY where the manifest declares it, and the
+        # Three opt-in decorations, added 2026-09-03 for a family of
+        # per-entity score charts. Each is emitted ONLY where the manifest
+        # declares it, and the
         # emitted keys are appended after the existing ones, so every chart
         # built before they existed rebuilds byte-identical.
         #
@@ -1182,9 +1183,9 @@ def fig_xy_map(spec: dict, rows: list[dict], T: dict) -> dict:
     """A map, not a series: one marker per entity on two scored dimensions, with
     a slider that moves the whole map through dates.
 
-    Built for the BoJ Policy Stance Indicator board map, whose published
-    matplotlib twin lives at `charts\\boj\\psi-board-map\\`. The conventions kept
-    from that reviewed chart, because the two must not tell different stories:
+    Built to match a reviewed matplotlib chart of the same map held in the
+    chart library. Its conventions are kept here, because the two must not
+    tell different stories:
     gridlines on BOTH axes (a point on a map is located in two dimensions, so a
     horizontal-only grid cannot place it), a fixed square range so a marker
     moving between frames means the seat moved and never that the axis did,
@@ -1614,8 +1615,8 @@ def build(slug: str) -> Path:
 
         # A page that offers no downloads shows the chart head bare, and a
         # single chart can opt out with "download": false while the rest of
-        # the page keeps its links (Takuji, 2026-09-04: the BoJ-PSI board map
-        # and latest-scores table offer no CSV, the member charts do).
+        # the page keeps its links (Takuji, 2026-09-04: on one page the map
+        # and its summary table offer no CSV while the per-entity charts do).
         # Absent, behaviour is unchanged, so no existing page moves a byte.
         dl = ("" if not downloads or spec.get("download") is False else
               f'\n      <a class="dl" href="{html.escape(spec["csv"])}" '
