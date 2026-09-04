@@ -1977,10 +1977,33 @@ STEP_JS = """  // Step buttons drive the slider Plotly already built, rather tha
 """
 
 
-# Emitted only for a chart that declares "play_button": the active state is
-# the only rule the stepnav does not already carry, and an inert rule still
+# Emitted only for a chart that declares "play_button"; an inert rule still
 # moves bytes on every other page.
-PLAY_CSS = """  .stepbtn.stepplay[aria-pressed="true"]{background:#3b65a2;color:#fff}
+#
+# Play is the primary offer and Previous / Next are the fallback, so it does
+# not share their outlined form (Takuji, 2026-09-04: the first cut was "a bit
+# low profile"). It is filled, larger, and pushed to the LEFT of the row —
+# which is also the end of the slider where the first meeting sits, so the
+# button that always starts there sits above where it starts.
+#
+# The triangle is drawn in CSS rather than typed as a glyph, because U+25B6
+# falls back to whatever font the reader happens to have and lands at a
+# different size and baseline in each. It becomes two bars while running: a
+# button reading "Pause" behind a play triangle states the opposite of what
+# pressing it does.
+PLAY_CSS = """  .stepnav:has(.stepplay){justify-content:space-between}
+  .stepnav .stepprev{margin-left:auto}
+  .stepbtn.stepplay{background:#3b65a2;color:#fff;border-color:#3b65a2;
+           font-size:15px;padding:7px 22px;
+           box-shadow:0 1px 3px rgba(44,44,42,.22)}
+  .stepbtn.stepplay:hover:enabled{background:#2f5289;border-color:#2f5289}
+  .stepbtn.stepplay[aria-pressed="true"]{background:#2C2C2A;border-color:#2C2C2A}
+  .stepplay::before{content:"";display:inline-block;vertical-align:-1px;
+           margin-right:9px;border-style:solid;border-width:5px 0 5px 8px;
+           border-color:transparent transparent transparent currentColor}
+  .stepplay[aria-pressed="true"]::before{border:0;width:3px;height:11px;
+           background:currentColor;box-shadow:5px 0 0 currentColor;
+           margin-right:14px}
 """
 
 
