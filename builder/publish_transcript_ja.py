@@ -23,7 +23,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ---------------------------------------------------------------- page settings
 SRC = (r'G:\My Drive\JMA drive\Research2026\reports\2026-09\2026-09-19-ueda-presser-transcript'
-       r'\drafts\2026-09-19-ueda-presser-transcript-ja-v01-claude.md')
+       r'\drafts\2026-09-19-ueda-presser-transcript-ja-v03-takuji.md')
 SLUG = '2026-09-18-boj-ueda-presser-transcript'
 VIDEO_ID = 'DpxsNUutPi4'
 POST_URL = 'https://takujiokubo.substack.com/p/boj-ueda-virtually-no-chance-of-an'

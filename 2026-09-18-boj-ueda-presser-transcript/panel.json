@@ -7,5 +7,5 @@
   "title": "植田総裁 記者会見 文字起こし（2026年9月18日）",
   "date": "18 September 2026",
   "post_url": "https://takujiokubo.substack.com/p/boj-ueda-virtually-no-chance-of-an",
-  "_note": "Text page, Path C: index.html is rendered by builder/publish_transcript_ja.py from Takuji's reviewed Japanese transcript (JMA drive, reports/2026-09/2026-09-19-ueda-presser-transcript/drafts, v01, reviewed 2026-09-19). It is NOT built by builder/build_panel.py, and this manifest deliberately has no charts key so that build_panel.py fails on it rather than overwriting the page. Unofficial; to be superseded by the BoJ's official 会見要旨 (expected 2026-09-24), when Takuji swaps the link in the post."
+  "_note": "Text page, Path C: index.html is rendered by builder/publish_transcript_ja.py from Takuji's reviewed Japanese transcript (JMA drive, reports/2026-09/2026-09-19-ueda-presser-transcript/drafts, v03-takuji: v01 plus his one Google Docs edit at 0:12:50, reviewed 2026-09-19). It is NOT built by builder/build_panel.py, and this manifest deliberately has no charts key so that build_panel.py fails on it rather than overwriting the page. Unofficial; to be superseded by the BoJ's official 会見要旨 (expected 2026-09-24), when Takuji swaps the link in the post."
 }
