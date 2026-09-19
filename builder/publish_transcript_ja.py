@@ -28,13 +28,29 @@ SLUG = '2026-09-18-boj-ueda-presser-transcript'
 VIDEO_ID = 'DpxsNUutPi4'
 POST_URL = 'https://takujiokubo.substack.com/p/boj-ueda-virtually-no-chance-of-an'
 DATE_EN = '18 September 2026'
-TITLE_JA = '植田総裁 記者会見 文字起こし（2026年9月18日）'
+TITLE_JA = '植田総裁 記者会見（2026年9月18日）'   # "文字起こし" dropped at Takuji's request, 2026-09-19
 TITLE_EN = "Governor Ueda's press conference, 18 September 2026: Japanese transcript"
 NOTICE_EN = ("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
              "publishes its official transcript, expected on 24 September, please refer to that instead.")
 NOTICE_JA = ("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
              "公表した後（9月24日の予定）は、そちらをご参照ください。")
-PERK_FROM = os.path.join(REPO, '2026-08-21-canada-gross-net', 'index.html')
+PERK_FROM = os.path.join(REPO, '2026-08-21-canada-gross-net', 'index.html')   # disclaimer source
+# Page-specific subscription card (Takuji, 2026-09-19): BoJ-PSI as the main attraction,
+# the JGB yield-curve model second, in the JMA Database page's own descriptions. Keeps the
+# site card's headline, classes and Subscribe link; the shared builder card is unchanged.
+SUBSCRIBE_URL = 'https://takujiokubo.substack.com/subscribe'
+PERK = (
+    '<div class="perkbox">\n'
+    '  <h3>Paid subscribers get the JMA Database</h3>\n'
+    '  <ul class="perklist">\n'
+    '    <li><strong>BoJ Policy Stance Indicator</strong>: where each board member stands on the economy, '
+    'inflation and the policy rate, scored at every policy meeting.</li>\n'
+    '    <li><strong>JGB yield-curve model</strong>: our policy-rate path and yield forecasts, with yields '
+    'split into expectations and term premia, monthly from 2002 to 2029.</li>\n'
+    '  </ul>\n'
+    '  <p class="perk">Plus the BoJ-QT progress monitor and global FX reserves back to 1980.</p>\n'
+    f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>\n'
+    '  </div>')
 N_QUESTIONS = 25
 SPEAKERS = {'植田総裁', '質問', '司会', '幹事社'}
 
@@ -123,6 +139,9 @@ CSS = """
   .perkbox .perk{margin:0;font:400 15.5px/1.6 'Public Sans',sans-serif;color:#2c2c2a}
   .perkbox .btn{margin-top:14px;font-size:15px;padding:11px 22px}
   .perkbox.end{margin-top:56px}
+  .perkbox .perklist{margin:4px 0 10px 20px;font:400 15.5px/1.6 'Public Sans',sans-serif;color:#2c2c2a}
+  .perkbox .perklist li{margin:0 0 6px}
+  .perkbox .perklist strong{font-weight:600;color:#1c1c1c}
   .more-articles{margin:14px auto 0;max-width:680px;
        font:400 13.5px 'Public Sans',sans-serif;color:#54544e}
   header{margin-top:36px}
@@ -160,9 +179,7 @@ def main():
     body_html, paras, counts = render(md)
 
     canada = open(PERK_FROM, encoding='utf-8').read()
-    perks = re.findall(r'<div class="perkbox">.*?</div>', canada, re.S)
-    assert len(perks) == 1, len(perks)
-    perk = perks[0]
+    perk = PERK
     disc = re.findall(r'<p class="disclaimer">.*?</p>', canada, re.S)
     assert len(disc) == 1, len(disc)
 
@@ -246,8 +263,13 @@ def main():
     n_links = page.count('class="ts"')
     gate('every timestamp became a video link', n_links == n_ts_src and n_ts_src > 25,
          f'{n_links} links / {n_ts_src} timestamps')
-    gate('perk card present twice (top and end), site wording',
-         page.count('Paid subscribers get the JMA Database') == 2 and page.count('class="perk"') == 2, '')
+    gate('subscription card present twice (top and end)',
+         page.count('Paid subscribers get the JMA Database') == 2 and page.count('class="perkbox') == 2, '')
+    li = re.findall(r'<li><strong>([^<]+)</strong>', page)
+    gate('card leads with BoJ-PSI, then the yield-curve model (both cards)',
+         li == ['BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)
+    gate('headline without 文字起こし', '<h1>植田総裁 記者会見（2026年9月18日）</h1>' in page
+         and '文字起こし（2026' not in page, '')
     gate('notice present (EN and JA)', NOTICE_EN.split('.')[0] in page and '非公式の文字起こし' in page, '')
     gate('article link present', page.count(POST_URL) == 1, '')
     # absence gates
