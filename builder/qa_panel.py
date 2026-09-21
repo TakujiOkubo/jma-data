@@ -2710,7 +2710,11 @@ HH_STRUCK = [
       "Korean households hold the most in real assets",
       "chart_3", "hh-intl-asset-composition", "South Korea"]),
     ("chart 5, the fee-band distribution",
-     ["Low cost funds are becoming popular in Japan",
+     # all three spellings its script can draw: the --compare TITLE, the
+     # single-year TITLE_ASSETS, and the earlier wording
+     ["41% of fund money pays under 0.5%",
+      "Half of fund money still pays over 1% a year",
+      "Low cost funds are becoming popular in Japan",
       "chart_5", "hh-fund-fee-distribution", "fee band"]),
     ("chart 11, the NISA scale diagram",
      ["NISA: \u00a53.6m a year", "chart_11", "hh-nisa-framework",
