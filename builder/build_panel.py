@@ -951,12 +951,24 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     """Stacked decomposition: the components filled from the zero line, the
     total drawn over them as a line.
 
-    Bars in ``relative`` mode, not a filled area stack. The term premium goes
-    negative — 2Y is below zero through much of the 2000s — and a negative
-    component has to hang below the axis while the positive one still rises
-    from it. An area stack cannot do that; ``barmode="relative"`` is exactly
-    this behaviour, and at monthly frequency the bars read as a filled block,
-    which is the intended look.
+    Bars in ``relative`` mode by default, not a filled area stack. The term
+    premium goes negative — 2Y is below zero through much of the 2000s — and a
+    negative component has to hang below the axis while the positive one still
+    rises from it. An area stack cannot do that; ``barmode="relative"`` is
+    exactly this behaviour, and at monthly frequency the bars read as a filled
+    block, which is the intended look.
+
+    ``"area": true`` draws a true filled stack instead, which is what
+    matplotlib's ``stackplot`` gives the published PNGs. Declare it where the
+    published chart is an area and the series is sparse enough for bars to read
+    as steps: at 18 annual points the household report's foreign-assets stack
+    was visibly stepped against its own published image (Takuji, 2026-09-21),
+    while at 326 monthly points the same bars read as a solid fill. It is opt-in
+    so every page built before it existed rebuilds byte-identical, and it
+    **refuses** two cases rather than drawing them wrongly: a component that
+    goes negative anywhere, which is the reason this kind draws bars at all, and
+    a ``split_col``, whose history/estimate mark is per-point bar opacity that a
+    filled area cannot carry.
     """
     xcol = spec.get("x", "YM")
     dec = spec.get("decimals", 3)
@@ -972,10 +984,31 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     else:
         is_solid, boundary = None, None
 
+    area = spec.get("area", False)
+    if area and split_col:
+        raise SystemExit(
+            'panel.json: "area" cannot be combined with "split_col". The '
+            "history/estimate mark on a stacked decomposition is per-point bar "
+            "opacity, and a filled area has no per-point opacity to set — the "
+            "estimates would render as observations.")
+
     traces = []
     for c in spec["components"]:
         ys = [to_float(r.get(c["col"])) for r in kept]
         ys = [None if v is None else round(v, dec) for v in ys]
+        if area:
+            if any(v is not None and v < 0 for v in ys):
+                raise SystemExit(
+                    f'panel.json: "area" is set but component {c["col"]!r} goes '
+                    "negative. A filled stack cannot hang a component below the "
+                    "zero line; that is why this kind draws bars. Remove the key.")
+            traces.append(dict(
+                type="scatter", mode="lines", name=c["label"], x=xs, y=ys,
+                stackgroup="one", fillcolor=c["color"],
+                line=dict(width=0, color=c["color"]),
+                hovertemplate=f"%{{y:.{dec}f}}<extra>{c['label']}</extra>",
+            ))
+            continue
         marker = dict(color=c["color"], line=dict(width=0))
         if is_solid:
             # Projection bars are lightened. The dotted line above says the same
@@ -993,8 +1026,9 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     tot = spec.get("total")
     if not tot:
         layout = base_layout(spec, T, legend=True)
-        layout["barmode"] = "relative"
-        layout["bargap"] = spec.get("bargap", 0)
+        if not area:
+            layout["barmode"] = "relative"
+            layout["bargap"] = spec.get("bargap", 0)
         layout["shapes"] = [dict(type="line", xref="paper", x0=0, x1=1, yref="y",
                                  y0=0, y1=0, line=dict(color=T["INK"], width=1.1))]
         if boundary is not None and boundary + 1 < len(xs):
@@ -1034,8 +1068,9 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
                            hovertemplate=f"%{{y:.{dec}f}}<extra>{tot['label']}</extra>"))
 
     layout = base_layout(spec, T, legend=True)
-    layout["barmode"] = "relative"
-    layout["bargap"] = 0
+    if not area:
+        layout["barmode"] = "relative"
+        layout["bargap"] = 0
     layout["shapes"] = [dict(type="line", xref="paper", x0=0, x1=1, yref="y",
                              y0=0, y1=0, line=dict(color=T["INK"], width=1.1))]
     if boundary is not None and boundary + 1 < len(xs):

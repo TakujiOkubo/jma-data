@@ -25,6 +25,7 @@
       "decimals": 1,
       "yrange": [0, 225],
       "xtick_step": { "every": 4, "from": 0 },
+      "area": true,
       "components": [
         { "col": "funds_equity_tn", "label": "Foreign equity funds", "color": "#378ADD" },
         { "col": "funds_bond_tn", "label": "Foreign bond funds", "color": "#6FA8E3" },

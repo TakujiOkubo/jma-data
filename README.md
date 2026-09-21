@@ -135,6 +135,16 @@ a component can be negative (the 10Y term premium is, in 92 months of the
 sample) and a negative component has to hang below the zero line while the
 positive one still rises from it.
 
+`"area": true` on a `decomp` draws a true filled stack instead — what
+matplotlib's `stackplot` gives the published PNGs. Declare it where the published
+chart is an area and the series is sparse enough that bars read as steps: at 18
+annual points the household report's foreign-assets stack was visibly stepped
+against its own published image, while at 326 monthly points the same bars read as
+a solid fill. It is opt-in, so pages built before it existed rebuild byte-identical,
+and it refuses two cases rather than drawing them wrongly: a component that goes
+negative anywhere, and a `split_col`, whose history/estimate mark is per-point bar
+opacity that a filled area cannot carry.
+
 `curve` spaces maturities evenly by default. On a true linear axis 2Y and 5Y sit
 inside the leftmost 7% of a 40-year span, which crushes the part of the curve the
 policy rate actually moves. Pass `"xscale": "linear"` for year spacing.

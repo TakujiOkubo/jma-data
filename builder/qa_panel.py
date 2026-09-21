@@ -2749,6 +2749,14 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
         return [t for t in figs[cid]["data"]
                 if t["type"] == "bar" and (name is None or t["name"] == name)]
 
+    def stacked(cid):
+        """The component traces of a stacked decomposition, whichever way it is
+        drawn. Chart 1 is a filled area (matching its published stackplot) and
+        chart 2 is bars (its estimate mark is per-point bar opacity, which a
+        filled area cannot carry), so the gates below read both."""
+        return [t for t in figs[cid]["data"]
+                if t["type"] == "bar" or t.get("stackgroup")]
+
     def pairs(cid, name):
         """{x: y} for a named series, merging the solid and dotted legs a
         split_col emits under one name."""
@@ -2793,8 +2801,16 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
     print("\nG2/G5 — exhibit 1, foreign assets by type, against the library master")
     m1 = lib(r"household-assets\hh-foreign-assets-by-type"
              r"\hh_foreign_assets_by_type_fy_data.csv")
-    b1 = bars("chart_1")
+    b1 = stacked("chart_1")
     gate(len(b1) == 6, "six bands, as published", str(len(b1)))
+    # The published exhibit is a matplotlib stackplot, so this one is drawn as a
+    # filled area and not as bars: at 18 annual points bars read as steps, which
+    # is what Takuji saw on 2026-09-21. Assert the mode, or a revert to bars
+    # passes every value gate below.
+    gate(all(t.get("stackgroup") == "one" and t["type"] == "scatter" for t in b1)
+         and "barmode" not in figs["chart_1"]["layout"],
+         "and they are drawn as ONE FILLED STACK, as the published chart is",
+         str(sorted({t["type"] for t in b1})))
     gate(len(b1[0]["x"]) == len(m1) == 18,
          "eighteen points, FY2009 to 2026Q2", f"{len(b1[0]['x'])}/{len(m1)}")
     tot = [sum(t["y"][i] for t in b1) for i in range(len(b1[0]["x"]))]
@@ -2831,8 +2847,15 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
     m2 = lib(r"household-assets\hh-total-asset-composition"
              r"\hh_total_asset_composition_data.csv")
     b2 = bars("chart_2")
-    xs2 = b2[0]["x"]
+    xs2 = b2[0]["x"] if b2 else []
     gate(len(b2) == 5, "five stacked parts, as published", str(len(b2)))
+    # Chart 2 stays bars on purpose: its two JMA estimates are marked by
+    # per-point bar opacity, which a filled stack has no way to carry, and at
+    # 58 points the bars read as a solid block anyway. The builder refuses the
+    # combination, and this gate says why it is not an oversight.
+    gate(figs["chart_2"]["layout"].get("barmode") == "relative",
+         "and drawn as bars, which is what carries the estimate mark below",
+         str(figs["chart_2"]["layout"].get("barmode")))
     gate(len(xs2) == len(m2) == 58, "fifty-eight points, 1969 to end-June 2026",
          f"{len(xs2)}/{len(m2)}")
     land = next(t for t in b2 if t["name"] == "Land")
