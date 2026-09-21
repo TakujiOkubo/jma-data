@@ -122,6 +122,14 @@ series is drawn twice — solid over the rows matching `solid_value`, dotted ove
 the rest, with a marked boundary — so a projection can never be mistaken for an
 observation.
 
+`split_label` names what the dotted leg is, on the boundary marker and in the
+hover text. It defaults to `forecast`, so every page built before 2026-09-21
+rebuilds byte-identical. Declare it where the split marks something else: the
+household report's household-assets stack splits off two JMA **estimates** of
+periods that have already ended, which is not a forecast, and the BoJ
+ownership-share chart calls its dotted leg a `projection`, as the published PNG
+does.
+
 `decomp` stacks with `barmode: "relative"` rather than filling an area, because
 a component can be negative (the 10Y term premium is, in 92 months of the
 sample) and a negative component has to hang below the zero line while the

@@ -2685,6 +2685,431 @@ def qa_jgb_effective_rate(root, manifest, page, figs) -> None:
          "and the delivered table is identical across the tiers too")
 
 
+HH_SLUG = "2026-09-15-household-foreign-equity"
+HH_LIB = Path(r"G:\My Drive\charts")
+
+# The eight exhibits, in reader order, by the article's own chart numbers. The
+# titles are the headline each producing script draws, verbatim.
+HH_EXHIBITS = [
+    (1, "Equity funds lift households' foreign assets to \u00a5189tn"),
+    (2, "Land was 54% of household assets in 1990, 21% now"),
+    (4, "Average fee for investment funds: a long and slow decline"),
+    (6, "Appetite for foreign equity remains unsaturated"),
+    (7, "Retail JGB sales have passed \u00a51tn a month"),
+    (8, "Retail JGBs pay 2.2%, 5-year time deposits 1.2%"),
+    (9, "Time deposits are growing for the first time since 2011"),
+    (10, "BoJ's grip sits in 1-10Y; super-long is private turf"),
+]
+
+# The four exhibits struck from the page, and what each would leave behind if a
+# later hand restored one. Takuji's instruction: time series only. These are
+# ABSENCE gates — replace them if he adds an exhibit, never delete them.
+HH_STRUCK = [
+    ("chart 3, the four-country cross-section",
+     ["Real assets account for less in Japan/US",
+      "Korean households hold the most in real assets",
+      "chart_3", "hh-intl-asset-composition", "South Korea"]),
+    ("chart 5, the fee-band distribution",
+     ["Low cost funds are becoming popular in Japan",
+      "chart_5", "hh-fund-fee-distribution", "fee band"]),
+    ("chart 11, the NISA scale diagram",
+     ["NISA: \u00a53.6m a year", "chart_11", "hh-nisa-framework",
+      "installment quota"]),
+    ("the share variant of chart 2",
+     ["% of household total assets", "Land was 54% of household assets in "
+      "1990; 21% now", "_pct\"", "hh_total_asset_composition_20260920"]),
+]
+
+
+def qa_household_foreign_equity(root, manifest, page, figs) -> None:
+    """The free chart page for "Mrs Watanabe No More" (Substack, 21 Sep 2026).
+
+    Eight of the article's twelve exhibits — the time-series ones, on Takuji's
+    instruction. Every gate is computed on the DELIVERED figure JSON, and the
+    value gates re-read the chart library's master CSVs rather than the page's
+    own data/ folder, so a bad cut cannot pass by agreeing with itself.
+
+    Three blocks earn their place:
+      * an absence gate for each struck exhibit, so a later hand cannot quietly
+        restore one;
+      * the two dotted/lightened legs (chart 2's JMA estimates, chart 10's
+        projection) checked to begin at the declared row and nowhere else;
+      * the cross-publication check against the frozen BoJ-QT monitor page,
+        which carries the same ownership-by-maturity series on its own cut.
+    """
+    def lib(rel):
+        with open(HH_LIB / rel, newline="", encoding="utf-8-sig") as f:
+            return list(csv.DictReader(f))
+
+    def bars(cid, name=None):
+        return [t for t in figs[cid]["data"]
+                if t["type"] == "bar" and (name is None or t["name"] == name)]
+
+    def pairs(cid, name):
+        """{x: y} for a named series, merging the solid and dotted legs a
+        split_col emits under one name."""
+        out = {}
+        for t in figs[cid]["data"]:
+            if t.get("name") == name:
+                for x, y in zip(t["x"], t["y"]):
+                    if y is not None:
+                        out[x] = y
+        return out
+
+    def near(a, b, tol):
+        return a is not None and b is not None and abs(a - b) <= tol
+
+    # ---------------------------------------------------------------- G1
+    print("\nG1 — the eight exhibits, and which eight they are")
+    titles = [html.unescape(t) for t in re.findall(r"<h2>(.*?)</h2>", page)]
+    want = [t for _, t in HH_EXHIBITS]
+    kept = [t for t in titles if t in want]
+    gate(len(manifest["charts"]) == 8, "the manifest declares exactly 8 exhibits",
+         str(len(manifest["charts"])))
+    gate(len(figs) == 8, "the delivered page carries exactly 8 figures",
+         str(len(figs)))
+    gate(kept == want, "all eight titles are present, in reader order",
+         f"{len(kept)} of 8 found")
+    ids = [f'chart_{n}' for n, _ in HH_EXHIBITS]
+    gate(sorted(figs) == sorted(ids),
+         "the figure ids are the article's own chart numbers", str(sorted(figs)))
+    gate([c["n"] for c in manifest["charts"]] == [n for n, _ in HH_EXHIBITS],
+         "so chart 4 on the page is chart 4 in the article")
+    gate(f'href="{manifest["post_url"]}"' in page, "links back to the post")
+
+    # ---------------------------------------------------------------- G3
+    print("\nG3 — the four struck exhibits stay struck")
+    gate(len(HH_STRUCK) == 4, "four exhibits are under an absence gate",
+         str(len(HH_STRUCK)))
+    for what, marks in HH_STRUCK:
+        found = [m for m in marks if m in page]
+        gate(not found, f"no trace of {what}", str(found))
+
+    # ---------------------------------------------------------------- G2/G5
+    print("\nG2/G5 — exhibit 1, foreign assets by type, against the library master")
+    m1 = lib(r"household-assets\hh-foreign-assets-by-type"
+             r"\hh_foreign_assets_by_type_fy_data.csv")
+    b1 = bars("chart_1")
+    gate(len(b1) == 6, "six bands, as published", str(len(b1)))
+    gate(len(b1[0]["x"]) == len(m1) == 18,
+         "eighteen points, FY2009 to 2026Q2", f"{len(b1[0]['x'])}/{len(m1)}")
+    tot = [sum(t["y"][i] for t in b1) for i in range(len(b1[0]["x"]))]
+    # The page carries each band at one decimal (the manifest's "decimals": 1),
+    # so a six-band sum inherits up to 0.3 of rounding. Every comparison below
+    # is made at the page's precision and not at the master's, which is how a
+    # gate ends up measuring the rounding instead of the number.
+    def master_bands(r):
+        return [float(r["funds_stock_scaled_tn"]),
+                float(r["funds_bond_scaled_tn"]),
+                float(r["funds_balanced_foreign_scaled_tn"])
+                + float(r["funds_other_scaled_tn"]) + float(r["funds_reit_scaled_tn"]),
+                float(r["fx_deposits_tn"]) + float(r["direct_debt_tn"]),
+                float(r["direct_equity_tn"]), float(r["direct_fund_shares_tn"])]
+
+    gate(near(tot[0], 57.84, 0.3), "the stack opens at ¥57.8tn (end-March "
+         "2010) — the article's 58 trillion yen", f"{tot[0]:.2f}")
+    gate(near(tot[-1], 189.25, 0.3), "and closes at ¥189.2tn (end-June "
+         "2026) — the article's 189 trillion", f"{tot[-1]:.2f}")
+    gate(f"{round(tot[-1]):.0f}" == "189", "the title's rounded figure is the "
+         "one the stack sums to", f"{tot[-1]:.2f}")
+    # re-derived from the master, not from the page's own cut, band by band and
+    # rounded as the page rounds
+    want_last = sum(round(v, 1) for v in master_bands(m1[-1]))
+    want_first = sum(round(v, 1) for v in master_bands(m1[0]))
+    gate(near(tot[-1], want_last, 1e-9) and near(tot[0], want_first, 1e-9),
+         "and every band equals the library master re-read independently",
+         f"page {tot[0]:.1f}/{tot[-1]:.1f} vs master {want_first:.1f}/{want_last:.1f}")
+    gate(b1[0]["x"][0] == "Mar 2010" and b1[0]["x"][-1] == "Jun 2026",
+         "the axis runs end-March 2010 to end-June 2026",
+         f'{b1[0]["x"][0]}..{b1[0]["x"][-1]}')
+
+    print("\nG2/G4 — exhibit 2, all household assets, and its two JMA estimates")
+    m2 = lib(r"household-assets\hh-total-asset-composition"
+             r"\hh_total_asset_composition_data.csv")
+    b2 = bars("chart_2")
+    xs2 = b2[0]["x"]
+    gate(len(b2) == 5, "five stacked parts, as published", str(len(b2)))
+    gate(len(xs2) == len(m2) == 58, "fifty-eight points, 1969 to end-June 2026",
+         f"{len(xs2)}/{len(m2)}")
+    land = next(t for t in b2 if t["name"] == "Land")
+    i90 = xs2.index("Dec 1990")
+    t90 = sum(t["y"][i90] for t in b2)
+    tnow = sum(t["y"][-1] for t in b2)
+    gate(round(land["y"][i90] / t90 * 100) == 54,
+         "land is 54% of the 1990 stack — the title's first figure",
+         f"{land['y'][i90] / t90 * 100:.1f}%")
+    gate(round(land["y"][-1] / tnow * 100) == 21,
+         "and 21% of the last — the title's second figure",
+         f"{land['y'][-1] / tnow * 100:.1f}%")
+    # the same two shares, re-derived from the master
+    r90 = next(r for r in m2 if float(r["year"]) == 1990.0)
+    gate(near(land["y"][i90], float(r90["land_bn"]) / 1000.0, 0.6),
+         "the 1990 land bar equals the master's land_bn / 1000",
+         f'{land["y"][i90]} vs {float(r90["land_bn"]) / 1000.0:.1f}')
+    # G4: exactly the last two bars are lightened, and they are the estimates
+    est_rows = [r for r in m2 if r["is_estimate"] == "True"]
+    gate(len(est_rows) == 2, "the master flags exactly two estimate rows",
+         str(len(est_rows)))
+    for t in b2:
+        op = t["marker"]["opacity"]
+        faded = [xs2[i] for i, o in enumerate(op) if o < 1.0]
+        gate(faded == ["Dec 2025", "Jun 2026"],
+             f'{t["name"]}: only the two JMA estimates are lightened', str(faded))
+    shapes2 = figs["chart_2"]["layout"]["shapes"]
+    boundary = [s for s in shapes2 if s.get("line", {}).get("dash") == "dot"]
+    gate(len(boundary) == 1 and boundary[0]["x0"] == "Dec 2024",
+         "the boundary marker sits on the last published year, Dec 2024",
+         str([s.get("x0") for s in boundary]))
+    annos2 = [a["text"] for a in figs["chart_2"]["layout"].get("annotations", [])]
+    gate(annos2 == ["JMA estimate \u2192"],
+         "and is labelled an estimate, not a forecast — these are periods that "
+         "have already ended", str(annos2))
+
+    print("\nG2/G5 — exhibit 4, fund fees, against the library master")
+    m4 = {r["year"]: float(r["fee_pct"]) for r in
+          lib(r"household-assets\hh-fund-fees\hh_fund_fees_data.csv")
+          if r["series"] == "fsa_all_funds_weighted"}
+    p4 = pairs("chart_4", "Average annual fee, weighted by fund assets")
+    gate(len(p4) == 25 and len(m4) == 25, "twenty-five years, 2001 to 2025",
+         f"{len(p4)}/{len(m4)}")
+    for y, v in (("2001", 1.52), ("2010", 1.46), ("2020", 1.30), ("2025", 0.94)):
+        gate(near(p4.get(y), v, 0.005) and near(m4[y], v, 0.005),
+             f"the caption's {v:.2f}% in {y} is on the page and in the master",
+             f"page {p4.get(y)} / master {m4[y]}")
+    emx = [r for r in lib(r"household-assets\hh-fund-fees\hh_fund_fees_data.csv")
+           if r["series"] == "emaxis_slim_all_country"]
+    gate(len(emx) == 1 and f'{float(emx[0]["fee_pct"]):.2f}' == "0.06",
+         "the caption's 0.06% is the master's cheapest-tracker fee at 2dp",
+         emx and emx[0]["fee_pct"])
+    gate("0.06%" in page and "\u00a513.7trn" in page,
+         "both are stated in the caption, since a one-point line cannot be drawn")
+
+    print("\nG2/G5 — exhibit 6, foreign-equity fund flows, against the library master")
+    m6 = lib(r"household-assets\hh-foreign-equity-fund-flows"
+             r"\hh_foreign_equity_fund_flows_data.csv")
+    p6 = pairs("chart_6", "Monthly net inflow")
+    a6 = pairs("chart_6", "3-month average")
+    gate(len(p6) == 56 and min(p6) == "2022-01",
+         "the view opens in January 2022, as the published chart does",
+         f"{len(p6)} months from {min(p6)}")
+    gate(max(p6) == "2026-08" and max(m6, key=lambda r: r["month"])["month"] == "2026-08",
+         "and ends at the master's last month, August 2026", max(p6))
+    jja = [a6[m] for m in ("2026-06", "2026-07", "2026-08")]
+    gate(near(a6["2026-08"], 1.74, 0.005),
+         "the caption's \u00a51.74trn is the 3-month average at August 2026",
+         f'{a6["2026-08"]}')
+    gate(all(v > 0 for v in p6.values()),
+         "every bar in the view is an inflow, so the coral trace is rightly absent")
+    # "the fastest in a series that starts in 2010", tested on the WHOLE master
+    ma = [(r["month"], float(r["foreign_equity_3m_avg_bn"]) / 1000.0)
+          for r in m6 if r["foreign_equity_3m_avg_bn"]]
+    gate(len(ma) > 180 and max(ma, key=lambda t: t[1])[0] == "2026-08",
+         "and is the highest in the master's whole history, not just the view",
+         f"{len(ma)} months, peak {max(ma, key=lambda t: t[1])[0]}")
+    gate(near(max(ma, key=lambda t: t[1])[1], 1.74, 0.005),
+         "at the same value the caption prints", f"{max(ma, key=lambda t: t[1])[1]:.3f}")
+    ln = [t for t in figs["chart_6"]["data"] if t.get("yaxis") == "y2"]
+    y2 = figs["chart_6"]["layout"]["yaxis2"]
+    gate(len(ln) == 1 and y2["range"] == figs["chart_6"]["layout"]["yaxis"]["range"],
+         "the average sits on a second axis carrying the SAME scale as the bars, "
+         "as the caption says", str(y2.get("range")))
+
+    print("\nG2/G5 — exhibit 7, retail JGB sales per month covered")
+    m7 = lib(r"household-assets\hh-retail-jgb-monthly\hh_retail_jgb_monthly_data.csv")
+    b7 = bars("chart_7")[0]
+    p7 = dict(zip(b7["x"], b7["y"]))
+    gate(len(p7) == len(m7) == 225, "every issue since the first, 225 of them",
+         f"{len(p7)}/{len(m7)}")
+    gate(min(p7) == "2003-03" and max(p7) == "2026-09",
+         "March 2003 to September 2026", f"{min(p7)}..{max(p7)}")
+    over = sorted(m for m, v in p7.items() if v >= 1.0)
+    gate(over == ["2026-08", "2026-09"],
+         "exactly two months clear \u00a51trn — the title, and the caption's two",
+         str(over))
+    # the per-month divisor, re-derived from the master and not from the cut
+    raw = {r["month"]: float(r["total_bn"]) / 1000.0 for r in m7}
+    gate(near(p7["2026-09"], raw["2026-09"], 0.0005),
+         "a monthly-era bar is the issue itself", f'{p7["2026-09"]:.3f}')
+    gate(near(p7["2005-04"], raw["2005-04"] / 3.0, 0.0005),
+         "a quarterly-era bar is the issue spread over the three months it covers",
+         f'{p7["2005-04"]:.3f} vs {raw["2005-04"] / 3.0:.3f}')
+    op7 = b7["marker"]["opacity"]
+    faded7 = [b7["x"][i] for i, o in enumerate(op7) if o < 1.0]
+    gate(faded7 and max(faded7) == "2010-12" and min(faded7) == "2003-03"
+         and len(faded7) == 36,
+         "the faded bars are exactly the 36 quarterly-era issues, to Dec 2010",
+         f"{len(faded7)} faded, {min(faded7)}..{max(faded7)}")
+    gate("\u00a55.9trn" in page, "the FY2026 plan the caption quotes is on the page")
+
+    print("\nG2/G5 — exhibit 8, retail JGB coupon against deposit rates")
+    m8 = lib(r"household-assets\hh-reserve-rate-vs-deposit-rates"
+             r"\hh_deposit_rates_and_coupon_monthly_data.csv")
+    boj = pairs("chart_8", "BoJ rate on current-account balances")
+    jgb = pairs("chart_8", "Retail JGB 5-year coupon")
+    dep = pairs("chart_8", "5-year time deposits")
+    gate(len(jgb) == 46 and min(jgb) == "2023-01-01" and max(jgb) == "2026-10-01",
+         "the coupon runs the whole window, January 2023 to October 2026",
+         f"{len(jgb)} months")
+    last_jgb, last_dep = jgb[max(jgb)], dep[max(dep)]
+    gate(f"{last_jgb:.1f}" == "2.2",
+         "the title's 2.2% is the last retail JGB coupon at 1dp", f"{last_jgb}")
+    gate(f"{last_dep:.1f}" == "1.2",
+         "and 1.2% the last 5-year time deposit at 1dp", f"{last_dep}")
+    # both re-derived from the master
+    mj = [r for r in m8 if r["fixed5_rate_pct"]][-1]
+    md = [r for r in m8 if r["time_5to6y_contracted_pct"]][-1]
+    gate(near(last_jgb, float(mj["fixed5_rate_pct"]), 0.005)
+         and near(last_dep, float(md["time_5to6y_contracted_pct"]), 0.005),
+         "both match the library master re-read independently",
+         f'{mj["month"]} {mj["fixed5_rate_pct"]} / {md["month"]} {md["time_5to6y_contracted_pct"]}')
+    gate(min(boj) == "2024-03-01",
+         "the BoJ step begins in March 2024, as the caption says", min(boj))
+    steps = lib(r"household-assets\hh-reserve-rate-vs-deposit-rates"
+                r"\hh_reserve_rate_steps_data.csv")
+    single = [s for s in steps if s["regime"] == "single" and s["rate_pct"]]
+    gate(sorted({round(v, 4) for v in boj.values()})
+         == sorted({round(float(s["rate_pct"]), 4) for s in single}),
+         "and takes exactly the five rates the regime table records",
+         str(sorted({v for v in boj.values()})))
+    gate(not any(r["regime"] == "tiered" and r["rate_pct"] for r in steps),
+         "the pre-2024 tiered regime has no single rate to draw, which is why "
+         "the line starts where it does")
+
+    print("\nG2/G5 — exhibit 9, individuals' time deposits")
+    m9 = lib(r"household-assets\hh-time-deposit-share\hh_time_deposit_yoy_data.csv")
+    up = pairs("chart_9", "Growing on a year earlier, %")
+    down = pairs("chart_9", "Shrinking on a year earlier, %")
+    zeros = [r["month"] for r in m9 if float(r["yoy_change_pct"]) == 0.0]
+    gate(len(zeros) == 3 and zeros == ["2000-06", "2001-11", "2011-06"],
+         "the master has three months of exactly zero change", str(zeros))
+    gate(len(up) + len(down) + len(zeros) == len(m9) == 328,
+         "every other month from April 1999 is drawn, in one direction or the "
+         "other — the builder drops an exact zero rather than drawing a flat "
+         "bar that would read as a tick mark",
+         f"{len(up)}+{len(down)}+{len(zeros)}/{len(m9)}")
+    gate(not [m for m in zeros if m in up or m in down],
+         "and those three are the only months with no bar", str(zeros))
+    gate(all(v > 0 for v in up.values()) and all(v < 0 for v in down.values()),
+         "and the blue bars are the positive months, the coral ones negative")
+    run_start = min(up)
+    gate(min(m for m in up if m > "2024-01") == "2025-01",
+         "growth resumed in January 2025 — the caption's date",
+         min(m for m in up if m > "2024-01"))
+    gate(max(m for m in up if m < "2024-01") == "2011-07",
+         "the last positive month before it was July 2011 — the title's 2011 "
+         "and the caption's July 2011", max(m for m in up if m < "2024-01"))
+    gate(not [m for m in down if m >= "2025-01"],
+         "no month since has been negative, so 'every month since' holds")
+    gate(f'{up["2026-07"]:.2f}' == "4.16",
+         "the caption's +4.16% is July 2026 at 2dp", f'{up["2026-07"]}')
+    gate(near(up["2026-07"],
+              float([r for r in m9 if r["month"] == "2026-07"][0]["yoy_change_pct"]),
+              0.005), "and matches the library master re-read independently")
+
+    print("\nG2/G4 — exhibit 10, BoJ ownership by maturity, and its projection")
+    m10 = {r["YM"]: r for r in lib(r"boj\ownership-share-segments-1-5"
+                                   r"\japan_boj_ownership_share_1_5_data.csv")}
+    segs = {"1\u20135Y": "seg_1_5", "5\u201310Y": "seg_5_10",
+            "10\u201325Y": "seg_10_25", "25Y+": "seg_25p"}
+    gate(len(segs) == 4, "four maturity segments", str(len(segs)))
+    for label, col_ in segs.items():
+        solid = [t for t in figs["chart_10"]["data"]
+                 if t["name"] == label and not t["line"].get("dash")]
+        dotted = [t for t in figs["chart_10"]["data"]
+                  if t["name"] == label and t["line"].get("dash") == "dot"]
+        gate(len(solid) == 1 and len(dotted) == 1,
+             f"{label}: one solid leg and one dotted leg",
+             f"{len(solid)}/{len(dotted)}")
+        s_x = [x for x, y in zip(solid[0]["x"], solid[0]["y"]) if y is not None]
+        d_x = [x for x, y in zip(dotted[0]["x"], dotted[0]["y"]) if y is not None]
+        gate(s_x[0] == "2010-01-01" and s_x[-1] == "2026-08-01",
+             f"{label}: history runs January 2010 to August 2026",
+             f"{s_x[0]}..{s_x[-1]}")
+        gate(d_x[0] == "2026-08-01" and d_x[-1] == "2030-12-01",
+             f"{label}: the projection begins at that same August 2026 point "
+             "(kept so the legs join) and runs to December 2030",
+             f"{d_x[0]}..{d_x[-1]}")
+        # and the master, read independently, says the same in per cent
+        v = pairs("chart_10", label)
+        gate(near(v["2026-08-01"], float(m10["2026-08"][col_]) * 100.0, 0.06),
+             f"{label}: the August 2026 point is the master's fraction x 100",
+             f'{v["2026-08-01"]} vs {float(m10["2026-08"][col_]) * 100.0:.3f}')
+    annos10 = [a["text"] for a in figs["chart_10"]["layout"].get("annotations", [])]
+    gate(annos10 == ["projection \u2192"],
+         "the boundary is labelled a projection, as the published chart labels it",
+         str(annos10))
+    v15, v510, v25 = (pairs("chart_10", "1\u20135Y")["2026-08-01"],
+                      pairs("chart_10", "5\u201310Y")["2026-08-01"],
+                      pairs("chart_10", "25Y+")["2026-08-01"])
+    gate(f"{v15:.1f}" == "58.3" and f"{v510:.1f}" == "51.8" and f"{v25:.1f}" == "13.7",
+         "the caption's 58.3% / 51.8% / 13.7% at end-August 2026, at 1dp",
+         f"{v15:.2f}/{v510:.2f}/{v25:.2f}")
+    v1025 = pairs("chart_10", "10\u201325Y")["2026-08-01"]
+    gate(min(v15, v510) > max(v1025, v25),
+         "the title's claim, audited: both short segments sit above both long ones")
+
+    # ---------------------------------------------------------------- G5
+    print("\nG5 — cross-publication: exhibit 10 against the frozen BoJ-QT monitor page")
+    qtp = (REPO / "boj-qt-monitor-2025" / "index.html").read_text(encoding="utf-8")
+    anchor = 'Plotly.newPlot(                        "chart_3"'
+    gate(anchor in qtp, "the QT monitor page carries its ownership-by-maturity chart")
+    qt_data, _ = json.JSONDecoder().raw_decode(qtp[qtp.index("[", qtp.index(anchor)):])
+    qt = {}
+    for t in qt_data:
+        nm = t.get("name") or (t.get("hovertemplate") or "").split("<")[0]
+        if t.get("x") and t.get("y"):
+            qt.setdefault(nm, {}).update(
+                {x[:7]: y for x, y in zip(t["x"], t["y"]) if y is not None})
+    hh = {x[:7]: {lbl: pairs("chart_10", lbl)[x] for lbl in segs}
+          for x in pairs("chart_10", "25Y+")}
+    common = sorted(set(qt.get("5-10Y", {})) & set(hh))
+    gate(len(common) == 192,
+         "the two pages overlap over 192 months, January 2010 to December 2025",
+         str(len(common)))
+    for qname, hname in (("5-10Y", "5\u201310Y"), ("10-25Y", "10\u201325Y"),
+                         ("25Y+", "25Y+")):
+        diffs = [(abs(qt[qname][m] - hh[m][hname]), m) for m in common]
+        worst, wm = max(diffs)
+        recent = max(d for d, m in diffs if m >= "2011-01")
+        gate(worst <= 0.2, f"{hname}: the two pages agree to 0.2pp everywhere",
+             f"worst {worst:.4f}pp at {wm}")
+        # 0.06pp from 2011 on. Not tighter: both pages carry these shares at one
+        # decimal, so part of any gap is rounding and a gate at 0.05 would be
+        # measuring that rather than the series. Not looser: the 2010 gap this
+        # separates out is the frozen page's older vintage of the early sample,
+        # and it reaches 0.14pp.
+        gate(recent <= 0.06,
+             f"{hname}: and to 0.06pp from 2011 on — the wider 2010 gap is the "
+             "frozen page's older vintage of the early sample",
+             f"worst {recent:.4f}pp")
+    # the merged short segment must lie between its two parts on the other page
+    # at the page's own precision: it carries one decimal, so a merged value
+    # that sits 0.002pp inside its two parts can round just outside them. The
+    # tolerance is that rounding step and nothing more.
+    outside = [m for m in common
+               if not (min(qt["1-3Y"][m], qt["3-5Y"][m]) - 0.06
+                       <= hh[m]["1–5Y"]
+                       <= max(qt["1-3Y"][m], qt["3-5Y"][m]) + 0.06)]
+    gate(not outside and len(common) == 192,
+         "and the merged 1\u20135Y lies between the QT page's 1-3Y and 3-5Y in "
+         "every one of those months — a mean could not be guaranteed to",
+         f"{len(outside)} month(s) outside")
+
+    # ---------------------------------------------------------------- G7
+    print("\nG7 — the page's title, and the landing index")
+    gate(f'<h1>{html.escape(manifest["title"])}</h1>' in page
+         or f'>{html.escape(manifest["title"])}<' in page,
+         "the page carries the manifest's title", manifest["title"])
+    gate(f'{html.escape(manifest["title"])} \u2014 data' in page,
+         "and the browser title is that title plus ' \u2014 data'")
+    idx = (REPO / "index.html").read_text(encoding="utf-8")
+    gate(manifest.get("unlisted") is True,
+         "the manifest declares the page unlisted")
+    gate(HH_SLUG not in idx and manifest["title"] not in idx,
+         "so the landing index carries no entry for it — REPLACE this gate with "
+         "its opposite if Takuji lists the page")
+
+
 QA = {"2026-07-20-long-climb": qa_long_climb,
       JGB_ER_FREE: qa_jgb_effective_rate,
       JGB_ER_PAID: qa_jgb_effective_rate,
@@ -2699,7 +3124,8 @@ QA = {"2026-07-20-long-climb": qa_long_climb,
       "jgb-yield-curve-main": qa_scenario_model,
       "jgb-yield-curve-alternative": qa_scenario_model,
       "2026-08-03-jgb-warsh": qa_warsh_panel,
-      "global-fx-reserve-share": qa_global_fx_reserve_shares}
+      "global-fx-reserve-share": qa_global_fx_reserve_shares,
+      HH_SLUG: qa_household_foreign_equity}
 
 BOTTOM_BANNERS.update({s: MODEL_BOTTOM_BANNER for s in SCENARIO})
 

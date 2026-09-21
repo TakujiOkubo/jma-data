@@ -400,13 +400,21 @@ def apply_vlines(spec: dict, layout: dict, T: dict, xs: list[str],
 
 
 def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
-                  dec: int, is_solid, boundary, yaxis: str | None = None) -> list:
+                  dec: int, is_solid, boundary, yaxis: str | None = None,
+                  split_label: str = "forecast") -> list:
     """The line traces for one panel — shared by "line" and "line_bars".
 
     Factored rather than copied: the two kinds must split history from
     projection identically, and a copied block is where that stops being true
     (apply_hlines carries the same warning). ``yaxis`` is emitted only when the
     caller passes one, so a single-panel chart's figure JSON is unchanged.
+
+    ``split_label`` names what the dotted leg is. It defaults to "forecast",
+    which is what every page built before 2026-09-21 says, so those pages rebuild
+    byte-identical. A page whose split marks something else — the household
+    report's chart 2 splits off two JMA *estimates* of periods that have already
+    happened, which is not a forecast — declares its own word and the boundary
+    marker and the hover text both use it.
 
     ``connect_gaps`` is per series and defaults off. A gap is normally missing
     data and bridging it would invent an observation — but where a series is
@@ -450,7 +458,8 @@ def series_traces(spec: dict, kept: list[dict], xs: list[str], T: dict,
             type="scatter", mode="lines", name=s["label"], x=xs, y=proj,
             line=dict(color=colour, width=s.get("width", 2), dash="dot"),
             connectgaps=bridge, showlegend=False,
-            hovertemplate=f"%{{y:.{dec}f}}<extra>{s['label']} (forecast)</extra>",
+            hovertemplate=f"%{{y:.{dec}f}}"
+                          f"<extra>{s['label']} ({split_label})</extra>",
             **ax,
         ))
     return traces
@@ -468,6 +477,7 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
     # solid over the rows whose split_col equals solid_value, dashed over the
     # rest — so a reader can never mistake a projection for an observation.
     split_col = spec.get("split_col")
+    split_label = spec.get("split_label", "forecast")
     solid_val = spec.get("solid_value", "actual")
     if split_col:
         is_solid = [str(r.get(split_col, "")).strip() == solid_val for r in kept]
@@ -501,7 +511,8 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
             showlegend=True, hoverinfo="skip", connectgaps=False,
         ))
 
-    traces += series_traces(spec, kept, xs, T, dec, is_solid, boundary)
+    traces += series_traces(spec, kept, xs, T, dec, is_solid, boundary,
+                            split_label=split_label)
 
     layout = base_layout(
         spec, T, legend=len(spec["series"]) > 1 or bool(spec.get("band")))
@@ -513,7 +524,7 @@ def fig_line(spec: dict, rows: list[dict], T: dict) -> dict:
             line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
         layout.setdefault("annotations", []).append(dict(
             xref="x", x=xs[boundary], yref="paper", y=1.0, yanchor="bottom",
-            text="forecast →", showarrow=False, xanchor="left", xshift=4,
+            text=f"{split_label} →", showarrow=False, xanchor="left", xshift=4,
             font=dict(size=11, color=T["GREY"])))
 
     # Reference lines (chart 1's 4% mark is the chart's whole argument, not decor)
@@ -548,6 +559,7 @@ def fig_line_bars(spec: dict, rows: list[dict], T: dict) -> dict:
     xs = [x_iso(str(r[xcol])) for r in kept]
 
     split_col = spec.get("split_col")
+    split_label = spec.get("split_label", "forecast")
     solid_val = spec.get("solid_value", "actual")
     if split_col:
         is_solid = [str(r.get(split_col, "")).strip() == solid_val for r in kept]
@@ -556,7 +568,8 @@ def fig_line_bars(spec: dict, rows: list[dict], T: dict) -> dict:
         is_solid, boundary = None, None
 
     # ── top panel: the lines, on y ──
-    traces = series_traces(spec, kept, xs, T, dec, is_solid, boundary)
+    traces = series_traces(spec, kept, xs, T, dec, is_solid, boundary,
+                           split_label=split_label)
 
     # ── bottom panel: the bars, on y2 ──
     b = spec["bars"]
@@ -615,7 +628,7 @@ def fig_line_bars(spec: dict, rows: list[dict], T: dict) -> dict:
             line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
         layout.setdefault("annotations", []).append(dict(
             xref="x", x=bx, yref="paper", y=1.0, yanchor="bottom",
-            text="forecast →", showarrow=False, xanchor="left", xshift=4,
+            text=f"{split_label} →", showarrow=False, xanchor="left", xshift=4,
             font=dict(size=11, color=T["GREY"])))
 
     apply_hlines(spec, layout, T)
@@ -951,6 +964,7 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     xs = [x_iso(r[xcol]) for r in kept]
 
     split_col = spec.get("split_col")
+    split_label = spec.get("split_label", "forecast")
     solid_val = spec.get("solid_value", "actual")
     if split_col:
         is_solid = [str(r.get(split_col, "")).strip() == solid_val for r in kept]
@@ -990,7 +1004,7 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
                 line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
             layout["annotations"] = [dict(
                 xref="x", x=xs[boundary], yref="paper", y=1.0, yanchor="bottom",
-                text="forecast →", showarrow=False, xanchor="left", xshift=4,
+                text=f"{split_label} →", showarrow=False, xanchor="left", xshift=4,
                 font=dict(size=11, color=T["GREY"]))]
         if spec.get("yrange"):
             layout["yaxis"]["range"] = spec["yrange"]
@@ -1011,7 +1025,8 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
                            line=dict(color=colour, width=2.2, dash="dot"),
                            connectgaps=False,
                            hovertemplate=f"%{{y:.{dec}f}}"
-                                         f"<extra>{tot['label']} (forecast)</extra>"))
+                                         f"<extra>{tot['label']} "
+                                         f"({split_label})</extra>"))
     else:
         traces.append(dict(type="scatter", mode="lines", name=tot["label"], x=xs,
                            y=tys, line=dict(color=colour, width=2.2),
@@ -1030,7 +1045,7 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
             line=dict(color=T["GREY"], width=1.1, dash="dot"), layer="below"))
         layout["annotations"] = [dict(
             xref="x", x=xs[boundary], yref="paper", y=1.0, yanchor="bottom",
-            text="forecast →", showarrow=False, xanchor="left", xshift=4,
+            text=f"{split_label} →", showarrow=False, xanchor="left", xshift=4,
             font=dict(size=11, color=T["GREY"]))]
     if spec.get("yrange"):
         layout["yaxis"]["range"] = spec["yrange"]
@@ -1103,7 +1118,7 @@ def base_layout(spec: dict, T: dict, legend: bool) -> dict:
     # Axis text at 18px — tick labels and axis titles were 12px and unreadable
     # at the 840px figure width; enlarged 50% on Takuji's instruction
     # (2026-07-30). Margins hold the bigger labels.
-    return dict(
+    layout = dict(
         paper_bgcolor=T["PAPER"], plot_bgcolor=T["PAPER"],
         colorway=[T["BLUE"], T["CORAL"], T["AMBER"], T["GREY"]],
         font=dict(family=T["FONT_FAMILY"], color=T["INK"], size=13),
@@ -1127,6 +1142,22 @@ def base_layout(spec: dict, T: dict, legend: bool) -> dict:
                     font=dict(size=12, color=T["GREY"]),
                     bgcolor="rgba(0,0,0,0)", bordercolor="rgba(0,0,0,0)"),
     )
+
+    # Optional thinning of a CATEGORY x-axis: label every `every`-th category,
+    # starting at index `from`. Declared per chart and absent by default, so
+    # every page built before it existed rebuilds byte-identical.
+    #
+    # It exists because a stack whose x values are labels rather than dates gets
+    # one tick per label, and Plotly's answer to labels that do not fit is to
+    # turn them ninety degrees — where, at this page width, they run down into
+    # the legend below the plot. Found by rendering the household page and
+    # looking at it; every numeric gate passed. Thinning the ticks is also what
+    # the published PNGs do (chart 1 ticks every four years, chart 2 every ten).
+    step = spec.get("xtick_step")
+    if step:
+        layout["xaxis"].update(tickmode="linear", tick0=step.get("from", 0),
+                               dtick=step["every"], tickangle=0)
+    return layout
 
 
 # ----------------------------------------------------------------- table kind

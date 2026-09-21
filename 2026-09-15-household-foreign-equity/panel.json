@@ -1,0 +1,185 @@
+{
+  "slug": "2026-09-15-household-foreign-equity",
+  "more_articles": true,
+  "audience": "free",
+  "title": "Mrs Watanabe No More",
+  "date": "21 September 2026",
+  "masthead_date": "21 September 2026",
+  "post_url": "https://takujiokubo.substack.com/p/mrs-watanabe-no-more",
+  "unlisted": true,
+  "tier": "free",
+  "downloads": false,
+  "standfirst": "Speculative FX trading was once the key feature of Japanese retail investors. No more. These are the eight time-series charts from the article, redrawn so you can hover to read any value and zoom into any period. The chart numbers are the article's own, so chart 4 here is chart 4 there.",
+  "_note": "Titles are the headline each chart script draws, copied verbatim; source notes and y-axis labels are its SOURCE / YLABEL constants. Several headlines are computed at render time and are recorded here at the values in the master CSVs on 2026-09-21. Data cut from the chart library's master CSVs by builder/cut_household_foreign_equity_csvs.py, per the exhibit ledger in the report record (30.Reports/2026-09/2026-09-15-household-foreign-equity-sub.md). The article has twelve exhibits; this page carries the eight that are time series (Takuji: 'just listing time series charts in this report as interactive charts'). Excluded: chart 3 (a four-country cross-section), chart 5 (a distribution across fee bands), chart 11 (a scale diagram of the NISA account), chart 12 (a schedule of statutory allowances) and the share variant of chart 2, which duplicates its level version. Chart 4's published PNG carries no y-axis label — its tick suffix does that work — so the '% a year' title here is the page's own and the only label not taken verbatim.",
+  "_series_order": "No two series on this page share a history column, so the shared-history colour trap does not arise. On chart 8 the BoJ step is listed first and the two saver rates after it, matching the published chart's reading order from the rate banks receive down to the rates savers are offered.",
+  "_x_axis": "Charts 1 and 2 stack bars on a CATEGORY axis, with every label in 'Mon YYYY' form and never a bare year. Their points are annual and their last point is a quarter later, so a true date axis would size every bar to that three- or six-month gap and draw the annual run as a comb. A numeric-looking category value is separately unsafe: Plotly coerces it to a number, which would put chart 2's estimate boundary at category slot 2024 on a 58-slot axis.",
+  "charts": [
+    {
+      "n": 1,
+      "kind": "decomp",
+      "title": "Equity funds lift households' foreign assets to ¥189tn",
+      "ylabel": "¥tn",
+      "source": "Source: Bank of Japan, Flow of Funds and balance of payments; Investment Trusts Association; JMA. End-March; last point end-June 2026.",
+      "csv": "data/chart-1-foreign-assets-by-type.csv",
+      "x": "as_of",
+      "decimals": 1,
+      "yrange": [0, 225],
+      "xtick_step": { "every": 4, "from": 0 },
+      "components": [
+        { "col": "funds_equity_tn", "label": "Foreign equity funds", "color": "#378ADD" },
+        { "col": "funds_bond_tn", "label": "Foreign bond funds", "color": "#6FA8E3" },
+        { "col": "funds_balanced_other_tn", "label": "Balanced and other foreign funds", "color": "#A8CEEE" },
+        { "col": "fx_deposits_and_bonds_tn", "label": "Foreign currency deposits and bonds", "color": "#EF9F27" },
+        { "col": "direct_equity_tn", "label": "Foreign shares held directly", "color": "#D85A30" },
+        { "col": "direct_fund_shares_tn", "label": "Foreign-based funds held directly", "color": "#E59372" }
+      ],
+      "note": "Fiscal years plotted at their end-March dates, with a final end-June 2026 point. The three fund bands are households' share of the Flow of Funds look-through total, so they sum to it in every year; the split between shares, foreign-domiciled funds and bonds held directly is a proxy, taken from the balance of payments' 'other' holding sector. The six bands sum to ¥57.8tn at end-March 2010 and ¥189.2tn at end-June 2026."
+    },
+    {
+      "n": 2,
+      "kind": "decomp",
+      "title": "Land was 54% of household assets in 1990, 21% now",
+      "ylabel": "¥tn",
+      "source": "Source: Cabinet Office, national accounts (household balance sheet); Bank of Japan; JMA. 2025 and June 2026 are JMA estimates.",
+      "csv": "data/chart-2-household-assets-composition.csv",
+      "x": "as_of",
+      "decimals": 0,
+      "yrange": [0, 4000],
+      "xtick_step": { "every": 10, "from": 1 },
+      "split_col": "is_estimate",
+      "solid_value": "False",
+      "split_label": "JMA estimate",
+      "components": [
+        { "col": "land_tn", "label": "Land", "color": "#D85A30" },
+        { "col": "other_real_tn", "label": "Buildings & other real assets", "color": "#EF9F27" },
+        { "col": "deposits_tn", "label": "Cash & deposits", "color": "#378ADD" },
+        { "col": "insurance_pension_tn", "label": "Insurance & pensions", "color": "#A8CEEE" },
+        { "col": "securities_other_tn", "label": "Securities & other", "color": "#888780" }
+      ],
+      "note": "One source for both sides of the balance sheet, so real and financial assets share a denominator. Each year is taken from a single accounting basis (68SNA to 1979, 93SNA-2000 base 1980-93, 2008SNA-2020 base from 1994) and nothing is spliced across the two joins. The last two bars are lightened because they are JMA estimates, not published figures: the national accounts stop at end-2024, so land is carried forward on the official land-price survey, buildings on MLIT's detached-house index, and the financial parts on Flow of Funds ratios."
+    },
+    {
+      "n": 4,
+      "kind": "line",
+      "title": "Average fee for investment funds: a long and slow decline",
+      "ylabel": "% a year",
+      "source": "Note: Average annual fee on public stock funds excluding ETFs, weighted by assets; before 2021 at 2020 fee levels. Source: FSA commissioned studies by QUICK (2021 and 2026 editions); MUFG Asset Management.",
+      "csv": "data/chart-4-fund-fees.csv",
+      "x": "year",
+      "decimals": 2,
+      "yrange": [0, 1.8],
+      "series": [
+        { "col": "avg_fee_pct", "label": "Average annual fee, weighted by fund assets", "color": "#378ADD" }
+      ],
+      "note": "1.52% in 2001, 1.46% in 2010, 1.30% in 2020, 0.94% in 2025. Read the two halves differently: the 2001-2020 block weights each fund's end-2020 fee by that year's assets, so it tracks the shift of money towards cheap funds rather than the fee history itself, while 2021-2025 carries each year's own fees. The average also hides the spread — the 'All Country' index trackers, which the article puts at ¥13.7trn, charge as little as 0.06%. The published chart marks that fee with a single point, which cannot be drawn as a line here, so it is stated instead."
+    },
+    {
+      "n": 6,
+      "kind": "signed_bar_line",
+      "title": "Appetite for foreign equity remains unsaturated",
+      "ylabel": "¥ trillion a month",
+      "source": "Source: The Investment Trusts Association, Japan (stock funds by type: overseas and global equity); 3-month average by JMA.",
+      "csv": "data/chart-6-foreign-equity-fund-flows.csv",
+      "x": "month",
+      "decimals": 2,
+      "hoverformat": "%b %Y",
+      "bar_width_ms": 2235000000,
+      "yrange": [0, 2.4],
+      "ytick": [0, 0.5, 1.0, 1.5, 2.0],
+      "y2range": [0, 2.4],
+      "y2tick": [0, 0.5, 1.0, 1.5, 2.0],
+      "value": {
+        "col": "net_inflow_tn",
+        "pos_label": "Monthly net inflow",
+        "neg_label": "Monthly net outflow",
+        "pos_color": "#A8CEEE",
+        "neg_color": "#D85A30"
+      },
+      "line": { "col": "avg_3m_tn", "label": "3-month average", "color": "#378ADD" },
+      "note": "Foreign equity is the association's overseas-equity plus global-equity categories, the latter being funds that include a small Japanese weight, such as the all-country index trackers. A net inflow is sales less cancellations and redemptions. The average of the three months to August 2026 is ¥1.74trn a month, the fastest in a series that starts in 2010; the view opens in January 2022, as the published chart does. Both axes carry the same scale — the line is in the same units as the bars."
+    },
+    {
+      "n": 7,
+      "kind": "signed_bar_line",
+      "title": "Retail JGB sales have passed ¥1tn a month",
+      "ylabel": "¥ trillion per month",
+      "source": "Source: Ministry of Finance, retail JGB issues. Quarterly issues before 2011 are spread over the three months they cover.",
+      "csv": "data/chart-7-retail-jgb-per-month.csv",
+      "x": "month",
+      "decimals": 2,
+      "hoverformat": "%b %Y",
+      "bar_width_ms": 2235000000,
+      "yrange": [0, 1.5],
+      "ytick": [0, 0.25, 0.5, 0.75, 1.0],
+      "flag_col": "quarterly",
+      "value": {
+        "col": "sales_tn",
+        "pos_label": "Retail JGB sales, per month covered",
+        "neg_label": "Net redemptions",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "note": "Every issue since the first, March 2003. Issues were quarterly to 2009, eight in 2010 and monthly from 2011. Each issue up to December 2010 is spread over three months and those bars are faded, so heights are comparable across the change in cadence; without that the early bars would look three times the size of the modern ones. On this basis exactly two months have cleared ¥1trn, August and September 2026, against a plan of ¥5.9trn of retail sales for the whole of FY2026."
+    },
+    {
+      "n": 8,
+      "kind": "line",
+      "title": "Retail JGBs pay 2.2%, 5-year time deposits 1.2%",
+      "ylabel": "% a year",
+      "source": "Source: Bank of Japan; Ministry of Finance; JMA.",
+      "csv": "data/chart-8-retail-jgb-vs-deposit-rates.csv",
+      "x": "month",
+      "decimals": 2,
+      "yrange": [-0.25, 2.45],
+      "series": [
+        { "col": "boj_reserve_rate_pct", "label": "BoJ rate on current-account balances", "color": "#378ADD", "width": 3 },
+        { "col": "retail_jgb_5y_pct", "label": "Retail JGB 5-year coupon", "color": "#D85A30" },
+        { "col": "time_deposit_5y_pct", "label": "5-year time deposits", "color": "#EF9F27" }
+      ],
+      "note": "The blue line is what the Bank of Japan pays banks on their current-account balances above required reserves; it begins in March 2024 because the tiered structure before then had no single rate, and it is read at each month-end, so each step slopes across the month it took effect rather than turning a square corner. The time-deposit line is the Bank's average contracted rate on new deposits of all sizes, in the 5-to-6-year maturity range, which is what banks actually pay rather than a posted headline rate."
+    },
+    {
+      "n": 9,
+      "kind": "signed_bar_line",
+      "title": "Time deposits are growing for the first time since 2011",
+      "ylabel": "Change on a year earlier",
+      "source": "Source: Bank of Japan, time deposits of individuals at domestic banks (excluding Japan Post Bank), month-end.",
+      "csv": "data/chart-9-time-deposits-yoy.csv",
+      "x": "month",
+      "decimals": 2,
+      "hoverformat": "%b %Y",
+      "bar_width_ms": 2235000000,
+      "yrange": [-9.0, 9.5],
+      "ytick": [-5, 0, 5],
+      "value": {
+        "col": "yoy_change_pct",
+        "pos_label": "Growing on a year earlier, %",
+        "neg_label": "Shrinking on a year earlier, %",
+        "pos_color": "#378ADD",
+        "neg_color": "#D85A30"
+      },
+      "note": "Balances are the time deposits of individuals at domestic banks' banking accounts, which excludes Japan Post Bank. Growth resumed in January 2025 and every month since has been positive; the last positive month before that run was July 2011. July 2026 is +4.16%."
+    },
+    {
+      "n": 10,
+      "kind": "line",
+      "title": "BoJ's grip sits in 1-10Y; super-long is private turf",
+      "ylabel": "% of the segment outstanding",
+      "source": "Source: BoJ, MoF, JMA JGB market-presence database. Share of each segment's outstanding, month-end holdings. Dotted: projection under the announced purchase schedule. The 1-5Y line merges the 1-3Y and 3-5Y segments at their stock values.",
+      "csv": "data/chart-10-boj-ownership-by-maturity.csv",
+      "x": "YM",
+      "decimals": 1,
+      "yrange": [0, 75],
+      "split_col": "phase",
+      "solid_value": "actual",
+      "split_label": "projection",
+      "series": [
+        { "col": "seg_1_5_pct", "label": "1–5Y", "color": "#EF9F27" },
+        { "col": "seg_5_10_pct", "label": "5–10Y", "color": "#378ADD" },
+        { "col": "seg_10_25_pct", "label": "10–25Y", "color": "#888780" },
+        { "col": "seg_25p_pct", "label": "25Y+", "color": "#D85A30" }
+      ],
+      "note": "History to August 2026, then a projection to December 2030 under the purchase schedule the Bank has announced. The 1–5Y line is the two shortest database segments combined at their stock values — BoJ holdings of both divided by the outstanding of both — and not the average of their two published percentages, which would ignore that the segments are of different sizes. At end-August 2026 the Bank held 58.3% of 1–5Y and 51.8% of 5–10Y against 13.7% of 25Y and over."
+    }
+  ]
+}
