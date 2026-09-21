@@ -142,8 +142,15 @@ annual points the household report's foreign-assets stack was visibly stepped
 against its own published image, while at 326 monthly points the same bars read as
 a solid fill. It is opt-in, so pages built before it existed rebuild byte-identical,
 and it refuses two cases rather than drawing them wrongly: a component that goes
-negative anywhere, and a `split_col`, whose history/estimate mark is per-point bar
-opacity that a filled area cannot carry.
+negative anywhere, and a `split_col` whose non-solid rows are not all at the end.
+
+A `split_col` **is** allowed with `area`: since the fills have no per-point opacity
+to fade, the estimated stretch is washed with a pale panel from the boundary to the
+right-hand edge instead, under the same boundary rule and `split_label`. The panel is
+drawn above the traces, because below them the opaque fills hide it. It carries no
+hatch: Plotly 3.0.1 ignores `fillpattern` on a shape — the key survives in
+`gd.layout.shapes` and nothing is added to `<defs>` — so a declared hatch would be a
+claim in the figure JSON that no pixel supports.
 
 `curve` spaces maturities evenly by default. On a true linear axis 2Y and 5Y sit
 inside the leftmost 7% of a 40-year span, which crushes the part of the curve the

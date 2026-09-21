@@ -10,7 +10,7 @@
   "tier": "free",
   "downloads": false,
   "standfirst": "Speculative FX trading was the key feature of Japanese retail investors. No more. Buy-and-hold method has become their mainstay. These are the eight time-series charts from the article, redrawn so you can hover to read any value and zoom into any period. The chart numbers are the article's own, so chart 4 here is chart 4 there.",
-  "_note": "Titles are the headline each chart script draws, copied verbatim; source notes and y-axis labels are its SOURCE / YLABEL constants. Several headlines are computed at render time and are recorded here at the values in the master CSVs on 2026-09-21. Data cut from the chart library's master CSVs by builder/cut_household_foreign_equity_csvs.py, per the exhibit ledger in the report record (30.Reports/2026-09/2026-09-15-household-foreign-equity-sub.md). The article has twelve exhibits; this page carries the eight that are time series (Takuji: 'just listing time series charts in this report as interactive charts'). Excluded: chart 3 (a four-country cross-section), chart 5 (a distribution across fee bands), chart 11 (a scale diagram of the NISA account), chart 12 (a schedule of statutory allowances) and the share variant of chart 2, which duplicates its level version. Chart 4's published PNG carries no y-axis label — its tick suffix does that work — so the '% a year' title here is the page's own and the only label not taken verbatim.",
+  "_note": "Titles are the headline each chart script draws, copied verbatim; source notes and y-axis labels are its SOURCE / YLABEL constants. Several headlines are computed at render time and are recorded here at the values in the master CSVs on 2026-09-21. Data cut from the chart library's master CSVs by builder/cut_household_foreign_equity_csvs.py, per the exhibit ledger in the report record (30.Reports/2026-09/2026-09-15-household-foreign-equity-sub.md). The article has twelve exhibits; this page carries the eight that are time series (Takuji: 'just listing time series charts in this report as interactive charts'). Excluded: chart 3 (a four-country cross-section), chart 5 (a distribution across fee bands), chart 11 (a scale diagram of the NISA account), chart 12 (a schedule of statutory allowances) and the share variant of chart 2, which duplicates its level version. Chart 4's published PNG carries no y-axis label — its tick suffix does that work — so the '% a year' title here is the page's own. TWO DEPARTURES from the verbatim rule, both Takuji's on 2026-09-21: that y-axis label, and chart 10's title, which he rewrote to 'MoF looking for new buyers as BoJ retreat from 1-10 year JGB sector'. The producing script still draws 'BoJ’s grip sits in 1-10Y; super-long is private turf', which is the headline on the image published in the article, so the page and the article differ on this one heading until the script is changed.",
   "_series_order": "No two series on this page share a history column, so the shared-history colour trap does not arise. On chart 8 the BoJ step is listed first and the two saver rates after it, matching the published chart's reading order from the rate banks receive down to the rates savers are offered.",
   "_x_axis": "Charts 1 and 2 stack bars on a CATEGORY axis, with every label in 'Mon YYYY' form and never a bare year. Their points are annual and their last point is a quarter later, so a true date axis would size every bar to that three- or six-month gap and draw the annual run as a comb. A numeric-looking category value is separately unsafe: Plotly coerces it to a number, which would put chart 2's estimate boundary at category slot 2024 on a 58-slot axis.",
   "charts": [
@@ -47,6 +47,7 @@
       "decimals": 0,
       "yrange": [0, 4000],
       "xtick_step": { "every": 10, "from": 1 },
+      "area": true,
       "split_col": "is_estimate",
       "solid_value": "False",
       "split_label": "JMA estimate",
@@ -57,7 +58,7 @@
         { "col": "insurance_pension_tn", "label": "Insurance & pensions", "color": "#A8CEEE" },
         { "col": "securities_other_tn", "label": "Securities & other", "color": "#888780" }
       ],
-      "note": "One source for both sides of the balance sheet, so real and financial assets share a denominator. Each year is taken from a single accounting basis (68SNA to 1979, 93SNA-2000 base 1980-93, 2008SNA-2020 base from 1994) and nothing is spliced across the two joins. The last two bars are lightened because they are JMA estimates, not published figures: the national accounts stop at end-2024, so land is carried forward on the official land-price survey, buildings on MLIT's detached-house index, and the financial parts on Flow of Funds ratios."
+      "note": "One source for both sides of the balance sheet, so real and financial assets share a denominator. Each year is taken from a single accounting basis (68SNA to 1979, 93SNA-2000 base 1980-93, 2008SNA-2020 base from 1994) and nothing is spliced across the two joins. The paler stretch on the right is the part that is not published data: the national accounts stop at end-2024, so end-2025 and end-June 2026 are JMA estimates, with land carried forward on the official land-price survey, buildings on MLIT's detached-house index, and the financial parts on Flow of Funds ratios."
     },
     {
       "n": 4,
@@ -164,7 +165,7 @@
     {
       "n": 10,
       "kind": "line",
-      "title": "BoJ's grip sits in 1-10Y; super-long is private turf",
+      "title": "MoF looking for new buyers as BoJ retreat from 1-10 year JGB sector",
       "ylabel": "% of the segment outstanding",
       "source": "Source: BoJ, MoF, JMA JGB market-presence database. Share of each segment's outstanding, month-end holdings. Dotted: projection under the announced purchase schedule. The 1-5Y line merges the 1-3Y and 3-5Y segments at their stock values.",
       "csv": "data/chart-10-boj-ownership-by-maturity.csv",

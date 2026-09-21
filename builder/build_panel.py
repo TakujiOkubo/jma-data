@@ -947,6 +947,35 @@ def fig_signed_bar_line(spec: dict, rows: list[dict], T: dict) -> dict:
     return dict(data=traces, layout=layout)
 
 
+def estimate_panel(xs: list[str], boundary: int, T: dict) -> dict:
+    """A pale panel over the stretch a filled stack has not observed.
+
+    Bars mark an estimate by fading each bar; a filled area has no per-point
+    opacity, so the whole stretch is washed instead. Drawn ABOVE the traces —
+    below them the opaque fills hide it completely — in the page's own canvas
+    colour at just over half opacity, which lightens the bands underneath
+    exactly the way the faded bars do, so the two kinds say the same thing the
+    same way.
+
+    **No hatch.** A diagonal ``fillpattern`` was the first attempt and Plotly
+    3.0.1 silently ignores ``fillpattern`` on a shape: the key survives in
+    ``gd.layout.shapes`` and no pattern is ever added to ``<defs>``, so the
+    figure JSON claimed a hatch that nothing drew. Checked in the rendered DOM,
+    not assumed from the version number. Do not add it back without checking
+    the same way, and do not describe this panel as hatched.
+
+    It starts at the boundary rather than at the first estimated point: the
+    stretch between the last observation and the first estimate is itself drawn
+    by interpolating into an estimate, and washing from the boundary says so.
+    """
+    return dict(
+        type="rect", xref="x", x0=xs[boundary], x1=xs[-1],
+        yref="paper", y0=0, y1=1, layer="above",
+        fillcolor="rgba(233,231,224,0.55)",
+        line=dict(width=0),
+    )
+
+
 def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     """Stacked decomposition: the components filled from the zero line, the
     total drawn over them as a line.
@@ -985,12 +1014,23 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
         is_solid, boundary = None, None
 
     area = spec.get("area", False)
-    if area and split_col:
-        raise SystemExit(
-            'panel.json: "area" cannot be combined with "split_col". The '
-            "history/estimate mark on a stacked decomposition is per-point bar "
-            "opacity, and a filled area has no per-point opacity to set — the "
-            "estimates would render as observations.")
+    # A filled stack has no per-point opacity, so an "area" chart with a
+    # split_col cannot fade its estimated points the way the bars do. It washes
+    # the estimated stretch with a pale panel instead (Takuji, 2026-09-21),
+    # drawn below with the boundary rule and its label.
+    #
+    # That device runs from the boundary to the right-hand edge, so it is only
+    # honest if every non-solid row sits after the boundary. Checked, not
+    # assumed: a split whose estimates are in the middle of the series would be
+    # panelled over the wrong stretch, and nothing downstream would notice.
+    if area and split_col and is_solid is not None and boundary is not None:
+        stray = [xs[i] for i, s in enumerate(is_solid) if not s and i < boundary]
+        if stray:
+            raise SystemExit(
+                f'panel.json: "area" with "split_col" marks the estimated rows '
+                f"with a panel from the boundary to the right-hand edge, but "
+                f"{len(stray)} row(s) before the boundary are not {solid_val!r} "
+                f"(first: {stray[0]!r}). That stretch would be drawn as observed.")
 
     traces = []
     for c in spec["components"]:
@@ -1032,6 +1072,8 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
         layout["shapes"] = [dict(type="line", xref="paper", x0=0, x1=1, yref="y",
                                  y0=0, y1=0, line=dict(color=T["INK"], width=1.1))]
         if boundary is not None and boundary + 1 < len(xs):
+            if area:
+                layout["shapes"].append(estimate_panel(xs, boundary, T))
             layout["shapes"].append(dict(
                 type="line", xref="x", x0=xs[boundary], x1=xs[boundary],
                 yref="paper", y0=0, y1=1,
@@ -1074,6 +1116,8 @@ def fig_decomp(spec: dict, rows: list[dict], T: dict) -> dict:
     layout["shapes"] = [dict(type="line", xref="paper", x0=0, x1=1, yref="y",
                              y0=0, y1=0, line=dict(color=T["INK"], width=1.1))]
     if boundary is not None and boundary + 1 < len(xs):
+        if area:
+            layout["shapes"].append(estimate_panel(xs, boundary, T))
         layout["shapes"].append(dict(
             type="line", xref="x", x0=xs[boundary], x1=xs[boundary],
             yref="paper", y0=0, y1=1,

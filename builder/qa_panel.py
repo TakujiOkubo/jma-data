@@ -2698,7 +2698,11 @@ HH_EXHIBITS = [
     (7, "Retail JGB sales have passed \u00a51tn a month"),
     (8, "Retail JGBs pay 2.2%, 5-year time deposits 1.2%"),
     (9, "Time deposits are growing for the first time since 2011"),
-    (10, "BoJ's grip sits in 1-10Y; super-long is private turf"),
+    # Takuji rewrote this one on 2026-09-21. The producing script still draws
+    # "BoJ's grip sits in 1-10Y; super-long is private turf", which is the
+    # headline on the image published in the article, so this is a deliberate
+    # departure from the verbatim rule and not drift.
+    (10, "MoF looking for new buyers as BoJ retreat from 1-10 year JGB sector"),
 ]
 
 # The four exhibits struck from the page, and what each would leave behind if a
@@ -2846,16 +2850,13 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
     print("\nG2/G4 — exhibit 2, all household assets, and its two JMA estimates")
     m2 = lib(r"household-assets\hh-total-asset-composition"
              r"\hh_total_asset_composition_data.csv")
-    b2 = bars("chart_2")
+    b2 = stacked("chart_2")
     xs2 = b2[0]["x"] if b2 else []
     gate(len(b2) == 5, "five stacked parts, as published", str(len(b2)))
-    # Chart 2 stays bars on purpose: its two JMA estimates are marked by
-    # per-point bar opacity, which a filled stack has no way to carry, and at
-    # 58 points the bars read as a solid block anyway. The builder refuses the
-    # combination, and this gate says why it is not an oversight.
-    gate(figs["chart_2"]["layout"].get("barmode") == "relative",
-         "and drawn as bars, which is what carries the estimate mark below",
-         str(figs["chart_2"]["layout"].get("barmode")))
+    gate(all(t.get("stackgroup") == "one" and t["type"] == "scatter" for t in b2)
+         and "barmode" not in figs["chart_2"]["layout"],
+         "and drawn as ONE FILLED STACK, as chart 1 is (Takuji, 2026-09-21)",
+         str(sorted({t["type"] for t in b2})))
     gate(len(xs2) == len(m2) == 58, "fifty-eight points, 1969 to end-June 2026",
          f"{len(xs2)}/{len(m2)}")
     land = next(t for t in b2 if t["name"] == "Land")
@@ -2877,11 +2878,25 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
     est_rows = [r for r in m2 if r["is_estimate"] == "True"]
     gate(len(est_rows) == 2, "the master flags exactly two estimate rows",
          str(len(est_rows)))
-    for t in b2:
-        op = t["marker"]["opacity"]
-        faded = [xs2[i] for i, o in enumerate(op) if o < 1.0]
-        gate(faded == ["Dec 2025", "Jun 2026"],
-             f'{t["name"]}: only the two JMA estimates are lightened', str(faded))
+    # REPLACEMENT, not a deletion. Until 2026-09-21 this chart was bars and the
+    # two estimates were marked by per-point bar opacity, gated band by band. It
+    # is now a filled stack, which has no per-point opacity, and the mark is a
+    # pale panel washed over the estimated stretch. The assertion moves with the
+    # device; it is not dropped.
+    rects = [s for s in figs["chart_2"]["layout"].get("shapes", [])
+             if s.get("type") == "rect"]
+    gate(len(rects) == 1, "one estimate panel", str(len(rects)))
+    if rects:
+        r = rects[0]
+        gate(r["x0"] == "Dec 2024" and r["x1"] == "Jun 2026",
+             "it spans the last published year to the end, so both JMA estimates "
+             "sit under it and no observation does", f'{r["x0"]}..{r["x1"]}')
+        gate(r.get("layer") == "above",
+             "and is drawn above the fills, which is the only way it is visible "
+             "over an opaque stack", str(r.get("layer")))
+        gate("fillpattern" not in r,
+             "and claims no hatch: Plotly 3.0.1 ignores fillpattern on a shape, "
+             "so a declared hatch would be drawn by nothing")
     shapes2 = figs["chart_2"]["layout"]["shapes"]
     boundary = [s for s in shapes2 if s.get("line", {}).get("dash") == "dot"]
     gate(len(boundary) == 1 and boundary[0]["x0"] == "Dec 2024",
