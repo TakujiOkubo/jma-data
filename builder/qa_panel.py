@@ -695,47 +695,50 @@ SCENARIO = {
                  "2029-07": dict(Y10=327.2, Y20=378.1, Y30=387.8, Y40=397.8)},
     ),
 
-    # ---- LIVE paid pages, AUGUST-2026 vintage ----------------------------
-    # Origin 2026-08, horizon 2029-08. Takuji promoted the former Alternative
-    # path to Main and moved the Alternative to the 2.00% case on 2026-09-04,
-    # so a spec recognised from the July taxonomy is now wrong in both slots.
+    # ---- LIVE paid pages, OCTOBER-2026 vintage ---------------------------
+    # Origin 2026-09, horizon 2029-09, runs v30_17-sep2026-* (JGB-Yield-Curve
+    # S82, 2026-10-02): same two scenarios as the September vintage, the
+    # September hike now in the actuals (base_rate: the first forecast month's
+    # rounding of the 1.227% call rate to 1.25% is not a hike), the market's
+    # December-hike pricing converging to the JMA path by end-November.
+    # (September vintage: v30-aug2026-*, origin 2026-08, S79/S34.)
     #
     # Restated independently of make_scenario_data.py, as the slim entries
-    # are. The independent source is the S79 session summary (vault,
-    # 20.Research/JGB market/JGB-Yield-Curve/sessions/, 2026-09-01), which
+    # are. The independent source is the S82 session summary (vault,
+    # 20.Research/JGB market/JGB-Yield-Curve/sessions/, 2026-10-02), which
     # tabulates the year-end curve from a different reading of the same runs.
     # It quotes per cent to two decimals, hence printed_tol: these figures are
     # whole basis points and testing them at 0.06bp would measure the
-    # rounding, not the number. Cells S79 does not state are left out rather
+    # rounding, not the number. Cells S82 does not state are left out rather
     # than back-filled from the run, which would make the gate circular.
     "jgb-yield-curve-main": dict(
         name="Main Forecast",
-        run="v30-aug2026-terminal175-main",
+        run="v30_17-sep2026-terminal175-main",
         sibling="jgb-yield-curve-alternative",
-        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
+        base_rate=1.25,
+        hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
         terminal=1.75,
-        horizon="2029-08",
+        horizon="2029-09",
         printed_tol=0.6,
-        printed={"2026-08": dict(Y10=296, Y20=391, Y30=446, Y40=442),
-                 "2026-12": dict(Y10=316),
-                 "2027-12": dict(Y10=352, Y20=399, Y30=420),
-                 "2028-12": dict(Y10=348, Y20=385, Y30=392, Y40=399)},
+        printed={"2026-09": dict(Y10=307, Y30=442, Y40=434),
+                 "2026-12": dict(Y10=306, Y20=398, Y30=445, Y40=438),
+                 "2027-12": dict(Y10=346, Y20=392, Y30=412, Y40=410),
+                 "2028-12": dict(Y10=344, Y20=377, Y30=383, Y40=385),
+                 "2029-09": dict(Y10=330, Y20=375, Y30=381, Y40=383)},
     ),
     "jgb-yield-curve-alternative": dict(
         name="Alternative Forecast: A 2 per cent terminal rate",
-        run="v30-aug2026-terminal200-risk",
+        run="v30_17-sep2026-terminal200-risk",
         sibling="jgb-yield-curve-main",
-        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-07", 1.75),
-               ("2027-12", 2.00)],
+        base_rate=1.25,
+        hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],
         terminal=2.00,
-        horizon="2029-08",
+        horizon="2029-09",
         printed_tol=0.6,
-        # The Aug-2026 row is the observed curve and is identical on both
+        # The Sep-2026 row is the observed curve and is identical on both
         # pages by construction, so it doubles as a history cross-check.
-        printed={"2026-08": dict(Y10=296, Y20=391, Y30=446, Y40=442),
-                 "2026-12": dict(Y10=325),
-                 "2027-12": dict(Y10=384, Y20=420, Y30=452),
-                 "2028-12": dict(Y10=380, Y20=411, Y30=435, Y40=443)},
+        printed={"2026-09": dict(Y10=307, Y30=442, Y40=434),
+                 "2029-09": dict(Y10=367, Y30=432, Y40=440)},
     ),
 }
 
@@ -811,7 +814,7 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
     xs = [x[:7] for x in pol["x"]]
     for ym, v in zip(xs, merged):
         if v is not None and prev is not None and abs(v - prev) > 1e-4 \
-                and v > 1.0 + 1e-6:
+                and v > spec.get("base_rate", 1.0) + 1e-6:
             steps.append((ym, round(v, 2)))
         if v is not None:
             prev = v
@@ -827,12 +830,32 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
              "05": "May", "06": "June", "07": "July", "08": "August",
              "09": "September", "10": "October", "11": "November",
              "12": "December"}
-    for ym, _ in spec["hikes"]:
-        want = f"{month[ym[5:7]]} {ym[:4]}"
-        gate(want in page,
-             f"assumptions text names the {want} increase")
-    gate(f"{spec['terminal']:.2f} per cent" in page,
-         f"assumptions text states the {spec['terminal']:.2f}% terminal rate")
+    # The tests read the Bank of Japan bullet itself. Since the October 2026
+    # vintage it is Takuji's own wording ("two more hikes in 2027, one in March
+    # and another in December to reach 1.75%"), which names the year once and
+    # the months after it, and writes the rate with a % sign.
+    boj = [i for i in manifest.get("assumptions", {}).get("items", [])
+           if i.get("head", "").startswith("Bank of Japan")]
+    if boj:
+        gate(len(boj) == 1, "exactly one Bank of Japan assumptions bullet")
+        btxt = boj[0]["text"]
+        gate(btxt in page or btxt.replace("'", "&#x27;") in page
+             or btxt.replace("%", "&#37;") in page,
+             "the Bank of Japan bullet reaches the delivered page")
+        for ym, _ in spec["hikes"]:
+            gate(month[ym[5:7]] in btxt and ym[:4] in btxt,
+                 f"the Bank of Japan bullet names the {month[ym[5:7]]} "
+                 f"{ym[:4]} increase (month and year)")
+        t = spec["terminal"]
+        gate(f"{t:.2f}%" in btxt or f"{t:.2f} per cent" in btxt,
+             f"the Bank of Japan bullet states the {t:.2f}% terminal rate")
+    else:
+        for ym, _ in spec["hikes"]:
+            want = f"{month[ym[5:7]]} {ym[:4]}"
+            gate(want in page,
+                 f"assumptions text names the {want} increase")
+        gate(f"{spec['terminal']:.2f} per cent" in page,
+             f"assumptions text states the {spec['terminal']:.2f}% terminal rate")
 
     # ---- the delivered numbers re-derive from the production run ----------
     print("\nAgainst the production run directory")
@@ -1187,6 +1210,25 @@ def qa_scenario_vintage(root, manifest, page, figs) -> None:
     gate(manifest["date"].startswith(f"Model vintage {v_name}"),
          "the dateline carries the same vintage as the stamp")
 
+    # The year-end curve chart's "actual" line is a manifest literal (ym and
+    # label), not read off the data, so it does not move with the origin by
+    # itself. It sat at July 2026 through the August AND September vintages —
+    # a two-month-old curve labelled as the current one — until the October
+    # 2026 render caught it (S82). Tie it to the data's own origin.
+    actual_lines = [ln for c in manifest.get("charts", [])
+                    for ln in c.get("lines", [])
+                    if "(actual)" in ln.get("label", "")]
+    gate(len(actual_lines) >= 1,
+         "the year-end curve chart carries an actual-curve line to check",
+         str(len(actual_lines)))
+    for ln in actual_lines:
+        gate(ln.get("ym") == origin,
+             "the curve chart's actual line plots the origin month the data has",
+             f'{ln.get("ym")} vs origin {origin}')
+        gate(ln["label"].startswith(o_name),
+             f"the curve chart's actual line is labelled {o_name}",
+             ln["label"])
+
     # Absence gates for the July vintage's own wording. Each names what
     # replaced it, so that when one of these strings becomes legitimate again
     # the next person rewrites the assertion rather than deleting it.
@@ -1199,6 +1241,17 @@ def qa_scenario_vintage(root, manifest, page, figs) -> None:
             "carries its own super-long and belly reversion targets",
         "Faster and Further": "the Alternative is now named for its terminal "
                               "rate, not its timing",
+        # Retired with the October 2026 vintage (origin September 2026).
+        "Model vintage September 2026": "superseded by the October 2026 stamp",
+        "origin August 2026": f"superseded by origin {o_name}",
+        "projected to August 2029": f"superseded by projected to {h_name}",
+        "September 2026 vintage": "chart source notes now name the October "
+                                  "2026 vintage",
+        "the 43 basis points": "the Alternative-over-Main 30Y gap is now 51bp",
+        "taking the policy rate from 1.00 per cent": "the September hike is "
+            "history; the bullet now starts from it (Takuji's wording)",
+        "This is an input, not a model output": "sentence cut by Takuji from "
+            "the Bank of Japan bullet, 2026-10-02 — a cut stays cut",
     }
     # Checked against the page AND the manifest: standfirst, date and the
     # landing blurb are copy a reader sees, but they render on the index rather
@@ -1268,9 +1321,9 @@ def qa_scenario_vintage(root, manifest, page, figs) -> None:
         # number: "9" alone appears hundreds of times in a page of yields, so a
         # loose substring test would pass on a bullet saying anything at all.
         for label, got, said, phrase in (
-                ("total", y30, 43, "the 43 basis points"),
-                ("term premium", tp30, 34, "34 are term premium"),
-                ("expectations", rn30, 9, "9 are interest-rate expectations")):
+                ("total", y30, 51, "the 51 basis points"),
+                ("term premium", tp30, 41, "41 are term premium"),
+                ("expectations", rn30, 10, "10 are interest-rate expectations")):
             gate(abs(round(got) - said) < 0.5,
                  f"the third bullet's {label} figure, {said}bp, is what the "
                  f"two delivered pages show", f"{got:.1f}bp")

@@ -48,10 +48,16 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 # 2026-08-03. hikes[] is the acceptance test, not documentation: the cut fails
 # if the run's Policy_Rate column disagrees.
 #
-# Vintage: AUGUST 2026 (origin 2026-08, forecast 2026-09 -> 2029-08), the runs
-# of session S79 (2026-09-01). Takuji promoted the former Alternative to Main
-# and moved the Alternative up to the 2.00% case on 2026-09-04. The retired
-# 1.50% run (fan-sigma-after-v307) is not published anywhere from that date.
+# Vintage: OCTOBER 2026 (origin 2026-09, forecast 2026-10 -> 2029-09), the
+# v30_17 runs of JGB-Yield-Curve session S82 (2026-10-02). Same two scenarios as
+# the September vintage (Main 1.75%, Alternative 2.00%), now with the September
+# 2026 hike in the actuals: the origin month's call rate is 1.227% and the
+# first forecast month rounds it to 1.25%, which is NOT a hike (base_rate below).
+# Both runs use market-convergence OIS files (*_mktconv2611.csv): the market's
+# December-hike pricing converges to the JMA path by end-November 2026
+# (Takuji, 2026-10-02), and model V30.17 measures long-end hikes from the
+# actual origin OIS. The superseded same-origin runs v30-sep2026-* must not be
+# published. (September vintage = runs v30-aug2026-*, S79/S34.)
 #
 # ONE ASSUMPTION DIFFERS BEYOND THE POLICY PATH, and the pages must say so.
 # The 2.00% run carries scenario-dependent reversion targets for the super-long
@@ -73,17 +79,18 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 SCENARIOS = {
     "main": dict(
         slugs=["jgb-yield-curve-main", "jgb-forecast-main"],
-        run="v30-aug2026-terminal175-main",
+        run="v30_17-sep2026-terminal175-main",
         branch="v30_16-changes",
-        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-12", 1.75)],
+        base_rate=1.25,
+        hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
         terminal=1.75,
     ),
     "alternative": dict(
         slugs=["jgb-yield-curve-alternative", "jgb-forecast-alternative"],
-        run="v30-aug2026-terminal200-risk",
+        run="v30_17-sep2026-terminal200-risk",
         branch="v30_16-changes",
-        hikes=[("2026-09", 1.25), ("2027-03", 1.50), ("2027-07", 1.75),
-               ("2027-12", 2.00)],
+        base_rate=1.25,
+        hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],
         terminal=2.00,
     ),
 }
@@ -111,12 +118,13 @@ PANEL_COLS = (
 )
 
 # The last row is the forecast horizon's own end month, which moves with the
-# origin: July 2029 for the July-2026 vintage, August 2029 for the August one.
+# origin: July 2029 for the July-2026 origin, August 2029 for August, September
+# 2029 for the September-2026 origin (the October vintage).
 # It is stated rather than derived because it is the row the page's prose and
 # its "projected to ..." line have to agree with, and a silent shift there is
 # the kind that reads as a typo months later.
 TABLE_ROWS = [("Dec 2026", "2026-12"), ("Dec 2027", "2027-12"),
-              ("Dec 2028", "2028-12"), ("Aug 2029", "2029-08")]
+              ("Dec 2028", "2028-12"), ("Sep 2029", "2029-09")]
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -156,9 +164,10 @@ def verify_hikes(rows: list[dict], spec: dict, key: str) -> None:
             steps.append((r["YM"].strip(), round(pr, 4)))
         prev = pr
 
-    # The origin month's step to 1.00% is the rounding of the 0.979% actual,
-    # not a hike; hikes are the 25bp steps above it.
-    hikes = [(ym, rate) for ym, rate in steps if rate > 1.0 + 1e-6]
+    # The first forecast month's step to base_rate is the rounding of the
+    # origin's actual call rate (0.979% -> 1.00% in August, 1.227% -> 1.25% in
+    # September), not a hike; hikes are the 25bp steps above it.
+    hikes = [(ym, rate) for ym, rate in steps if rate > spec["base_rate"] + 1e-6]
     want = [(ym, rate) for ym, rate in spec["hikes"]]
     got = [(ym, round(rate, 2)) for ym, rate in hikes]
     if got != want:
