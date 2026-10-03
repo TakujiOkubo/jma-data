@@ -56,11 +56,11 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 # Both runs use market-convergence OIS files (*_mktconv2611.csv): the market's
 # December-hike pricing converges to the JMA path by end-November 2026
 # (Takuji, 2026-10-02), and model V30.17 measures long-end hikes from the
-# actual origin OIS. From 2026-10-03 the runs are v30_18-*: the same, plus the
-# super-long glide slowed to a 3-month hold + 26-month glide (Takuji; V30.18,
-# --tp-glide-hold-months 3 --tp-glide-months 26), normal reached at month 29.
-# The superseded same-origin runs v30-sep2026-* and v30_17-* must not be
-# published. (September vintage = runs v30-aug2026-*, S79/S34.)
+# actual origin OIS. From 2026-10-03 the runs are v30_18b-*: the same, plus the
+# super-long glide slowed to a 3-month hold + 22-month glide (Takuji; V30.18,
+# --tp-glide-hold-months 3 --tp-glide-months 22), normal reached at month 25.
+# The superseded same-origin runs v30-sep2026-*, v30_17-* and v30_18-* (the
+# 26-month glide, never published) must not be published. (September vintage = runs v30-aug2026-*, S79/S34.)
 #
 # ONE ASSUMPTION DIFFERS BEYOND THE POLICY PATH, and the pages must say so.
 # The 2.00% run carries scenario-dependent reversion targets for the super-long
@@ -82,7 +82,7 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 SCENARIOS = {
     "main": dict(
         slugs=["jgb-yield-curve-main", "jgb-forecast-main"],
-        run="v30_18-sep2026-terminal175-main",
+        run="v30_18b-sep2026-terminal175-main",
         branch="v30_16-changes",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
@@ -90,7 +90,7 @@ SCENARIOS = {
     ),
     "alternative": dict(
         slugs=["jgb-yield-curve-alternative", "jgb-forecast-alternative"],
-        run="v30_18-sep2026-terminal200-risk",
+        run="v30_18b-sep2026-terminal200-risk",
         branch="v30_16-changes",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],
@@ -299,19 +299,24 @@ def cut(key: str) -> None:
     data_dir = data_dirs[0]
 
     # ---- forecast table (two decimals, the published precision) ----
+    # Rounded ONCE, from the run's unrounded values. Until 2026-10-03 this read
+    # out_rows, whose yields are already cut to 4 decimals, so a value such as
+    # 4.414960 became "4.4150" and then printed as 4.42 (S82: Alternative 40Y
+    # Dec-2028, live since 2026-10-02).
     by_ym = {r["YM"]: r for r in out_rows}
+    raw_ym = {r["YM"].strip(): r for r in curve}
     table = []
-    ar = by_ym[last_actual]
+    ar = raw_ym[last_actual]
     y, mo = last_actual.split("-")
     label = f"Current ({['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][int(mo)-1]} {y})"
     table.append(dict(label=label, ym=last_actual, kind="actual",
                       **{t: fmt(num(ar[f"Yield_{t}"]), 2)
                          for t in TENORS if t != "2Y"}))
     for lab, ym in TABLE_ROWS:
-        if ym not in by_ym:
+        if ym not in raw_ym:
             print(f"  ! forecast table row {ym} absent from the run - skipped")
             continue
-        rr = by_ym[ym]
+        rr = raw_ym[ym]
         table.append(dict(label=lab, ym=ym, kind="forecast",
                           **{t: fmt(num(rr[f"Yield_{t}"]), 2)
                              for t in TENORS if t != "2Y"}))
