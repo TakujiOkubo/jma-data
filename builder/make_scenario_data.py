@@ -56,7 +56,10 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 # Both runs use market-convergence OIS files (*_mktconv2611.csv): the market's
 # December-hike pricing converges to the JMA path by end-November 2026
 # (Takuji, 2026-10-02), and model V30.17 measures long-end hikes from the
-# actual origin OIS. The superseded same-origin runs v30-sep2026-* must not be
+# actual origin OIS. From 2026-10-03 the runs are v30_18-*: the same, plus the
+# super-long glide slowed to a 3-month hold + 26-month glide (Takuji; V30.18,
+# --tp-glide-hold-months 3 --tp-glide-months 26), normal reached at month 29.
+# The superseded same-origin runs v30-sep2026-* and v30_17-* must not be
 # published. (September vintage = runs v30-aug2026-*, S79/S34.)
 #
 # ONE ASSUMPTION DIFFERS BEYOND THE POLICY PATH, and the pages must say so.
@@ -79,7 +82,7 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 SCENARIOS = {
     "main": dict(
         slugs=["jgb-yield-curve-main", "jgb-forecast-main"],
-        run="v30_17-sep2026-terminal175-main",
+        run="v30_18-sep2026-terminal175-main",
         branch="v30_16-changes",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
@@ -87,7 +90,7 @@ SCENARIOS = {
     ),
     "alternative": dict(
         slugs=["jgb-yield-curve-alternative", "jgb-forecast-alternative"],
-        run="v30_17-sep2026-terminal200-risk",
+        run="v30_18-sep2026-terminal200-risk",
         branch="v30_16-changes",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],

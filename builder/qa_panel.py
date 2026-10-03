@@ -696,8 +696,8 @@ SCENARIO = {
     ),
 
     # ---- LIVE paid pages, OCTOBER-2026 vintage ---------------------------
-    # Origin 2026-09, horizon 2029-09, runs v30_17-sep2026-* (JGB-Yield-Curve
-    # S82, 2026-10-02): same two scenarios as the September vintage, the
+    # Origin 2026-09, horizon 2029-09, runs v30_18-sep2026-* (JGB-Yield-Curve
+    # S82, 2026-10-03; v30_17 plus the 3+26-month super-long glide): same two scenarios as the September vintage, the
     # September hike now in the actuals (base_rate: the first forecast month's
     # rounding of the 1.227% call rate to 1.25% is not a hike), the market's
     # December-hike pricing converging to the JMA path by end-November.
@@ -713,7 +713,7 @@ SCENARIO = {
     # than back-filled from the run, which would make the gate circular.
     "jgb-yield-curve-main": dict(
         name="Main Forecast",
-        run="v30_17-sep2026-terminal175-main",
+        run="v30_18-sep2026-terminal175-main",
         sibling="jgb-yield-curve-alternative",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
@@ -722,13 +722,13 @@ SCENARIO = {
         printed_tol=0.6,
         printed={"2026-09": dict(Y10=307, Y30=442, Y40=434),
                  "2026-12": dict(Y10=306, Y20=398, Y30=445, Y40=438),
-                 "2027-12": dict(Y10=346, Y20=392, Y30=412, Y40=410),
-                 "2028-12": dict(Y10=344, Y20=377, Y30=383, Y40=385),
+                 "2027-12": dict(Y10=346, Y20=398, Y30=426, Y40=421),
+                 "2028-12": dict(Y10=344, Y20=381, Y30=391, Y40=391),
                  "2029-09": dict(Y10=330, Y20=375, Y30=381, Y40=383)},
     ),
     "jgb-yield-curve-alternative": dict(
         name="Alternative Forecast: A 2 per cent terminal rate",
-        run="v30_17-sep2026-terminal200-risk",
+        run="v30_18-sep2026-terminal200-risk",
         sibling="jgb-yield-curve-main",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],
@@ -738,6 +738,8 @@ SCENARIO = {
         # The Sep-2026 row is the observed curve and is identical on both
         # pages by construction, so it doubles as a history cross-check.
         printed={"2026-09": dict(Y10=307, Y30=442, Y40=434),
+                 "2027-12": dict(Y30=453, Y40=450),
+                 "2028-12": dict(Y30=437, Y40=443),
                  "2029-09": dict(Y10=367, Y30=432, Y40=440)},
     ),
 }
