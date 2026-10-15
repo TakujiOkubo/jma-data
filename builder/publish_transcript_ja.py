@@ -2,11 +2,13 @@
 (markdown) as a free page on the public site. Path C: the text is Takuji's reviewed
 draft, carried over unchanged; this script only re-skins it.
 
-    python builder/publish_transcript_ja.py --check   # gates only, writes nothing
-    python builder/publish_transcript_ja.py           # gates, then writes the page
+    python builder/publish_transcript_ja.py --page ueda-2026-09-18 --check   # gates only, writes nothing
+    python builder/publish_transcript_ja.py --page ueda-2026-09-18           # gates, then writes the page
 
-First use: Governor Ueda's press conference of 18 September 2026 (the draft in the
-report's drafts folder on the JMA drive, reviewed by Takuji on 2026-09-19).
+One entry per page in PAGES. First use: Governor Ueda's press conference of
+18 September 2026 (the draft in the report's drafts folder on the JMA drive, reviewed
+by Takuji on 2026-09-19). Second: Board member Koeda's Kumamoto press conference of
+15 October 2026 (added 2026-10-15; no opening statement, so two sections, not three).
 
 Every structural rule asserts its own match count, so a transcript in a different
 shape stops the publish instead of shipping a page this script no longer understands.
@@ -22,18 +24,49 @@ sys.stdout.reconfigure(encoding='utf-8')
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ---------------------------------------------------------------- page settings
-SRC = (r'G:\My Drive\JMA drive\Research2026\reports\2026-09\2026-09-19-ueda-presser-transcript'
-       r'\drafts\2026-09-19-ueda-presser-transcript-ja-v03-takuji.md')
-SLUG = '2026-09-18-boj-ueda-presser-transcript'
-VIDEO_ID = 'DpxsNUutPi4'
-POST_URL = 'https://takujiokubo.substack.com/p/boj-ueda-virtually-no-chance-of-an'
-DATE_EN = '18 September 2026'
-TITLE_JA = '植田総裁 記者会見（2026年9月18日）'   # "文字起こし" dropped at Takuji's request, 2026-09-19
-TITLE_EN = "Governor Ueda's press conference, 18 September 2026: Japanese transcript"
-NOTICE_EN = ("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
-             "publishes its official transcript, expected on 24 September, please refer to that instead.")
-NOTICE_JA = ("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
-             "公表した後（9月24日の予定）は、そちらをご参照ください。")
+# Outlets that must never appear on a page (reporters and media are not named).
+MEDIA = ('毎日新聞', '朝日新聞', '日経', '日本経済新聞', 'ロイター', 'ブルームバーグ', '時事通信', '共同通信',
+         '読売', 'NHK', '熊本日日', 'テレビ東京', 'TBS', '東京新聞', '東洋経済')
+PAGES = {
+    'ueda-2026-09-18': dict(
+        SRC=(r'G:\My Drive\JMA drive\Research2026\reports\2026-09\2026-09-19-ueda-presser-transcript'
+             r'\drafts\2026-09-19-ueda-presser-transcript-ja-v03-takuji.md'),
+        SLUG='2026-09-18-boj-ueda-presser-transcript',
+        VIDEO_ID='DpxsNUutPi4',
+        VIDEO_OWNER='Bank of Japan',
+        POST_URL='https://takujiokubo.substack.com/p/boj-ueda-virtually-no-chance-of-an',
+        DATE_EN='18 September 2026',
+        TITLE_JA='植田総裁 記者会見（2026年9月18日）',   # "文字起こし" dropped at Takuji's request, 2026-09-19
+        TITLE_EN="Governor Ueda's press conference, 18 September 2026: Japanese transcript",
+        NOTICE_EN=("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
+                   "publishes its official transcript, expected on 24 September, please refer to that instead."),
+        NOTICE_JA=("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+                   "公表した後（9月24日の予定）は、そちらをご参照ください。"),
+        SPEAKER='植田総裁', N_QUESTIONS=25, N_SECTIONS=3, MIN_PARAS=70, MIN_TS=25,
+        NAMES=()),
+    'koeda-2026-10-15': dict(
+        SRC=(r'G:\My Drive\JMA drive\Research2026\reports\2026-10\2026-10-15-koeda-presser-transcript'
+             r'\drafts\2026-10-15-koeda-presser-transcript-ja-v02-claude.md'),
+        SLUG='2026-10-15-boj-koeda-presser-transcript',
+        VIDEO_ID='wq4CnCmcKkc',
+        VIDEO_OWNER='日テレNEWS',
+        POST_URL=None,   # no article yet
+        DATE_EN='15 October 2026',
+        TITLE_JA='小枝審議委員 記者会見（2026年10月15日）',
+        TITLE_EN="Board member Koeda's press conference in Kumamoto, 15 October 2026: Japanese transcript",
+        NOTICE_EN=("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
+                   "publishes its official transcript, please refer to that instead."),
+        NOTICE_JA=("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+                   "公表した後は、そちらをご参照ください。"),
+        SPEAKER='小枝委員', N_QUESTIONS=10, N_SECTIONS=2, MIN_PARAS=40, MIN_TS=15,
+        # reporters named in the annotated source; none may reach the page
+        NAMES=('樋口', '和田', '岡田', '竹部', '高橋', '長野', '早川', '藤岡', '吉田')),
+}
+_args = sys.argv[1:]
+assert '--page' in _args and _args.index('--page') + 1 < len(_args), f'--page one of {sorted(PAGES)}'
+PAGE = _args[_args.index('--page') + 1]
+assert PAGE in PAGES, f'--page one of {sorted(PAGES)}'
+globals().update(PAGES[PAGE])
 PERK_FROM = os.path.join(REPO, '2026-08-21-canada-gross-net', 'index.html')   # disclaimer source
 # Page-specific subscription card (Takuji, 2026-09-19): BoJ-PSI as the main attraction,
 # the JGB yield-curve model second, in the JMA Database page's own descriptions. Keeps the
@@ -51,8 +84,8 @@ PERK = (
     '  <p class="perk">Plus the BoJ-QT progress monitor and global FX reserves back to 1980.</p>\n'
     f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>\n'
     '  </div>')
-N_QUESTIONS = 25
-SPEAKERS = {'植田総裁', '質問', '司会', '幹事社'}
+SPEAKERS = {SPEAKER, '質問', '司会', '幹事社'}
+CLS = {SPEAKER: 'a', '質問': 'q', '司会': 'mod', '幹事社': 'mod'}
 
 
 def ts_link(m):
@@ -95,7 +128,7 @@ def render(md):
             assert m and m.group(1) in SPEAKERS, l
             speaker = m.group(1)
             t = (' ' + TS.sub(ts_link, f'［{m.group(2)}:{m.group(3)}:{m.group(4)}］')) if m.group(2) else ''
-            cls = {'植田総裁': 'a', '質問': 'q', '司会': 'mod', '幹事社': 'mod'}[speaker]
+            cls = CLS[speaker]
             out.append(f'<p class="{cls}"><strong>{html.escape(speaker)}</strong>{t}'
                        f'：{html.escape(m.group(5))}</p>')
             paras.append(m.group(5))
@@ -103,7 +136,7 @@ def render(md):
         else:
             assert speaker, ('continuation paragraph with no speaker', l)
             assert not l.startswith(('#', '>', '*')), l
-            cls = {'植田総裁': 'a', '質問': 'q', '司会': 'mod', '幹事社': 'mod'}[speaker]
+            cls = CLS[speaker]
             out.append(f'<p class="{cls} cont">{html.escape(l)}</p>')
             paras.append(l)
             counts['cont'] += 1
@@ -214,7 +247,7 @@ def main():
 <header class="text">
   <h1>{html.escape(TITLE_JA)}</h1>
   <p class="en" lang="en">{html.escape(TITLE_EN)}</p>
-  <div class="meta" lang="en"><a href="{POST_URL}">Read the article</a> · <a href="https://www.youtube.com/watch?v={VIDEO_ID}">Watch the press conference</a> (Bank of Japan, YouTube). Each time stamp links to that point in the video.</div>
+  <div class="meta" lang="en">{f'<a href="{POST_URL}">Read the article</a> · ' if POST_URL else ''}<a href="https://www.youtube.com/watch?v={VIDEO_ID}">Watch the press conference</a> ({VIDEO_OWNER}, YouTube). Each time stamp links to that point in the video.</div>
   <div lang="en">
   {perk}
   </div>
@@ -241,10 +274,10 @@ def main():
         G.append((name, bool(ok), detail))
 
     q_heads = re.findall(r'^### 質問\d+', md, re.M)
-    gate('source has 25 question headings', len(q_heads) == N_QUESTIONS, len(q_heads))
-    gate('page has 25 question headings', page.count('<span class="qn">') == N_QUESTIONS, page.count('<span class="qn">'))
-    gate('page has 3 section headings', counts['h2'] == 3 and page.count('<h2>') == 3,
-         f"{counts['h2']} rendered (冒頭, 総裁冒頭説明, 質疑応答; the draft's date line is header)")
+    gate(f'source has {N_QUESTIONS} question headings', len(q_heads) == N_QUESTIONS, len(q_heads))
+    gate(f'page has {N_QUESTIONS} question headings', page.count('<span class="qn">') == N_QUESTIONS, page.count('<span class="qn">'))
+    gate(f'page has {N_SECTIONS} section headings', counts['h2'] == N_SECTIONS and page.count('<h2>') == N_SECTIONS,
+         f"{counts['h2']} rendered (冒頭, [総裁冒頭説明,] 質疑応答; the draft's date line is header)")
     # every paragraph of the reviewed text appears on the page, in order, unchanged
     text = html.unescape(re.sub(r'<[^>]+>', '', body_html))
     pos, missing = 0, []
@@ -254,27 +287,28 @@ def main():
             missing.append(p[:30])
         else:
             pos = i + len(p)
-    gate('every reviewed paragraph present, in order, verbatim', not missing and len(paras) > 70,
+    gate('every reviewed paragraph present, in order, verbatim', not missing and len(paras) > MIN_PARAS,
          f'{len(paras)} paragraphs, {len(missing)} missing')
     src_chars = sum(len(p) for p in paras)
     gate('no text added inside the transcript', len(re.sub(r'\s', '', text)) - src_chars < 3000,
          f'body text {len(text)} chars vs {src_chars} paragraph chars (difference = speaker labels, headings, timestamps)')
     n_ts_src = len(TS.findall(md))
     n_links = page.count('class="ts"')
-    gate('every timestamp became a video link', n_links == n_ts_src and n_ts_src > 25,
+    gate('every timestamp became a video link', n_links == n_ts_src and n_ts_src > MIN_TS,
          f'{n_links} links / {n_ts_src} timestamps')
     gate('subscription card present twice (top and end)',
          page.count('Paid subscribers get the JMA Database') == 2 and page.count('class="perkbox') == 2, '')
     li = re.findall(r'<li><strong>([^<]+)</strong>', page)
     gate('card leads with BoJ-PSI, then the yield-curve model (both cards)',
          li == ['BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)
-    gate('headline without 文字起こし', '<h1>植田総裁 記者会見（2026年9月18日）</h1>' in page
+    gate('headline without 文字起こし', f'<h1>{TITLE_JA}</h1>' in page
          and '文字起こし（2026' not in page, '')
     gate('notice present (EN and JA)', NOTICE_EN.split('.')[0] in page and '非公式の文字起こし' in page, '')
-    gate('article link present', page.count(POST_URL) == 1, '')
+    gate('article link present' if POST_URL else 'no article link (none yet)',
+         page.count(POST_URL) == 1 if POST_URL else 'Read the article' not in page, '')
     # absence gates
     for bad in ('〔', '字幕', 'free to use and reproduce', 'Download', '.csv', 'Whisper', '機械',
-                '毎日新聞', '朝日新聞', '日経', 'ロイター', 'ブルームバーグ', '時事通信', '共同通信', '読売'):
+                *MEDIA, *NAMES):
         gate(f'absent: {bad}', bad not in page, page.count(bad))
 
     w = max(len(n) for n, _, _ in G)

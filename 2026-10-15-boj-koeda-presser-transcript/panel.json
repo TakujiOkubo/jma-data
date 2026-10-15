@@ -1,0 +1,11 @@
+{
+  "slug": "2026-10-15-boj-koeda-presser-transcript",
+  "audience": "free",
+  "unlisted": true,
+  "tier": "free",
+  "downloads": false,
+  "title": "小枝審議委員 記者会見（2026年10月15日）",
+  "date": "15 October 2026",
+  "post_url": null,
+  "_note": "Text page, Path C: index.html is rendered by builder/publish_transcript_ja.py --page koeda-2026-10-15 from the reader-facing Japanese transcript (JMA drive, reports/2026-10/2026-10-15-koeda-presser-transcript/drafts). It is NOT built by builder/build_panel.py, and this manifest deliberately has no charts key so that build_panel.py fails on it rather than overwriting the page. Unofficial; to be superseded by the BoJ's official 会見要旨."
+}
