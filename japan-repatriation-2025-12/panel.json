@@ -5,47 +5,59 @@
   "title": "Yen repatriation monitor (Free edition)",
   "date": "Frozen at December 2025",
   "sort": "2025-12",
-  "standfirst": "What Japan's investors bought and sold abroad, month by month, up to December 2025. This is the free edition, frozen at that date; the paid edition carries the 2026 turn and is refreshed as the data arrive.",
+  "standfirst": "What Japan's investors bought and sold abroad, week by week and month by month, up to December 2025. This is the free edition, frozen at that date; the paid edition carries the 2026 turn and is refreshed as the data arrive.",
   "index_desc": "Japan's portfolio flows abroad to December 2025. Free edition of JMA's yen repatriation monitor.",
   "tier": "free",
   "downloads": false,
   "charts": [
     {
       "n": 1,
-      "title": "Japan bought ¥15.3tn of foreign securities in 2025"
+      "title": "Foreign bond buying has turned into net selling"
     },
     {
       "n": 2,
-      "title": "Foreign equity and foreign bonds have different owners"
+      "title": "Japan has sold ¥5.0tn of foreign bonds this year"
     },
     {
       "n": 3,
-      "title": "Pensions buy foreign bonds every year; banks swing"
+      "title": "Equity flows show no sustained direction"
     },
     {
       "n": 4,
-      "title": "Banks bought ¥5.6tn of foreign bonds in 2025"
+      "title": "The outward flow has turned into a net sale"
     },
     {
       "n": 5,
-      "title": "Regional banks buy medium-term JGBs; city banks barely do"
+      "title": "Bond selling in February and March drove the 2026 turn"
     },
     {
       "n": 6,
-      "title": "Pension sales offset fund managers&#x27; equity buying"
+      "title": "Banks swing to selling; investment trusts keep buying"
     },
     {
       "n": 7,
-      "title": "GPIF&#x27;s foreign weights have converged near 25%"
+      "title": "Banks sell bonds while pensions keep buying"
     },
     {
       "n": 8,
-      "title": "Weekly foreign-bond buying faded in late 2025"
+      "title": "City banks are cutting foreign securities in 2026"
     },
     {
       "n": 9,
-      "title": "Japan kept buying US Treasuries in 2025"
+      "title": "Regional banks buy medium-term JGBs"
+    },
+    {
+      "n": 10,
+      "title": "City banks buy 10-year JGBs, not the belly"
+    },
+    {
+      "n": 11,
+      "title": "Appetite for foreign equity remains unsaturated"
+    },
+    {
+      "n": 12,
+      "title": "Pension sales offset households’ foreign equity buying"
     }
   ],
-  "_note": "FREE edition. Derived by derive_free_repat_monitor.py in jma-data-paid from the delivered paid page japan-repatriation-full: every series cut at 2025-12-31, charts 9, 11 and 12 and the closing block dropped, five titles and every dated note rewritten from the cut figures, downloads off. Not built by builder/build_panel.py. Frozen -- do not refresh (Takuji, 2026-10-20)."
+  "_note": "FREE edition. Derived by derive_free_repat_monitor.py in jma-data-paid from the delivered paid page japan-repatriation-full (14-exhibit line-up of 2026-10-21): every series cut at 2025-12-31, the latest-readings table, the release calendar and the closing block dropped, the paid page's titles and notes kept under a one-line sample notice (Takuji, 2026-10-21), key values recomputed at the cut, downloads off. Not built by builder/build_panel.py. Frozen -- do not refresh (Takuji, 2026-10-20)."
 }
