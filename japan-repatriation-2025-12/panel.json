@@ -12,27 +12,27 @@
   "charts": [
     {
       "n": 1,
-      "title": "Foreign bond buying has turned into net selling"
-    },
-    {
-      "n": 2,
-      "title": "Japan has sold ¥5.0tn of foreign bonds this year"
-    },
-    {
-      "n": 3,
-      "title": "Equity flows show no sustained direction"
-    },
-    {
-      "n": 4,
       "title": "The outward flow has turned into a net sale"
     },
     {
-      "n": 5,
+      "n": 2,
       "title": "Bond selling in February and March drove the 2026 turn"
     },
     {
-      "n": 6,
+      "n": 3,
       "title": "Banks swing to selling; investment trusts keep buying"
+    },
+    {
+      "n": 4,
+      "title": "Banks and FX reserves hold most of Japan's foreign bonds"
+    },
+    {
+      "n": 5,
+      "title": "Foreign bond buying has turned into net selling"
+    },
+    {
+      "n": 6,
+      "title": "Japan has sold ¥5.0tn of foreign bonds this year"
     },
     {
       "n": 7,
@@ -52,11 +52,23 @@
     },
     {
       "n": 11,
-      "title": "Appetite for foreign equity remains unsaturated"
+      "title": "Households and pensions own most foreign equity"
     },
     {
       "n": 12,
+      "title": "Equity flows show no sustained direction"
+    },
+    {
+      "n": 13,
+      "title": "Appetite for foreign equity remains unsaturated"
+    },
+    {
+      "n": 14,
       "title": "Pension sales offset households’ foreign equity buying"
+    },
+    {
+      "n": 15,
+      "title": "GPIF's four asset classes sit near their 25% targets"
     }
   ],
   "_note": "FREE edition. Derived by derive_free_repat_monitor.py in jma-data-paid from the delivered paid page japan-repatriation-full (14-exhibit line-up of 2026-10-21): every series cut at 2025-12-31, the latest-readings table, the release calendar and the closing block dropped, the paid page's titles and notes kept under a one-line sample notice (Takuji, 2026-10-21), key values recomputed at the cut, downloads off. Not built by builder/build_panel.py. Frozen -- do not refresh (Takuji, 2026-10-20)."
