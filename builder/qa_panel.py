@@ -521,8 +521,12 @@ FX_SOURCES = {
         "global-reserves/top-holders/world_fx_reserves_top_holders_data.csv",
     "data/chart-2-usd-reserve-share-alloc.csv":
         "global-reserves/usd-reserve-share-alloc/usd_reserve_share_alloc_data.csv",
+    # Frozen 2026-10-22 (Takuji): the library master moved on -- 2026 Q2 from MOF's daily record, Q3 MOF's
+    # announced total at the full quarter's rate (japan-foreign-holdings review item R8). This page stays as
+    # published on 31 July, so its CSV is checked against that vintage, kept beside the page ("page:" = a path
+    # relative to the page folder, not the library).
     "data/chart-3-jpn-fx-intervention-history.csv":
-        "global-reserves/jpn-fx-intervention-history/jpn_fx_intervention_history_data.csv",
+        "page:data/frozen/jpn_fx_intervention_history_data_vintage-2026-07-31.csv",
 }
 
 
@@ -537,12 +541,16 @@ def qa_fx_carry_unwind(root, manifest, page, figs) -> None:
     """
     print("\nSource CSVs")
     for local, lib in FX_SOURCES.items():
-        src = LIBRARY / lib
-        if not src.exists():
+        frozen = lib.startswith("page:")
+        src = root / lib[len("page:"):] if frozen else LIBRARY / lib
+        if frozen:
+            gate(src.exists(), f"{local.split('/')[-1]}: its frozen library vintage is beside the page")
+        elif not src.exists():
             print(f"  SKIP  library not mounted — cannot check {local}")
             continue
-        gate((root / local).read_bytes() == src.read_bytes(),
-             f"{local.split('/')[-1]} is the chart library's file, unmodified")
+        gate(src.exists() and (root / local).read_bytes() == src.read_bytes(),
+             f"{local.split('/')[-1]} is the chart library's file, unmodified"
+             + (" (its 31 July 2026 vintage, frozen beside the page)" if frozen else ""))
 
     # ---- chart 1: the reserve league table, two panels ---------------------
     print("\nChart 1 — top FX reserve holders, level and % of GDP")
