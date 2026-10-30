@@ -180,12 +180,30 @@ SUBSCRIBE_URL = "https://takujiokubo.substack.com/subscribe"
 # break; no word changed), body sentence below, larger button. qa_panel gates on
 # class="perk" and on the sentence opening as plain text, so the body paragraph
 # keeps its class and the headline carries the whole marker substring unsplit.
+#
+# Rewritten 2026-10-30 (Takuji): the card now lists the Database in the transcript
+# pages' form, one wording for both cards, and leads with the yen repatriation
+# monitor ("There is a strong interest in yen repatriation and we should highlight
+# it"; "Lead with repatriation"). The slide decks join the closing line. The
+# two-line limit of 2026-08-20 belonged to the one-sentence card and no longer
+# applies. The closing line keeps class="perk", which qa_panel gates on.
+PERK_ITEMS = (
+    ('Yen repatriation monitor', 'whether Japanese money is coming home — monthly flows into '
+     'foreign bonds and equities, the GPIF, and a calendar of the next releases. With a companion '
+     'page on who holds Japan&rsquo;s money abroad.'),
+    ('BoJ Policy Stance Indicator', 'where each board member stands on the economy, inflation '
+     'and the policy rate, scored at every policy meeting.'),
+    ('JGB yield-curve model', 'our policy-rate path and yield forecasts, with yields split into '
+     'expectations and term premia, monthly from 2002 to 2029.'),
+)
 PERK_HTML = (
     '<div class="perkbox">\n'
     '  <h3>Paid subscribers get the JMA Database</h3>\n'
-    '  <p class="perk">The proprietary estimates behind my research — the '
-    "BoJ-QT progress monitor, the JGB yield-curve model, and global FX "
-    "reserves back to 1980.</p>\n"
+    '  <ul class="perklist">\n'
+    + ''.join(f'    <li><strong>{k}</strong>: {v}</li>\n' for k, v in PERK_ITEMS)
+    + '  </ul>\n'
+    '  <p class="perk">Plus the BoJ-QT progress monitor, global FX reserves back to 1980, '
+    'and our presentation slide decks.</p>\n'
     f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>\n'
     '  </div>')
 DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
@@ -1615,6 +1633,9 @@ PERK_CSS = """  .perkbox{margin:18px 0 0;border:1px solid #3b65a2;border-left:5p
   .perkbox h3{margin:0 0 6px;font:700 20px/1.3 'PT Serif',serif;color:#3b65a2}
   .perkbox .perk{margin:0;font:400 15.5px/1.6 'Public Sans',sans-serif;color:#2c2c2a}
   .perkbox .btn{margin-top:14px;font-size:15px;padding:11px 22px}
+  .perkbox .perklist{margin:4px 0 10px 20px;font:400 15.5px/1.6 'Public Sans',sans-serif;color:#2c2c2a}
+  .perkbox .perklist li{margin:0 0 6px}
+  .perkbox .perklist strong{font-weight:600;color:#1c1c1c}
 """
 
 # The "More articles" line under the bottom banner, injected only for a page

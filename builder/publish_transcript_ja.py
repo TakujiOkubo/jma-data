@@ -88,22 +88,10 @@ PAGE = _args[_args.index('--page') + 1]
 assert PAGE in PAGES, f'--page one of {sorted(PAGES)}'
 globals().update(PAGES[PAGE])
 PERK_FROM = os.path.join(REPO, '2026-08-21-canada-gross-net', 'index.html')   # disclaimer source
-# Page-specific subscription card (Takuji, 2026-09-19): BoJ-PSI as the main attraction,
-# the JGB yield-curve model second, in the JMA Database page's own descriptions. Keeps the
-# site card's headline, classes and Subscribe link; the shared builder card is unchanged.
-SUBSCRIBE_URL = 'https://takujiokubo.substack.com/subscribe'
-PERK = (
-    '<div class="perkbox">\n'
-    '  <h3>Paid subscribers get the JMA Database</h3>\n'
-    '  <ul class="perklist">\n'
-    '    <li><strong>BoJ Policy Stance Indicator</strong>: where each board member stands on the economy, '
-    'inflation and the policy rate, scored at every policy meeting.</li>\n'
-    '    <li><strong>JGB yield-curve model</strong>: our policy-rate path and yield forecasts, with yields '
-    'split into expectations and term premia, monthly from 2002 to 2029.</li>\n'
-    '  </ul>\n'
-    '  <p class="perk">Plus the BoJ-QT progress monitor and global FX reserves back to 1980.</p>\n'
-    f'  <a class="btn" href="{SUBSCRIBE_URL}">Subscribe</a>\n'
-    '  </div>')
+# Subscription card. 2026-09-19 (Takuji): a page-specific card leading with BoJ-PSI.
+# 2026-10-30 (Takuji): one card for every free page, leading with the yen repatriation
+# monitor; it is now build_panel.PERK_HTML, and is copied here from a delivered free page
+# like the disclaimer, so the transcript pages cannot drift from the report pages.
 SPEAKERS = {SPEAKER, '質問', '司会', '幹事社'}
 CLS = {SPEAKER: 'a', '質問': 'q', '司会': 'mod', '幹事社': 'mod'}
 
@@ -232,7 +220,9 @@ def main():
     body_html, paras, counts = render(md)
 
     canada = open(PERK_FROM, encoding='utf-8').read()
-    perk = PERK
+    perks = re.findall(r'<div class="perkbox">.*?</div>', canada, re.S)
+    assert len(perks) == 1, len(perks)
+    perk = perks[0]
     disc = re.findall(r'<p class="disclaimer">.*?</p>', canada, re.S)
     assert len(disc) == 1, len(disc)
 
@@ -319,8 +309,9 @@ def main():
     gate('subscription card present twice (top and end)',
          page.count('Paid subscribers get the JMA Database') == 2 and page.count('class="perkbox') == 2, '')
     li = re.findall(r'<li><strong>([^<]+)</strong>', page)
-    gate('card leads with BoJ-PSI, then the yield-curve model (both cards)',
-         li == ['BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)
+    gate('card leads with the repatriation monitor, then BoJ-PSI and the yield-curve model (both cards)',
+         li == ['Yen repatriation monitor', 'BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)
+    gate('card names the slide decks (both cards)', page.count('presentation slide decks') == 2, '')
     gate('headline without 文字起こし', f'<h1>{TITLE_JA}</h1>' in page
          and '文字起こし（2026' not in page, '')
     gate('notice present (EN and JA)', NOTICE_EN.split('.')[0] in page and '非公式の文字起こし' in page, '')
