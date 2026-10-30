@@ -61,6 +61,26 @@ PAGES = {
         SPEAKER='小枝委員', N_QUESTIONS=10, N_SECTIONS=2, MIN_PARAS=40, MIN_TS=15,
         # reporters named in the annotated source; none may reach the page
         NAMES=('樋口', '和田', '岡田', '竹部', '高橋', '長野', '早川', '藤岡', '吉田')),
+    'ueda-2026-10-30': dict(
+        SRC=(r'G:\My Drive\JMA drive\Research2026\reports\2026-10\2026-10-30-ueda-presser-transcript'
+             r'\drafts\2026-10-30-ueda-presser-transcript-ja-v02-claude.md'),
+        SLUG='2026-10-30-boj-ueda-presser-transcript',
+        VIDEO_ID='7BHDgrGTQqI',
+        VIDEO_OWNER='Bank of Japan',
+        POST_URL=None,   # the Substack report links to this page; add its URL once it is out
+        DATE_EN='30 October 2026',
+        TITLE_JA='植田総裁 記者会見（2026年10月30日）',
+        TITLE_EN="Governor Ueda's press conference, 30 October 2026: Japanese transcript",
+        NOTICE_EN=("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
+                   "publishes its official transcript, please refer to that instead."),
+        NOTICE_JA=("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+                   "公表した後は、そちらをご参照ください。"),
+        SPEAKER='植田総裁', N_QUESTIONS=26, N_SECTIONS=3, MIN_PARAS=70, MIN_TS=25,
+        # reporters and outlets named in the annotated source; none may reach the page
+        NAMES=('赤間', '佐々木', '鈴木', '田中', '木原', '藤岡', '井上', '榊原', '多田', '井出野', '畑中',
+               '薄井', '古屋敷', '清水', '土屋', '伊藤', '和田', '岩田', '直井', '高岡', '高橋', '岡本',
+               '吉岡', '石田', '上田', '笹井', 'ニッキン', '西日本新聞', '北海道新聞', 'ニュースソクラ',
+               'マーケットニュース', '新聞', '通信')),
 }
 _args = sys.argv[1:]
 assert '--page' in _args and _args.index('--page') + 1 < len(_args), f'--page one of {sorted(PAGES)}'
@@ -307,9 +327,11 @@ def main():
     gate('article link present' if POST_URL else 'no article link (none yet)',
          page.count(POST_URL) == 1 if POST_URL else 'Read the article' not in page, '')
     # absence gates
+    # 日経平均 is the stock index, not the newspaper; it alone is exempt from the 日経 check
+    scan = page.replace('日経平均', '')
     for bad in ('〔', '字幕', 'free to use and reproduce', 'Download', '.csv', 'Whisper', '機械',
                 *MEDIA, *NAMES):
-        gate(f'absent: {bad}', bad not in page, page.count(bad))
+        gate(f'absent: {bad}', bad not in scan, scan.count(bad))
 
     w = max(len(n) for n, _, _ in G)
     for n, ok, d in G:
