@@ -21,7 +21,7 @@
       },
       {
         "head": "The US factor.",
-        "text": "A premium for the risk of higher US bond yields since the change of Federal Reserve chair at the end of May 2026. It enters the model through the New York Fed's 10-year term-premium series; on a month-end basis the episode peaked at end-September 2026, and we assume it retreats gradually to October 2029, keeping half the rise. Identical to the Main Forecast's assumption. About a quarter of the premium we add passes into super-long JGB yields."
+        "text": "Since the change of Federal Reserve chair at the end of May 2026, US bond yields have carried a higher risk of rising, and that risk spills over into JGB yields. Our model takes in US influence through one input, the New York Fed's 10-year term-premium series, so we add the US factor there. This is a convenient channel, not a claim that the US term premium itself has risen; how much of a move in US yields is term premium differs widely from one model to another. On a month-end basis the episode peaked at end-September 2026, and we assume it retreats gradually to October 2029, keeping half the rise. Identical to the Main Forecast's assumption. About a quarter of the premium we add passes into super-long JGB yields."
       },
       {
         "head": "The long-run term premium.",
@@ -442,7 +442,7 @@
       "n": 13,
       "kind": "line",
       "title": "The US factor: observed and assumed path",
-      "subtitle": "A premium for the risk of higher US bond yields, measured on the US 10-year term premium; identical in both scenarios",
+      "subtitle": "Our channel for US influence on JGB yields, entered through the US 10-year term-premium series; identical in both scenarios",
       "ylabel": "Term premium, basis points",
       "source": "Source: Federal Reserve Bank of New York (ACM) for the observed series; JMA assumption, revised November 2026.",
       "csv": "data/curve-panel.csv",
@@ -462,7 +462,7 @@
           "dash": "dot"
         }
       ],
-      "note": "On a month-end basis the US factor peaked at end-September 2026. The assumed path holds the October observation in November, then retreats gradually from close to that peak to 77 basis points in October 2029, keeping half the rise over end-May. It is identical on both scenario pages, so it is not what separates them. The two pages differ in the Bank of Japan policy path and in the long-run term premium the projection reverts to; both are stated in the assumptions above."
+      "note": "On a month-end basis the US factor peaked at end-September 2026. The series is the model's channel for US influence, not a measure of how much of the rise in US yields is term premium. The assumed path holds the October observation in November, then retreats gradually from close to that peak to 77 basis points in October 2029, keeping half the rise over end-May. It is identical on both scenario pages, so it is not what separates them. The two pages differ in the Bank of Japan policy path and in the long-run term premium the projection reverts to; both are stated in the assumptions above."
     },
     {
       "n": 14,

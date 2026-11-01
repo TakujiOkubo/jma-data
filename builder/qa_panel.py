@@ -1177,12 +1177,31 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
             gate(h in page, f"the {h.rstrip('.')} bullet reaches the page")
         us = manifest["assumptions"]["items"][1]["text"]
         for frag, why in (
-                ("risk of higher US bond yields", "what the factor is"),
+                # Takuji, 2026-11-01 (revision): the bullet must not read as a
+                # claim that US term premia rose — the NY Fed series shows no
+                # rise — so it says the series is only the model's channel.
+                ("US bond yields have carried a higher risk of rising",
+                 "what the factor is"),
+                ("This is a convenient channel, not a claim that the US term "
+                 "premium itself has risen", "that the series is a channel, "
+                 "not a claim about the US term premium"),
                 ("peaked at end-September 2026", "the month-end peak"),
                 ("keeping half the rise", "the horizon level"),
                 ("a quarter of the premium we add", "the pass-through, stated "
                  "for the channel it was estimated on")):
             gate(frag in us, f"the US-factor bullet states {why}: \"{frag}\"")
+        c13 = [c for c in manifest["charts"]
+               if c.get("title", "").startswith("The US factor")]
+        gate(len(c13) == 1, "exactly one US-factor chart to check",
+             str(len(c13)))
+        if c13:
+            gate(c13[0]["subtitle"].startswith(
+                     "Our channel for US influence on JGB yields")
+                 and "The series is the model's channel for US influence, "
+                     "not a measure of how much of the rise in US yields is "
+                     "term premium." in c13[0].get("note", ""),
+                 "chart 13 presents the series as a channel, not a "
+                 "term-premium claim (subtitle and note)")
         gate("of any US yield rise" not in page,
              "the pass-through is not claimed for US yields in general")
         # The report was unpublished when these pages were built, so the
