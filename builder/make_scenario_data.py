@@ -59,6 +59,17 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 # actual origin OIS. From 2026-10-03 the runs are v30_18b-*: the same, plus the
 # super-long glide slowed to a 3-month hold + 22-month glide (Takuji; V30.18,
 # --tp-glide-hold-months 3 --tp-glide-months 22), normal reached at month 25.
+#
+# Vintage: NOVEMBER 2026 (origin 2026-10, forecast 2026-11 -> 2029-10), the
+# v30_19b runs of JGB-Yield-Curve S85 (2026-11-01), model V30.19 (commit
+# 8474ed8). Same two policy paths; no change at the 29-30 October MPM (call
+# rate 1.227% at end-October, rounded to 1.25% in the first forecast month,
+# again not a hike). OIS input *_mktconv2612_oct26.csv: the market converges
+# to the JMA path over two months, by end-December 2026 (Takuji, 2026-11-01).
+# The US factor (formerly the US term-premium assumption) peaks at end-
+# September 2026 (88.5bp) and retreats to 77.3bp at the horizon. The same-
+# origin runs v30_19-oct2026-* (one-month convergence), test-s85-* and the
+# Downside v30_19b-oct2026-terminal250-down must not be published.
 # The superseded same-origin runs v30-sep2026-*, v30_17-* and v30_18-* (the
 # 26-month glide, never published) must not be published. (September vintage = runs v30-aug2026-*, S79/S34.)
 #
@@ -82,7 +93,7 @@ RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 SCENARIOS = {
     "main": dict(
         slugs=["jgb-yield-curve-main", "jgb-forecast-main"],
-        run="v30_18b-sep2026-terminal175-main",
+        run="v30_19b-oct2026-terminal175-main",
         branch="v30_16-changes",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
@@ -90,7 +101,7 @@ SCENARIOS = {
     ),
     "alternative": dict(
         slugs=["jgb-yield-curve-alternative", "jgb-forecast-alternative"],
-        run="v30_18b-sep2026-terminal200-risk",
+        run="v30_19b-oct2026-terminal200-risk",
         branch="v30_16-changes",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],
@@ -122,12 +133,13 @@ PANEL_COLS = (
 
 # The last row is the forecast horizon's own end month, which moves with the
 # origin: July 2029 for the July-2026 origin, August 2029 for August, September
-# 2029 for the September-2026 origin (the October vintage).
+# 2029 for the September-2026 origin (the October vintage), October 2029 for
+# the October-2026 origin (the November vintage).
 # It is stated rather than derived because it is the row the page's prose and
 # its "projected to ..." line have to agree with, and a silent shift there is
 # the kind that reads as a typo months later.
 TABLE_ROWS = [("Dec 2026", "2026-12"), ("Dec 2027", "2027-12"),
-              ("Dec 2028", "2028-12"), ("Sep 2029", "2029-09")]
+              ("Dec 2028", "2028-12"), ("Oct 2029", "2029-10")]
 
 
 def read_csv(path: Path) -> list[dict]:

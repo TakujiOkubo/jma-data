@@ -695,7 +695,21 @@ SCENARIO = {
                  "2029-07": dict(Y10=327.2, Y20=378.1, Y30=387.8, Y40=397.8)},
     ),
 
-    # ---- LIVE paid pages, OCTOBER-2026 vintage ---------------------------
+    # ---- LIVE paid pages, NOVEMBER-2026 vintage --------------------------
+    # Origin 2026-10, horizon 2029-10, runs v30_19b-oct2026-* (JGB-Yield-Curve
+    # S85, 2026-11-01; model V30.19, commit 8474ed8): the same two policy
+    # paths, no change at the 29-30 October MPM, the market converging to the
+    # JMA path over two months, by end-December 2026; the US term-premium
+    # assumption recast as the US factor (month-end peak end-September 2026).
+    # Restated independently from the S85 session summary's tables (two
+    # decimals of a per cent, hence printed_tol). S85's main table is the
+    # one-month-convergence v30_19 run; its revision section states that
+    # every month from December 2026 is identical in v30_19b to the basis
+    # point and that only November moved (Main 2Y 1.68 -> 1.74%), so the
+    # Nov-2026 2Y cell below is the v30_19b figure and is the VOID tripwire:
+    # a page cut from the superseded v30_19 run fails it by 6bp.
+    #
+    # Previous (OCTOBER-2026) vintage, for the record:
     # Origin 2026-09, horizon 2029-09, runs v30_18b-sep2026-* (JGB-Yield-Curve
     # S82, 2026-10-03; v30_17 plus the 3+22-month super-long glide): same two scenarios as the September vintage, the
     # September hike now in the actuals (base_rate: the first forecast month's
@@ -713,34 +727,41 @@ SCENARIO = {
     # than back-filled from the run, which would make the gate circular.
     "jgb-yield-curve-main": dict(
         name="Main Forecast",
-        run="v30_18b-sep2026-terminal175-main",
+        run="v30_19b-oct2026-terminal175-main",
         sibling="jgb-yield-curve-alternative",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-12", 1.75)],
         terminal=1.75,
-        horizon="2029-09",
+        horizon="2029-10",
         printed_tol=0.6,
-        printed={"2026-09": dict(Y10=307, Y30=442, Y40=434),
-                 "2026-12": dict(Y10=306, Y20=398, Y30=445, Y40=438),
-                 "2027-12": dict(Y10=346, Y20=396, Y30=420, Y40=416),
-                 "2028-12": dict(Y10=344, Y20=377, Y30=383, Y40=385),
-                 "2029-09": dict(Y10=330, Y20=375, Y30=381, Y40=383)},
+        printed={"2026-10": dict(Y2=185, Y5=224, Y10=283, Y20=375, Y30=424,
+                                 Y40=420),
+                 "2026-11": dict(Y2=174),
+                 "2026-12": dict(Y2=173, Y5=221, Y10=284, Y20=376, Y30=426,
+                                 Y40=423),
+                 "2027-12": dict(Y2=205, Y5=272, Y10=338, Y20=384, Y30=412,
+                                 Y40=411),
+                 "2028-12": dict(Y2=205, Y5=274, Y10=340, Y20=373, Y30=380,
+                                 Y40=384),
+                 "2029-10": dict(Y2=205, Y5=266, Y10=326, Y20=372, Y30=379,
+                                 Y40=383)},
     ),
     "jgb-yield-curve-alternative": dict(
         name="Alternative Forecast: A 2 per cent terminal rate",
-        run="v30_18b-sep2026-terminal200-risk",
+        run="v30_19b-oct2026-terminal200-risk",
         sibling="jgb-yield-curve-main",
         base_rate=1.25,
         hikes=[("2027-03", 1.50), ("2027-07", 1.75), ("2027-12", 2.00)],
         terminal=2.00,
-        horizon="2029-09",
+        horizon="2029-10",
         printed_tol=0.6,
-        # The Sep-2026 row is the observed curve and is identical on both
+        # The Oct-2026 row is the observed curve and is identical on both
         # pages by construction, so it doubles as a history cross-check.
-        printed={"2026-09": dict(Y10=307, Y30=442, Y40=434),
-                 "2027-12": dict(Y30=451, Y40=449),
-                 "2028-12": dict(Y30=434, Y40=441),
-                 "2029-09": dict(Y10=367, Y30=432, Y40=440)},
+        # S85 states only these Alternative cells.
+        printed={"2026-10": dict(Y2=185, Y5=224, Y10=283, Y20=375, Y30=424,
+                                 Y40=420),
+                 "2027-12": dict(Y30=441),
+                 "2029-10": dict(Y2=228, Y10=363, Y30=430, Y40=437)},
     ),
 }
 
@@ -756,12 +777,22 @@ SCENARIO = {
 FAN_HALFWIDTH_MONTH = "2029-07"
 FAN_HALFWIDTH = {"10Y": 17.4, "20Y": 21.7, "30Y": 19.8, "40Y": 19.0}
 SIGMA10_BP = 77.5
-USTP_PEAK = ("2026-11", 122.2)
-# The assumed US path is flat at its terminal from 2029-05, so this level is
-# vintage-independent. It is read at the page's own horizon end rather than at
-# a named month, because the two vintages end in different months and a
-# hardcoded one would either crash or check the wrong row after an origin roll.
-USTP_TERMINAL_BP = 94.5
+# The US factor (Takuji, 2026-11-01, JGB-Yield-Curve S85; model V30.19). Until
+# the November 2026 vintage the assumed path peaked at 122.2bp in 2026-11 and
+# ended at 94.5bp. Now the episode's month-end peak is OBSERVED, at end-
+# September 2026 (ACM 10Y 88.5bp), over an end-May baseline of 66.1bp; the
+# assumed path holds the origin observation in its first month (month-0
+# rule, kept by Takuji) and retreats linearly to 77.3bp = 66.1 + half of the
+# 22.4bp rise at the horizon. The assumed values are the run's US_TP10_base
+# x100, stated in the work order at 0.01bp; the chart draws the CSV's
+# one-decimal bp column, so they are tested at 0.06bp.
+USTP_ASSUMED = {"2026-11": 66.45, "2026-12": 87.59}
+USTP_OBS_PEAK = ("2026-09", 88.5)
+USTP_BASELINE = ("2026-05", 66.1)
+# Read at the page's own horizon end rather than at a named month, because
+# vintages end in different months and a hardcoded one would either crash or
+# check the wrong row after an origin roll.
+USTP_TERMINAL_BP = 77.3
 BAND = "±1 s.d. range"
 
 IDS = {
@@ -851,6 +882,11 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
         t = spec["terminal"]
         gate(f"{t:.2f}%" in btxt or f"{t:.2f} per cent" in btxt,
              f"the Bank of Japan bullet states the {t:.2f}% terminal rate")
+        # November 2026 vintage (Takuji, 2026-11-01): the market converges to
+        # the JMA path over two months, by end-December 2026 — the date the
+        # v30_19b OIS input (*_mktconv2612_oct26) encodes.
+        gate("by end-December 2026" in btxt,
+             "the Bank of Japan bullet dates the convergence end-December 2026")
     else:
         for ym, _ in spec["hikes"]:
             want = f"{month[ym[5:7]]} {ym[:4]}"
@@ -976,17 +1012,42 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
              f"US TP fan half-width is the published sigma, {SIGMA10_BP}bp",
              f"{hw:.1f}bp")
 
-    print("\nThe US term-premium assumption (shared by both scenarios)")
+    print("\nThe US factor (shared by both scenarios)")
     assumed = trace(f6, "Assumed path")
     ia = {x[:7]: i for i, x in enumerate(assumed["x"])}
-    for ym, want in (USTP_PEAK, (spec["horizon"], USTP_TERMINAL_BP)):
-        gate(abs(assumed["y"][ia[ym]] - want) < 0.1,
-             f"assumed US TP at {ym} is {want}bp",
+    # REPLACED 2026-11-01, not dropped: the old gates asserted the assumed
+    # path's own 122.2bp peak in 2026-11. The episode's peak is now observed
+    # (end-September), so the assertions move to the observed leg's peak,
+    # the assumed path's stated points, and the half-the-rise terminal.
+    for ym, want in list(USTP_ASSUMED.items()) + [(spec["horizon"],
+                                                   USTP_TERMINAL_BP)]:
+        gate(abs(assumed["y"][ia[ym]] - want) < 0.06,
+             f"assumed US factor at {ym} is {want}bp (chart, 0.1bp precision)",
              f"{assumed['y'][ia[ym]]:.1f}bp")
-    peak = max(v for v in assumed["y"] if v is not None)
-    gate(abs(peak - USTP_PEAK[1]) < 0.1
-         and assumed["x"][assumed["y"].index(peak)][:7] == USTP_PEAK[0],
-         "the assumed path peaks where the assumption says it does")
+        got = float(by_ym[ym]["US_TP10_base"]) * 100
+        gate(abs(got - want) < 0.01,
+             f"and the page CSV's US_TP10_base x100 at {ym} is {want}bp "
+             "(0.01bp)", f"{got:.2f}bp")
+    obs_all = trace(f6, "Observed (ACM)")
+    io = {x[:7]: i for i, x in enumerate(obs_all["x"])}
+    since = [(x[:7], v) for x, v in zip(obs_all["x"], obs_all["y"])
+             if v is not None and x[:7] >= USTP_BASELINE[0]]
+    pk = max(since, key=lambda p: p[1])
+    gate(pk[0] == USTP_OBS_PEAK[0] and abs(pk[1] - USTP_OBS_PEAK[1]) < 0.06,
+         "the observed series' month-end peak since end-May is end-September "
+         f"2026 at {USTP_OBS_PEAK[1]}bp, as the US-factor bullet dates it",
+         f"{pk[0]} {pk[1]:.1f}bp over {len(since)} months")
+    base = obs_all["y"][io[USTP_BASELINE[0]]]
+    gate(abs(base - USTP_BASELINE[1]) < 0.06,
+         f"the end-May baseline is {USTP_BASELINE[1]}bp", f"{base:.1f}bp")
+    half = USTP_BASELINE[1] + 0.5 * (USTP_OBS_PEAK[1] - USTP_BASELINE[1])
+    gate(abs(assumed["y"][ia[spec["horizon"]]] - half) < 0.1,
+         "the horizon level keeps half the rise over end-May, as stated",
+         f"{assumed['y'][ia[spec['horizon']]]:.1f} vs {half:.2f}bp")
+    tail = [v for v in assumed["y"][ia["2026-12"]:] if v is not None]
+    gate(len(tail) >= 30 and all(b <= a + 1e-9 for a, b in zip(tail, tail[1:])),
+         "from December 2026 the assumed path only retreats",
+         f"{len(tail)} months")
     # The observed ACM leg must stop where the observations do. The first
     # projected month is read off the delivered panel rather than named: it
     # moves with the origin, and a hardcoded month turns this from a check on
@@ -1022,6 +1083,8 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
         if ym in ftr:
             for key, v in want.items():
                 t = f"{key[1:]}Y"
+                if t not in ftr[ym]:
+                    continue        # the table prints no 2Y column
                 gate(abs(float(ftr[ym][t]) * 100 - v) < 0.6,
                      f"forecast table {ym} {t} rounds to the printed figure",
                      f"{ftr[ym][t]}")
@@ -1102,12 +1165,26 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
         # assertion is replaced rather than dropped, so the block still cannot
         # grow unnoticed.
         heads = [i["head"] for i in manifest["assumptions"]["items"]]
-        gate(heads == ["Bank of Japan policy.", "The US term premium.",
+        # Second bullet retitled 2026-11-01 (Takuji, S85): "The US term
+        # premium." became "The US factor." — the factor is described as a
+        # premium for the risk of higher US bond yields, not as a claim about
+        # the US term premium. The old title has an absence gate below.
+        gate(heads == ["Bank of Japan policy.", "The US factor.",
                        "The long-run term premium."],
              "the assumptions block is the three named bullets, in order",
              " / ".join(heads))
         for h in heads:
             gate(h in page, f"the {h.rstrip('.')} bullet reaches the page")
+        us = manifest["assumptions"]["items"][1]["text"]
+        for frag, why in (
+                ("risk of higher US bond yields", "what the factor is"),
+                ("peaked at end-September 2026", "the month-end peak"),
+                ("keeping half the rise", "the horizon level"),
+                ("a quarter of the premium we add", "the pass-through, stated "
+                 "for the channel it was estimated on")):
+            gate(frag in us, f"the US-factor bullet states {why}: \"{frag}\"")
+        gate("of any US yield rise" not in page,
+             "the pass-through is not claimed for US yields in general")
         # The report was unpublished when these pages were built, so the
         # pointer is deliberately not a link yet. Whichever state it is in has
         # to be internally consistent: a set url must reach the page as an
@@ -1140,7 +1217,7 @@ def qa_scenario_forecast(root, manifest, page, figs) -> None:
     same = all(abs(float(src[ym]["US_TP10_base"]) -
                    float(o_src[ym]["US_TP10_base"])) < 5e-5 for ym in shared)
     gate(same and len(shared) >= 36,
-         "the US term-premium assumption is identical on both scenarios",
+         "the US factor's assumed path is identical on both scenarios",
          f"{len(shared)} months compared")
 
 
@@ -1254,6 +1331,38 @@ def qa_scenario_vintage(root, manifest, page, figs) -> None:
             "history; the bullet now starts from it (Takuji's wording)",
         "This is an input, not a model output": "sentence cut by Takuji from "
             "the Bank of Japan bullet, 2026-10-02 — a cut stays cut",
+        # Retired with the November 2026 vintage (origin October 2026,
+        # JGB-Yield-Curve S85). Each was checked against the October-vintage
+        # page and manifest as published (origin/main 0e6f329) before it was
+        # added, so none is vacuous.
+        "Model vintage October 2026": "superseded by the November 2026 stamp",
+        "origin September 2026": f"superseded by origin {o_name}",
+        "projected to September 2029": f"superseded by projected to {h_name}",
+        "October 2026 vintage": "chart source notes now name the November "
+                                "2026 vintage",
+        "September 2026 (actual)": "the curve chart's actual line is now the "
+                                   f"{o_name} curve",
+        "the 51 basis points": "the Alternative-over-Main 30Y gap is now 50bp",
+        "As of end-September": "the Bank of Japan bullet now dates the "
+                               "market's pricing late October",
+        "converge to our view by end-November": "convergence moved to "
+            "end-December 2026 (Takuji, 2026-11-01)",
+        "by end-November 2026": "the Alternative's bullet carried the same "
+            "end-November convergence; now end-December",
+        "The US term premium.": "bullet retitled The US factor. (Takuji, "
+                                "2026-11-01)",
+        "A rise in the US 10-year term premium": "the factor is described as "
+            "a premium for the risk of higher US bond yields, not as a claim "
+            "about the US term premium",
+        "122 basis points": "the assumed path no longer peaks at 122.2bp; the "
+                            "month-end peak is end-September 2026, 88.5bp",
+        "peaking at 122": "as above, the bullet's own phrasing",
+        "a US term-premium move": "pass-through restated for the premium we "
+                                  "add",
+        "US term-premium assumption": "chart notes name the US factor",
+        "assumed US term-premium episode": "chart notes name the US factor",
+        "unchanged from the August 2026 vintage": "chart 13's assumption was "
+                                                  "revised November 2026",
     }
     # Checked against the page AND the manifest: standfirst, date and the
     # landing blurb are copy a reader sees, but they render on the index rather
@@ -1323,8 +1432,8 @@ def qa_scenario_vintage(root, manifest, page, figs) -> None:
         # number: "9" alone appears hundreds of times in a page of yields, so a
         # loose substring test would pass on a bullet saying anything at all.
         for label, got, said, phrase in (
-                ("total", y30, 51, "the 51 basis points"),
-                ("term premium", tp30, 41, "41 are term premium"),
+                ("total", y30, 50, "the 50 basis points"),
+                ("term premium", tp30, 40, "40 are term premium"),
                 ("expectations", rn30, 10, "10 are interest-rate expectations")):
             gate(abs(round(got) - said) < 0.5,
                  f"the third bullet's {label} figure, {said}bp, is what the "
