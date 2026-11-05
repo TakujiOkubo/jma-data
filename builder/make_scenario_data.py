@@ -43,6 +43,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 RUNS = Path(r"G:\My Drive\Research\JGB_related\JGByieldcurve_forecast\runs")
 
+# The two yield-curve scenario pages were deleted from this public repo on
+# 2026-11-05 (Takuji) and are authored in jma-data-paid only. Cutting here
+# would put paid numbers back on the public site.
+if not (REPO / "derive_gated_pages.py").exists():   # only the paid repo has it
+    sys.exit("make_scenario_data.py: the yield-curve pages live in jma-data-paid "
+             "since 2026-11-05 -- run it there, never in the public repo.")
+
 # The scenario taxonomy, settled by Takuji 2026-08-02 (vault note
 # scenario-naming-main-alternative-2026-08-02.md) and named for publication
 # 2026-08-03. hikes[] is the acceptance test, not documentation: the cut fails
