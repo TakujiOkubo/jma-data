@@ -244,7 +244,7 @@ def main():
     <span class="mdate">{DATE_EN}</span>
   </div>
   <div class="mrow2">
-    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="tagline"></span>
     <span class="slabel">Transcript</span>
   </div>
 </div>

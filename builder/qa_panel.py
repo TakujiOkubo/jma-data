@@ -242,8 +242,8 @@ def qa_skin(page, bottom_banner) -> None:
              "claims no access control this public repo does not have",
              f"checked {len(ACCESS_CLAIMS)} spellings, found {found}")
     gate("../assets/yenmacro-logo.png" in page
-         and "Unbiased Opinion on Japan&rsquo;s Economy" in page,
-         "masthead: logo + tagline present")
+         and "Unbiased Opinion" not in page,
+         "masthead: logo present, old JMA tagline absent (removed 2026-11-08)")
     gate("fonts.googleapis.com/css2?family=PT+Serif" in page
          and "Public+Sans" in page, "PT Serif / Public Sans loaded")
     gate("background:#FCFBF8" in page, "warm-white page background token")

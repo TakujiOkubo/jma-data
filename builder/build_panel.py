@@ -1768,7 +1768,7 @@ PAGE = """<!DOCTYPE html>
     <span class="mdate">{mast_date}</span>
   </div>
   <div class="mrow2">
-    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="tagline"></span>
     <span class="slabel">{series_label}</span>
   </div>
 </div>
