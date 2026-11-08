@@ -66,7 +66,7 @@ OVERRIDES = {
     # claim's absence across this repo.
     "bottom_banner": (
         "The charts and data on this page are free to use and reproduce with "
-        "attribution to Japan Macro Advisors. This page is shared with paid "
+        "attribution to Yen Macro Research. This page is shared with paid "
         "subscribers; each card links the tidy CSV behind its chart. Paid "
         "subscribers are encouraged to send questions on my research and "
         "receive priority in my replies in either English or Japanese."),

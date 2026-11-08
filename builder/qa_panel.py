@@ -107,9 +107,9 @@ def qa_structure(manifest, page, figs) -> None:
 # against itself. Wording is final (work order model-page-v2, 2026-07-30;
 # disclaimer from `JMA Web Report Template.dc.html`).
 TOP_BANNER = ("The charts and data on this page are free to use and reproduce "
-              "with attribution to Japan Macro Advisors.")
+              "with attribution to Yen Macro Research.")
 BOTTOM_BANNER = ("The charts and data on this page are free to use and "
-                 "reproduce with attribution to Japan Macro Advisors. Paid "
+                 "reproduce with attribution to Yen Macro Research. Paid "
                  "subscribers have access to our Yield Curve Model estimate "
                  "output, including historical term premia decomposition "
                  "estimates as well as our forecasts that are periodically "
@@ -119,9 +119,9 @@ BOTTOM_BANNER = ("The charts and data on this page are free to use and "
 DISCLAIMER = ("This report is provided for information purposes only. It "
               "does not constitute investment advice or an offer or "
               "solicitation to buy or sell any security. While the "
-              "information herein is believed to be reliable, Japan Macro "
-              "Advisors makes no representation as to its accuracy or "
-              "completeness. &copy; 2026 Japan Macro Advisors. "
+              "information herein is believed to be reliable, Yen Macro "
+              "Research makes no representation as to its accuracy or "
+              "completeness. &copy; 2026 Yen Macro Research. "
               "All rights reserved.")
 
 # The model page carries its own approved bottom-banner wording (Takuji,
@@ -129,7 +129,7 @@ DISCLAIMER = ("This report is provided for information purposes only. It "
 # the generic subscriber line above.
 MODEL_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "attribution to Yen Macro Research. This page is shared with paid "
     "subscribers. We will update our yield curve model estimates "
     "periodically, but in case the published estimate is more than 2 weeks "
     "old, paid subscribers can request an updated estimate and we should be "
@@ -140,7 +140,7 @@ MODEL_BOTTOM_BANNER = (
 # when the IMF closes its COFER year.
 RESERVES_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "attribution to Yen Macro Research. This page is shared with paid "
     "subscribers. The series are updated once a year, when the IMF closes "
     "its COFER year.")
 
@@ -149,7 +149,7 @@ RESERVES_BOTTOM_BANNER = (
 # advertise the paid tier to a reader who is already inside it.
 FXJPY_PAID_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "attribution to Yen Macro Research. This page is shared with paid "
     "subscribers; each card links the tidy CSV behind its chart. Paid "
     "subscribers are encouraged to send questions on my research and receive "
     "priority in my replies.")
@@ -171,8 +171,8 @@ FXJPY_PAID_BOTTOM_BANNER = (
 # that it appears exactly twice on the page. The last sentence is his.
 FREE_REPORT_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. Paid subscribers also get the JMA "
-    "Database, where every chart is interactive and the data behind it "
+    "attribution to Yen Macro Research. Paid subscribers also get Yen Macro "
+    "Monitors, where every chart is interactive and the data behind it "
     "downloads \u2014 proprietary estimates that are not readily available in "
     "the public domain. Paid subscribers are encouraged to send questions "
     "on my research and receive priority in my replies in either English or "
@@ -191,7 +191,7 @@ FREE_REPORT_BOTTOM_BANNER = (
 # sensitive about exclusivity) while a password-protected page is designed.
 BOJ_EB_PAID_BOTTOM_BANNER = (
     "The charts and data on this page are free to use and reproduce with "
-    "attribution to Japan Macro Advisors. This page is shared with paid "
+    "attribution to Yen Macro Research. This page is shared with paid "
     "subscribers; each card links the tidy CSV behind its chart. Paid "
     "subscribers are encouraged to send questions on my research and receive "
     "priority in my replies in either English or Japanese.")
@@ -229,7 +229,7 @@ PUBLIC_REPO = REPO.name == "jma-data"
 # lives in build_panel.PERK_HTML; gating a distinctive opening rather than the
 # whole thing means a comma moving does not fail every free page's QA, while a
 # rewrite -- which is what happened on 2026-08-20 -- still does.
-PERK_MARKER = "Paid subscribers get the JMA Database"
+PERK_MARKER = "Paid subscribers get Yen Macro Monitors"
 
 
 def qa_skin(page, bottom_banner) -> None:
@@ -241,7 +241,7 @@ def qa_skin(page, bottom_banner) -> None:
         gate(len(ACCESS_CLAIMS) == 5 and not found,
              "claims no access control this public repo does not have",
              f"checked {len(ACCESS_CLAIMS)} spellings, found {found}")
-    gate("../assets/jma-logo.png" in page
+    gate("../assets/yenmacro-logo.png" in page
          and "Unbiased Opinion on Japan&rsquo;s Economy" in page,
          "masthead: logo + tagline present")
     gate("fonts.googleapis.com/css2?family=PT+Serif" in page
