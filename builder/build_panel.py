@@ -116,9 +116,9 @@ PLOTLY_CDN = "https://cdn.plot.ly/plotly-3.0.1.min.js"
 # texts are fixed by decision (work order model-page-v2, 2026-07-30) and are
 # IDENTICAL on every panel page. Edit these only by decision, never per page.
 TOP_BANNER = ("The charts and data on this page are free to use and reproduce "
-              "with attribution to Japan Macro Advisors.")
+              "with attribution to Yen Macro Research.")
 BOTTOM_BANNER = ("The charts and data on this page are free to use and "
-                 "reproduce with attribution to Japan Macro Advisors. Paid "
+                 "reproduce with attribution to Yen Macro Research. Paid "
                  "subscribers have access to our Yield Curve Model estimate "
                  "output, including historical term premia decomposition "
                  "estimates as well as our forecasts that are periodically "
@@ -198,7 +198,7 @@ PERK_ITEMS = (
 )
 PERK_HTML = (
     '<div class="perkbox">\n'
-    '  <h3>Paid subscribers get the JMA Database</h3>\n'
+    '  <h3>Paid subscribers get Yen Macro Monitors</h3>\n'
     '  <ul class="perklist">\n'
     + ''.join(f'    <li><strong>{k}</strong>: {v}</li>\n' for k, v in PERK_ITEMS)
     + '  </ul>\n'
@@ -209,9 +209,9 @@ PERK_HTML = (
 DISCLAIMER_HTML = ("This report is provided for information purposes only. It "
                    "does not constitute investment advice or an offer or "
                    "solicitation to buy or sell any security. While the "
-                   "information herein is believed to be reliable, Japan Macro "
-                   "Advisors makes no representation as to its accuracy or "
-                   "completeness. &copy; 2026 Japan Macro Advisors. "
+                   "information herein is believed to be reliable, Yen Macro "
+                   "Research makes no representation as to its accuracy or "
+                   "completeness. &copy; 2026 Yen Macro Research. "
                    "All rights reserved.")
 
 
@@ -1671,7 +1671,7 @@ PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title} — data | Japan Macro Advisors</title>
+<title>{title} — data | Yen Macro Research</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -1764,11 +1764,11 @@ PAGE = """<!DOCTYPE html>
 <body>
 {topnav}<div class="text">
   <div class="mrow">
-    <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
+    <img src="../assets/yenmacro-logo.png" alt="Yen Macro Research">
     <span class="mdate">{mast_date}</span>
   </div>
   <div class="mrow2">
-    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="tagline"></span>
     <span class="slabel">{series_label}</span>
   </div>
 </div>

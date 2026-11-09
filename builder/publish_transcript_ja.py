@@ -38,9 +38,9 @@ PAGES = {
         DATE_EN='18 September 2026',
         TITLE_JA='植田総裁 記者会見（2026年9月18日）',   # "文字起こし" dropped at Takuji's request, 2026-09-19
         TITLE_EN="Governor Ueda's press conference, 18 September 2026: Japanese transcript",
-        NOTICE_EN=("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
+        NOTICE_EN=("This is an unofficial transcript prepared by Yen Macro Research. Once the Bank of Japan "
                    "publishes its official transcript, expected on 24 September, please refer to that instead."),
-        NOTICE_JA=("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+        NOTICE_JA=("本稿はYen Macro Researchによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
                    "公表した後（9月24日の予定）は、そちらをご参照ください。"),
         SPEAKER='植田総裁', N_QUESTIONS=25, N_SECTIONS=3, MIN_PARAS=70, MIN_TS=25,
         NAMES=()),
@@ -54,9 +54,9 @@ PAGES = {
         DATE_EN='15 October 2026',
         TITLE_JA='小枝審議委員 記者会見（2026年10月15日）',
         TITLE_EN="Board member Koeda's press conference in Kumamoto, 15 October 2026: Japanese transcript",
-        NOTICE_EN=("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
+        NOTICE_EN=("This is an unofficial transcript prepared by Yen Macro Research. Once the Bank of Japan "
                    "publishes its official transcript, please refer to that instead."),
-        NOTICE_JA=("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+        NOTICE_JA=("本稿はYen Macro Researchによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
                    "公表した後は、そちらをご参照ください。"),
         SPEAKER='小枝委員', N_QUESTIONS=10, N_SECTIONS=2, MIN_PARAS=40, MIN_TS=15,
         # reporters named in the annotated source; none may reach the page
@@ -71,9 +71,9 @@ PAGES = {
         DATE_EN='30 October 2026',
         TITLE_JA='植田総裁 記者会見（2026年10月30日）',
         TITLE_EN="Governor Ueda's press conference, 30 October 2026: Japanese transcript",
-        NOTICE_EN=("This is an unofficial transcript prepared by Japan Macro Advisors. Once the Bank of Japan "
+        NOTICE_EN=("This is an unofficial transcript prepared by Yen Macro Research. Once the Bank of Japan "
                    "publishes its official transcript, please refer to that instead."),
-        NOTICE_JA=("本稿はJapan Macro Advisorsによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+        NOTICE_JA=("本稿はYen Macro Researchによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
                    "公表した後は、そちらをご参照ください。"),
         SPEAKER='植田総裁', N_QUESTIONS=26, N_SECTIONS=3, MIN_PARAS=70, MIN_TS=25,
         # reporters and outlets named in the annotated source; none may reach the page
@@ -231,7 +231,7 @@ def main():
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(TITLE_JA)} | Japan Macro Advisors</title>
+<title>{html.escape(TITLE_JA)} | Yen Macro Research</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -240,11 +240,11 @@ def main():
 <body>
 <div class="text" lang="en">
   <div class="mrow">
-    <img src="../assets/jma-logo.png" alt="Japan Macro Advisors">
+    <img src="../assets/yenmacro-logo.png" alt="Yen Macro Research">
     <span class="mdate">{DATE_EN}</span>
   </div>
   <div class="mrow2">
-    <span class="tagline">Unbiased Opinion on Japan&rsquo;s Economy</span>
+    <span class="tagline"></span>
     <span class="slabel">Transcript</span>
   </div>
 </div>
@@ -307,7 +307,7 @@ def main():
     gate('every timestamp became a video link', n_links == n_ts_src and n_ts_src > MIN_TS,
          f'{n_links} links / {n_ts_src} timestamps')
     gate('subscription card present twice (top and end)',
-         page.count('Paid subscribers get the JMA Database') == 2 and page.count('class="perkbox') == 2, '')
+         page.count('Paid subscribers get Yen Macro Monitors') == 2 and page.count('class="perkbox') == 2, '')
     li = re.findall(r'<li><strong>([^<]+)</strong>', page)
     gate('card leads with the repatriation monitor, then BoJ-PSI and the yield-curve model (both cards)',
          li == ['Yen repatriation monitor', 'BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)

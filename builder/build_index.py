@@ -37,7 +37,7 @@ PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Interactive charts — Japan Macro Advisors</title>
+<title>Interactive charts — Yen Macro Research</title>
 <style>
   *{{margin:0;padding:0;box-sizing:border-box}}
   body{{font-family:{font};background:{paper};color:{ink};line-height:1.6;
@@ -52,7 +52,7 @@ PAGE = """<!DOCTYPE html>
 </style>
 </head>
 <body>
-<div class="kicker">Japan Macro Advisors</div>
+<div class="kicker">Yen Macro Research</div>
 <h1>Interactive charts</h1>
 <p class="intro">
   Interactive chart pages for my Substack articles are linked from the articles
@@ -60,13 +60,13 @@ PAGE = """<!DOCTYPE html>
   <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a>.
 </p>
 <p class="intro">
-  The always-current datasets and the yield-curve model — the JMA Database —
+  The always-current datasets and the yield-curve model — Yen Macro Monitors —
   are a paid-subscriber privilege.
 </p>
 <footer>
-  Japan Macro Advisors is independent research by Takuji Okubo. Nothing here
+  Yen Macro Research is independent research by Takuji Okubo. Nothing here
   constitutes investment advice.<br>
-  Model output (term premia, natural-rate anchor, yield forecasts) is JMA's own
+  Model output (term premia, natural-rate anchor, yield forecasts) is Yen Macro Research's own
   estimate — please attribute it if you use it.<br>
   <a href="https://takujiokubo.substack.com">takujiokubo.substack.com</a>
 </footer>
