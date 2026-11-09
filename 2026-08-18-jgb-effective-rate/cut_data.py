@@ -87,7 +87,7 @@ write("chart-1-coupon-composition.csv",
 # script, Takuji's ruling 2026-08-18). The 1.5% main case lives in the same file
 # under *_main and is deliberately not cut: publishing it would put a second,
 # lower path in front of a reader the report never showed.
-src = read(CHARTS / "fiscal/jgb-effective-rate/jgb_effective_rate_data.csv")
+src = read(CHARTS / "sovereign-debt/jgb/jgb-effective-rate-2p/jgb_effective_rate_data.csv")
 rows = [{"fy": r["fy"],
          "policy_rate": r["policy_rate_avg_risk200"],
          "eff_rate": r["eff_rate_all_risk200"],
@@ -110,7 +110,7 @@ write("chart-2-effective-rate.csv",
 # Germany dropped (Takuji 2026-08-19, the Indebted Five). The UK column is
 # quarterly against four monthly neighbours and stays sparse here; the manifest
 # bridges it on that series alone.
-src = read(CHARTS / "fiscal/g6-debt-avg-maturity/g6_debt_avg_maturity_data.csv")
+src = read(CHARTS / "sovereign-debt/g6-debt-avg-maturity/g6_debt_avg_maturity_data.csv")
 COUNTRY = [("jpn_debtmat_m", "japan"), ("gbr_debtmat_q", "uk"),
            ("fra_debtmat_aft_m", "france"), ("ita_debtmat_mef_m", "italy"),
            ("usa_debtmat_m", "us")]
@@ -142,7 +142,7 @@ write("chart-3-debt-avg-maturity.csv",
 # column plus a phase flag so the builder draws the projection dashed. Germany
 # dropped; Canada was never in this file and its absence is why the claim reads
 # "Indebted Five" and not G7.
-src = read(CHARTS / "fiscal/g6-gg-net-interest-pgdp/g6_gg_net_interest_pgdp_data.csv")
+src = read(CHARTS / "sovereign-debt/g6-gg-net-interest-pgdp/g6_gg_net_interest_pgdp_data.csv")
 CODES = [("jpn", "japan"), ("usa", "us"), ("ita", "italy"),
          ("fra", "france"), ("gbr", "uk")]
 rows = []

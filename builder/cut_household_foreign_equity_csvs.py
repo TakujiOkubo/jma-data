@@ -68,7 +68,7 @@ print(f"cutting {SLUG}/data from the chart-library masters")
 # ---------------------------------------------------------------- chart 1
 # Households' foreign assets by type. Six bands, two of them merges the
 # producing script makes in load(); reproduced here against the same columns.
-src = HH / "hh-foreign-assets-by-type" / "hh_foreign_assets_by_type_fy_data.csv"
+src = HH / "foreign" / "hh-foreign-assets-by-type" / "hh_foreign_assets_by_type_fy_data.csv"
 rows = load(src)
 need(rows, ["end_date", "funds_stock_scaled_tn", "funds_bond_scaled_tn",
             "funds_balanced_foreign_scaled_tn", "funds_other_scaled_tn",
@@ -143,7 +143,7 @@ write("chart-2-household-assets-composition.csv",
 # column per series. The eMAXIS Slim All Country marker is a single 2025 point
 # and is dropped: the builder draws lines, and a one-point line is invisible.
 # Its 0.06% is carried in the chart's note instead.
-src = HH / "hh-fund-fees" / "hh_fund_fees_data.csv"
+src = HH / "fund" / "hh-fund-fees" / "hh_fund_fees_data.csv"
 rows = load(src)
 need(rows, ["year", "series", "fee_pct"], "chart 4")
 fsa = [r for r in rows if r["series"] == "fsa_all_funds_weighted"]
@@ -161,7 +161,7 @@ write("chart-4-fund-fees.csv", ["year", "avg_fee_pct"], c4,
 
 # ---------------------------------------------------------------- chart 6
 # Foreign-equity fund inflows, the script's VIEW_START = 2022-01. yen bn -> tn.
-src = HH / "hh-foreign-equity-fund-flows" / "hh_foreign_equity_fund_flows_data.csv"
+src = HH / "foreign" / "hh-foreign-equity-fund-flows" / "hh_foreign_equity_fund_flows_data.csv"
 rows = load(src)
 need(rows, ["month", "foreign_equity_bn", "foreign_equity_3m_avg_bn"], "chart 6")
 VIEW6 = "2022-01"
@@ -265,7 +265,7 @@ write("chart-9-time-deposits-yoy.csv", ["month", "yoy_change_pct"], c9,
 # ---------------------------------------------------------------- chart 10
 # BoJ ownership share by maturity. The master stores FRACTIONS; the chart is in
 # per cent. History to 2026-08, projection after it.
-src = LIB / "boj" / "ownership-share-segments-1-5" / "japan_boj_ownership_share_1_5_data.csv"
+src = LIB / "boj" / "ownership" / "ownership-share-segments-1-5" / "japan_boj_ownership_share_1_5_data.csv"
 rows = load(src)
 need(rows, ["YM", "seg_1_5", "seg_5_10", "seg_10_25", "seg_25p"], "chart 10")
 VIEW10, HIST_END = "2010-01", "2026-08"

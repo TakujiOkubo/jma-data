@@ -19,7 +19,7 @@ LEDGER = [
      "jpy-share-unadj-vs-cer/jpy_share_unadj_vs_cer_data.csv",
      ["date", "jpy_observed"]),                       # jpy_cer dropped — see docstring
     (2, "chart-2-usd-share.csv",
-     "usd-share-unadj-vs-cer/usd_share_unadj_vs_cer_data.csv",
+     "usd/usd-share-unadj-vs-cer/usd_share_unadj_vs_cer_data.csv",
      ["date", "usd_observed", "usd_cer"]),
     (3, "chart-3-eur-share.csv",
      "eur-share-unadj-vs-cer/eur_share_unadj_vs_cer_data.csv",
@@ -28,7 +28,7 @@ LEDGER = [
      "jpy-cad-aud-cny-share-unadj/jpy_cad_aud_cny_share_unadj_data.csv",
      ["date", "jpy_unadj", "cad_unadj", "aud_unadj", "cny_unadj"]),
     (5, "chart-5-usd-net-accumulation.csv",
-     "usd-netaccum-annual/usd_reserve_netaccum_data.csv",
+     "usd/usd-netaccum-annual/usd_reserve_netaccum_data.csv",
      ["date", "usd_netaccum"]),
 ]
 

@@ -520,7 +520,7 @@ FX_SOURCES = {
     "data/chart-1-world-fx-reserves-top-holders.csv":
         "global-reserves/top-holders/world_fx_reserves_top_holders_data.csv",
     "data/chart-2-usd-reserve-share-alloc.csv":
-        "global-reserves/usd-reserve-share-alloc/usd_reserve_share_alloc_data.csv",
+        "viewer-exports/usd-reserve-share-alloc/usd_reserve_share_alloc_data.csv",
     "data/chart-3-jpn-fx-intervention-history.csv":
         "global-reserves/jpn-fx-intervention-history/jpn_fx_intervention_history_data.csv",
 }
@@ -2424,7 +2424,7 @@ CHARTS_ROOT = Path(r"G:\My Drive\charts")
 # is gated against it cell by cell, which is stronger than gating against the
 # CSV the page was built from -- that CSV and the page share an origin, so they
 # would agree even if the cut had selected the wrong thing.
-COUPON_MD = (CHARTS_ROOT / "fiscal/jgb-coupon-composition/output"
+COUPON_MD = (CHARTS_ROOT / "sovereign-debt/jgb/jgb-coupon-composition/output"
              / "jgb_coupon_composition_table_20260819.md")
 # Fiscal years fully covered by the 12 August page's monthly policy path. Both
 # pages are published artifacts; this is the cross-publication check.
@@ -2527,7 +2527,7 @@ def qa_jgb_effective_rate(root, manifest, page, figs) -> None:
     # the master carries; a bill cut from the main case against a rate cut from
     # the risk case would still plot plausibly and would fail here.
     master = {r["fy"]: r for r in csv.DictReader(
-        open(CHARTS_ROOT / "fiscal/jgb-effective-rate/jgb_effective_rate_data.csv",
+        open(CHARTS_ROOT / "sovereign-debt/jgb/jgb-effective-rate-2p/jgb_effective_rate_data.csv",
              encoding="utf-8"))}
     worst, n = 0.0, 0
     for fy, r in by.items():
@@ -2858,7 +2858,7 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
 
     # ---------------------------------------------------------------- G2/G5
     print("\nG2/G5 — exhibit 1, foreign assets by type, against the library master")
-    m1 = lib(r"household-assets\hh-foreign-assets-by-type"
+    m1 = lib(r"household-assets\foreign\hh-foreign-assets-by-type"
              r"\hh_foreign_assets_by_type_fy_data.csv")
     b1 = stacked("chart_1")
     gate(len(b1) == 6, "six bands, as published", str(len(b1)))
@@ -2964,7 +2964,7 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
 
     print("\nG2/G5 — exhibit 4, fund fees, against the library master")
     m4 = {r["year"]: float(r["fee_pct"]) for r in
-          lib(r"household-assets\hh-fund-fees\hh_fund_fees_data.csv")
+          lib(r"household-assets\fund\hh-fund-fees\hh_fund_fees_data.csv")
           if r["series"] == "fsa_all_funds_weighted"}
     p4 = pairs("chart_4", "Average annual fee, weighted by fund assets")
     gate(len(p4) == 25 and len(m4) == 25, "twenty-five years, 2001 to 2025",
@@ -2973,7 +2973,7 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
         gate(near(p4.get(y), v, 0.005) and near(m4[y], v, 0.005),
              f"the caption's {v:.2f}% in {y} is on the page and in the master",
              f"page {p4.get(y)} / master {m4[y]}")
-    emx = [r for r in lib(r"household-assets\hh-fund-fees\hh_fund_fees_data.csv")
+    emx = [r for r in lib(r"household-assets\fund\hh-fund-fees\hh_fund_fees_data.csv")
            if r["series"] == "emaxis_slim_all_country"]
     gate(len(emx) == 1 and f'{float(emx[0]["fee_pct"]):.2f}' == "0.06",
          "the caption's 0.06% is the master's cheapest-tracker fee at 2dp",
@@ -2982,7 +2982,7 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
          "both are stated in the caption, since a one-point line cannot be drawn")
 
     print("\nG2/G5 — exhibit 6, foreign-equity fund flows, against the library master")
-    m6 = lib(r"household-assets\hh-foreign-equity-fund-flows"
+    m6 = lib(r"household-assets\foreign\hh-foreign-equity-fund-flows"
              r"\hh_foreign_equity_fund_flows_data.csv")
     p6 = pairs("chart_6", "Monthly net inflow")
     a6 = pairs("chart_6", "3-month average")
@@ -3104,7 +3104,7 @@ def qa_household_foreign_equity(root, manifest, page, figs) -> None:
               0.005), "and matches the library master re-read independently")
 
     print("\nG2/G4 — exhibit 10, BoJ ownership by maturity, and its projection")
-    m10 = {r["YM"]: r for r in lib(r"boj\ownership-share-segments-1-5"
+    m10 = {r["YM"]: r for r in lib(r"boj\ownership\ownership-share-segments-1-5"
                                    r"\japan_boj_ownership_share_1_5_data.csv")}
     segs = {"1\u20135Y": "seg_1_5", "5\u201310Y": "seg_5_10",
             "10\u201325Y": "seg_10_25", "25Y+": "seg_25p"}
