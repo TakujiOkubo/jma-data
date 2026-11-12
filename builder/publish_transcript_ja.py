@@ -95,6 +95,7 @@ PAGES = {
                    "publishes its official transcript, please refer to that instead."),
         NOTICE_JA=("本稿はYen Macro Researchによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
                    "公表した後は、そちらをご参照ください。"),
+        EN_ONLY=True,    # 2026-11-12 (Takuji): English-only opening
         # no opening statement (two sections); 9 time stamps, measured on the trimmed 38:13 video
         SPEAKER='浅田委員', N_QUESTIONS=7, N_SECTIONS=2, MIN_PARAS=40, MIN_TS=8,
         # reporters named in the annotated source; none may reach the page
@@ -104,7 +105,13 @@ _args = sys.argv[1:]
 assert '--page' in _args and _args.index('--page') + 1 < len(_args), f'--page one of {sorted(PAGES)}'
 PAGE = _args[_args.index('--page') + 1]
 assert PAGE in PAGES, f'--page one of {sorted(PAGES)}'
+EN_ONLY = False   # default: the 2026-09 layout (Japanese headline, EN + JA notice)
 globals().update(PAGES[PAGE])
+# 2026-11-12 (Takuji): the page is for an English audience, so everything above the
+# transcript is English only, says the transcript is in Japanese, and names neither
+# YouTube nor the broadcaster. Set per page with EN_ONLY=True.
+LANGUAGE_EN = ('The transcript is in Japanese, the language of the press conference. '
+               'We do not provide a translation.')
 PERK_FROM = os.path.join(REPO, '2026-08-21-canada-gross-net', 'index.html')   # disclaimer source
 # Subscription card. 2026-09-19 (Takuji): a page-specific card leading with BoJ-PSI.
 # 2026-10-30 (Takuji): one card for every free page, leading with the yen repatriation
@@ -244,12 +251,31 @@ def main():
     disc = re.findall(r'<p class="disclaimer">.*?</p>', canada, re.S)
     assert len(disc) == 1, len(disc)
 
+    if EN_ONLY:
+        # 2026-11-12 (Takuji): only paid members view the page, so no subscription card
+        perk = ''
+    article = f'<a href="{POST_URL}">Read the article</a> · ' if POST_URL else ''
+    watch = f'<a href="https://www.youtube.com/watch?v={VIDEO_ID}">Watch the press conference</a>'
+    if EN_ONLY:
+        tab_title = TITLE_EN
+        notice_html = (f'  <p lang="en">{html.escape(NOTICE_EN)}</p>\n'
+                       f'  <p lang="en">{html.escape(LANGUAGE_EN)}</p>')
+        head_html = f'  <h1 lang="en">{html.escape(TITLE_EN)}</h1>'
+        meta = f'{article}{watch}. Each time stamp links to that point in the video.'
+    else:
+        tab_title = TITLE_JA
+        notice_html = (f'  <p lang="en">{html.escape(NOTICE_EN)}</p>\n'
+                       f'  <p>{html.escape(NOTICE_JA)}</p>')
+        head_html = (f'  <h1>{html.escape(TITLE_JA)}</h1>\n'
+                     f'  <p class="en" lang="en">{html.escape(TITLE_EN)}</p>')
+        meta = f'{article}{watch} ({VIDEO_OWNER}, YouTube). Each time stamp links to that point in the video.'
+
     page = f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(TITLE_JA)} | Yen Macro Research</title>
+<title>{html.escape(tab_title)} | Yen Macro Research</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -268,14 +294,12 @@ def main():
 </div>
 
 <div class="banner top">
-  <p lang="en">{html.escape(NOTICE_EN)}</p>
-  <p>{html.escape(NOTICE_JA)}</p>
+{notice_html}
 </div>
 
 <header class="text">
-  <h1>{html.escape(TITLE_JA)}</h1>
-  <p class="en" lang="en">{html.escape(TITLE_EN)}</p>
-  <div class="meta" lang="en">{f'<a href="{POST_URL}">Read the article</a> · ' if POST_URL else ''}<a href="https://www.youtube.com/watch?v={VIDEO_ID}">Watch the press conference</a> ({VIDEO_OWNER}, YouTube). Each time stamp links to that point in the video.</div>
+{head_html}
+  <div class="meta" lang="en">{meta}</div>
   <div lang="en">
   {perk}
   </div>
@@ -324,15 +348,30 @@ def main():
     n_links = page.count('class="ts"')
     gate('every timestamp became a video link', n_links == n_ts_src and n_ts_src > MIN_TS,
          f'{n_links} links / {n_ts_src} timestamps')
-    gate('subscription card present twice (top and end)',
-         page.count('Paid subscribers get Yen Macro Monitors') == 2 and page.count('class="perkbox') == 2, '')
-    li = re.findall(r'<li><strong>([^<]+)</strong>', page)
-    gate('card leads with the repatriation monitor, then BoJ-PSI and the yield-curve model (both cards)',
-         li == ['Yen repatriation monitor', 'BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)
-    gate('card names the slide decks (both cards)', page.count('presentation slide decks') == 2, '')
-    gate('headline without 文字起こし', f'<h1>{TITLE_JA}</h1>' in page
-         and '文字起こし（2026' not in page, '')
-    gate('notice present (EN and JA)', NOTICE_EN.split('.')[0] in page and '非公式の文字起こし' in page, '')
+    if EN_ONLY:
+        gate('no subscription card or subscribe button',
+             'perkbox' not in page.split('</style>', 1)[1] and 'Paid subscribers get' not in page
+             and not re.search(r'>\s*Subscribe', page), '')
+    else:
+        gate('subscription card present twice (top and end)',
+             page.count('Paid subscribers get Yen Macro Monitors') == 2 and page.count('class="perkbox') == 2, '')
+        li = re.findall(r'<li><strong>([^<]+)</strong>', page)
+        gate('card leads with the repatriation monitor, then BoJ-PSI and the yield-curve model (both cards)',
+             li == ['Yen repatriation monitor', 'BoJ Policy Stance Indicator', 'JGB yield-curve model'] * 2, li)
+        gate('card names the slide decks (both cards)', page.count('presentation slide decks') == 2, '')
+    if EN_ONLY:
+        top = page.split('<article', 1)[0]
+        gate('opening is English only (no Japanese above the transcript)',
+             not re.search(r'[぀-ヿ㐀-鿿＀-￯]', top), '')
+        gate('opening names neither YouTube nor the broadcaster',
+             'YouTube' not in top.replace('youtube.com/watch', '') and VIDEO_OWNER not in top, '')
+        gate('English headline and notice, with the language note',
+             f'<h1 lang="en">{html.escape(TITLE_EN)}</h1>' in page and NOTICE_EN.split('.')[0] in page
+             and LANGUAGE_EN.split('.')[0] in page, '')
+    else:
+        gate('headline without 文字起こし', f'<h1>{TITLE_JA}</h1>' in page
+             and '文字起こし（2026' not in page, '')
+        gate('notice present (EN and JA)', NOTICE_EN.split('.')[0] in page and '非公式の文字起こし' in page, '')
     gate('article link present' if POST_URL else 'no article link (none yet)',
          page.count(POST_URL) == 1 if POST_URL else 'Read the article' not in page, '')
     # absence gates
