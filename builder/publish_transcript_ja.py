@@ -81,6 +81,24 @@ PAGES = {
                '薄井', '古屋敷', '清水', '土屋', '伊藤', '和田', '岩田', '直井', '高岡', '高橋', '岡本',
                '吉岡', '石田', '上田', '笹井', 'ニッキン', '西日本新聞', '北海道新聞', 'ニュースソクラ',
                'マーケットニュース', '新聞', '通信')),
+    'asada-2026-11-12': dict(
+        SRC=(r'G:\My Drive\JMA drive\Research2026\reports\2026-11\2026-11-12-asada-presser-transcript'
+             r'\drafts\2026-11-12-asada-presser-transcript-ja-v01-claude.md'),
+        SLUG='2026-11-12-boj-asada-presser-transcript',
+        VIDEO_ID='4yDG9Ay9E9w',
+        VIDEO_OWNER='日テレNEWS',
+        POST_URL=None,   # no article yet
+        DATE_EN='12 November 2026',
+        TITLE_JA='浅田審議委員 記者会見（2026年11月12日）',
+        TITLE_EN="Board member Asada's press conference in Nagasaki, 12 November 2026: Japanese transcript",
+        NOTICE_EN=("This is an unofficial transcript prepared by Yen Macro Research. Once the Bank of Japan "
+                   "publishes its official transcript, please refer to that instead."),
+        NOTICE_JA=("本稿はYen Macro Researchによる非公式の文字起こしです。日本銀行が公式の記者会見要旨を"
+                   "公表した後は、そちらをご参照ください。"),
+        # no opening statement (two sections); 9 time stamps, measured on the trimmed 38:13 video
+        SPEAKER='浅田委員', N_QUESTIONS=7, N_SECTIONS=2, MIN_PARAS=40, MIN_TS=8,
+        # reporters named in the annotated source; none may reach the page
+        NAMES=('田中', '木原', '長原', '牧野', '木下', '伊沢', '上田', '新聞', '通信')),
 }
 _args = sys.argv[1:]
 assert '--page' in _args and _args.index('--page') + 1 < len(_args), f'--page one of {sorted(PAGES)}'
