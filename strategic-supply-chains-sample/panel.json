@@ -7,12 +7,12 @@
  "title": "Strategic supply chains: a free sample",
  "date": "20 November 2026",
  "updated": "2026-11-20",
- "intro_html": "<p class=\"intro\"><strong>A free sample from Strategic supply chains</strong>, a Yen Macro Monitors series for paid subscribers. The series tracks who supplies whom in industries that governments call strategic, from UN Comtrade data, 2000 to 2025, updated as new data arrive.</p><p class=\"intro\">One finding from each page:</p><ul class=\"intro\"><li><a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains/\">Intermediate goods</a>: China was the largest supplier of intermediate goods to 2 of the other 11 Asian economies in 2000 and to 10 in 2025.</li><li><a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-transport/\">Transport machinery</a>: Japan supplied 74% of the motor-vehicle parts traded among 12 Asian economies in 2000 and 26% in 2025; China supplied 3.5% and 37%.</li><li><a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-pharma/\">Pharmaceuticals</a>: by weight, China supplied 73% of US medicine-ingredient imports in 2025, 76% of the EU's and 83% of Japan's.</li><li><a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-semiconductors/\">Semiconductors</a>: Taiwan was the largest direct supplier of chips to the US, the EU, Japan, Korea, the UK, Canada, Australia and China in 2025.</li><li><a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-rare-earths/\">Rare earths</a>: by weight, China supplied 72% of Japan's imports of metal permanent magnets in 2008 and 33% in 2025.</li></ul><p class=\"intro\">Below is the series' transport animation, with its guide to reading the charts. The full pages add interactive charts, every importer and supplier, the notes on the data, and annual updates.</p>",
+ "intro_html": "<p class=\"intro\">This is a free sample page from the Strategic Supply Chain Monitor, a new feature of the Yen Macro Monitors pages, available for paid subscribers. The Strategic Supply Chain Monitor includes graphical analysis of supply chains in key industries: how the hub for each industry changed, in the world and in Asia, between 2000 and 2025. As of November 20, 2026, preliminary representations are available for Transportation equipment, Semiconductors, Pharmaceuticals, Rare Earths and the overall intermediate goods.</p>",
  "charts": [
   {
    "n": 1,
    "kind": "video",
-   "section": "Sample: motor-vehicle parts in Asia",
+   "section": "Sample: motor-vehicle parts trade in Asia",
    "title": "Motor-vehicle parts trade among 12 Asian economies, 2000-2025",
    "subtitle": "Opens with a short guide to reading the chart (about 1 min 50 s). One scale for all years.",
    "src": "media/E4g_transport_parts_network_guided_2000_2025.mp4",
@@ -21,19 +21,41 @@
    "loop": true,
    "alt": "Animation of motor-vehicle parts trade among 12 Asian economies, 2000 to 2025, opening with a six-step guide to reading the chart. Each economy is a circle sized by its trade with the other 11; each receives two arrows, from its largest supplier in that supplier's colour and from its second largest in grey; the outer ring takes the colour of its largest supplier. In 2000 Japan supplied 74% of the parts traded among the 12 and was the largest supplier to all 11 others. In 2023 China became the largest supplier to more economies than Japan, 6 against 5; in 2024 its share passed Japan's, 33% against 28%; in 2025 China was the largest supplier to 7 economies and Japan to 5.",
    "source": "Source: Yen Macro Research calculations from UN Comtrade. Parts = HS 8706, 8707, 8708 and 8409. Taiwan (all years) and Vietnam (2024-25) from partners' reports."
-  },
-  {
-   "n": 2,
-   "kind": "image",
-   "section": "How to read the network charts",
-   "title": "How to read the supply-chain network charts",
-   "src": "media/how_to_read_network_charts.png",
-   "alt": "Reading guide for the network charts on this page and the industry pages, shown on the 2025 motor-vehicle parts chart for 12 Asian economies. Circle: an economy's trade with the others in the chart, the number beside the name in US$ billion. Arrows: each economy gets two, from its largest supplier in that supplier's colour and from its second largest in grey; a thicker arrow means more trade. Outer ring: the colour of the economy's largest supplier. Filled circle: the economy is the largest supplier to at least one other. Every year uses the same places and one scale. Example: Japan's outer ring is coral, so China was Japan's largest supplier; Japan and China are the only filled circles.",
-   "caption": "The same reading applies to the ring network charts on every page in the series.",
-   "source": "Source: Yen Macro Research calculations from UN Comtrade (motor-vehicle parts, HS 8706, 8707, 8708, 8409)."
   }
  ],
  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Yen Macro Research. The full Strategic supply chains series, with interactive charts and annual updates, is for paid subscribers.",
  "_note": "Free teaser of the paid Strategic supply chains series (Takuji, 2026-11-20: lead with transport). Built with the paid builder, then copied into the public jma-data repo. Every finding line is a sentence from that page's reviewed text.",
- "updated_hash": "e9a105162fe6e384"
+ "updated_hash": "1ea47cfaba6ac3ae",
+ "closing": {
+  "title": "One finding from each page",
+  "columns": [
+   {
+    "head": "Asia and transport",
+    "items": [
+     {
+      "html": "<a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains/\">Intermediate goods</a>: China was the largest supplier of intermediate goods to 2 of the other 11 Asian economies in 2000 and to 10 in 2025."
+     },
+     {
+      "html": "<a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-transport/\">Transportation equipment</a>: Japan supplied 74% of the motor-vehicle parts traded among 12 Asian economies in 2000 and 26% in 2025; China supplied 3.5% and 37%."
+     }
+    ]
+   },
+   {
+    "head": "Other industries",
+    "items": [
+     {
+      "html": "<a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-semiconductors/\">Semiconductors</a>: Taiwan was the largest direct supplier of chips to the US, the EU, Japan, Korea, the UK, Canada, Australia and China in 2025."
+     },
+     {
+      "html": "<a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-pharma/\">Pharmaceuticals</a>: by weight, China supplied 73% of US medicine-ingredient imports in 2025, 76% of the EU's and 83% of Japan's."
+     },
+     {
+      "html": "<a href=\"https://jma-data-paid.pages.dev/strategic-supply-chains-rare-earths/\">Rare Earths</a>: by weight, China supplied 72% of Japan's imports of metal permanent magnets in 2008 and 33% in 2025."
+     }
+    ]
+   }
+  ],
+  "note": "Each name opens its page. The full pages add interactive charts, every importer and supplier, the notes on the data, and annual updates."
+ },
+ "perk_position": "end"
 }
