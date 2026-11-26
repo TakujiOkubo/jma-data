@@ -6,7 +6,7 @@
  "downloads": false,
  "title": "Strategic supply chains: a free sample",
  "date": "20 November 2026",
- "updated": "2026-11-20",
+ "updated": "2026-11-26",
  "intro_html": "<p class=\"intro\">This is a free sample page from the Strategic Supply Chain Monitor, a new feature of the Yen Macro Monitors pages, available for paid subscribers. The Strategic Supply Chain Monitor includes graphical analysis of supply chains in key industries: how the hub for each industry changed, in the world and in Asia, between 2000 and 2025. As of November 20, 2026, preliminary representations are available for Transportation equipment, Semiconductors, Pharmaceuticals, Rare Earths and the overall intermediate goods.</p>",
  "charts": [
   {
@@ -19,13 +19,14 @@
    "poster": "media/E4_transport_parts_network_poster_2025.png",
    "gif": "media/E4g_transport_parts_network_guided_2000_2025.gif",
    "loop": true,
+   "caption": "Chart design adapted from the supply-hub charts in Li, Meng and Wang (2019), Global Value Chain Development Report 2019.",
    "alt": "Animation of motor-vehicle parts trade among 12 Asian economies, 2000 to 2025, opening with a six-step guide to reading the chart. Each economy is a circle sized by its trade with the other 11; each receives two arrows, from its largest supplier in that supplier's colour and from its second largest in grey; the outer ring takes the colour of its largest supplier. In 2000 Japan supplied 74% of the parts traded among the 12 and was the largest supplier to all 11 others. In 2023 China became the largest supplier to more economies than Japan, 6 against 5; in 2024 its share passed Japan's, 33% against 28%; in 2025 China was the largest supplier to 7 economies and Japan to 5.",
    "source": "Source: Yen Macro Research calculations from UN Comtrade. Parts = HS 8706, 8707, 8708 and 8409. Taiwan (all years) and Vietnam (2024-25) from partners' reports."
   }
  ],
  "bottom_banner": "The charts and data on this page are free to use and reproduce with attribution to Yen Macro Research. The full Strategic supply chains series, with interactive charts and annual updates, is for paid subscribers.",
  "_note": "Free teaser of the paid Strategic supply chains series (Takuji, 2026-11-20: lead with transport). Built with the paid builder, then copied into the public jma-data repo. Every finding line is a sentence from that page's reviewed text.",
- "updated_hash": "1ea47cfaba6ac3ae",
+ "updated_hash": "85d5d8dd2ec420c6",
  "closing": {
   "title": "One finding from each page",
   "columns": [
